@@ -7,8 +7,13 @@ Base URL: `https://api.fridgr.app/api/v1`
 ### Authentication
 All authenticated endpoints require a Bearer token in the Authorization header:
 ```
-Authorization: Bearer <jwt_token>
+Authorization: Bearer <jwt_access_token>
 ```
+
+**Token Lifecycle:**
+- Access Token: 15 minutes expiry
+- Refresh Token: 7 days expiry (rotating)
+- Refresh tokens are single-use and rotated on each refresh
 
 ### Common Headers
 ```
@@ -49,7 +54,7 @@ Response: 201 Created
   "displayName": "John Doe",
   "accessToken": "eyJhbGciOiJIUzI1NiIs...",
   "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
-  "expiresIn": 900,
+  "expiresIn": 900, // 15 minutes in seconds
   "defaultHouseholdId": "550e8400-e29b-41d4-a716-446655440002"
 }
 
@@ -73,7 +78,7 @@ Response: 200 OK
   "userId": "550e8400-e29b-41d4-a716-446655440001",
   "accessToken": "eyJhbGciOiJIUzI1NiIs...",
   "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
-  "expiresIn": 900,
+  "expiresIn": 900, // 15 minutes in seconds
   "households": [
     {
       "id": "550e8400-e29b-41d4-a716-446655440002",
@@ -495,14 +500,15 @@ Errors:
 - 403: Access denied
 ```
 
-### Update Item
+### Update Item (Partial Update)
 ```http
-PUT /api/v1/households/{householdId}/items/{itemId}
+PATCH /api/v1/households/{householdId}/items/{itemId}
 
 Headers:
 Authorization: Bearer <token>
+If-Match: "W/\"1234567890\"" // Required - ETag from previous GET or update
 
-Request:
+Request (only include fields to update):
 {
   "name": "Organic Whole Milk",
   "quantity": 0.5,
@@ -510,18 +516,77 @@ Request:
 }
 
 Response: 200 OK
+Headers:
+ETag: "W/\"1234567891\""
+
+Body:
 {
   "id": "550e8400-e29b-41d4-a716-446655440006",
   "name": "Organic Whole Milk",
   "quantity": 0.5,
   "unit": "gallon",
   "updatedAt": "2024-01-16T00:00:00Z",
-  "updatedBy": "550e8400-e29b-41d4-a716-446655440001"
+  "updatedBy": "550e8400-e29b-41d4-a716-446655440001",
+  "version": 2
 }
 
 Errors:
 - 404: Item not found
 - 403: Viewer role cannot edit
+- 409: Conflict - ETag mismatch (returns current state)
+- 428: Precondition Required - If-Match header missing
+```
+
+### Replace Item (Full Update)
+```http
+PUT /api/v1/households/{householdId}/items/{itemId}
+
+Headers:
+Authorization: Bearer <token>
+If-Match: "W/\"1234567890\"" // Required - ETag from previous GET or update
+
+Request (all fields required):
+{
+  "name": "Organic Whole Milk",
+  "quantity": 0.5,
+  "unit": "gallon",
+  "location": "fridge",
+  "category": "dairy",
+  "expirationDate": "2024-01-20",
+  "expirationDateType": "useBy",
+  "purchaseDate": "2024-01-15",
+  "price": 5.99,
+  "notes": "Half consumed"
+}
+
+Response: 200 OK
+Headers:
+ETag: "W/\"1234567891\""
+
+Body:
+{
+  "id": "550e8400-e29b-41d4-a716-446655440006",
+  "name": "Organic Whole Milk",
+  "quantity": 0.5,
+  "unit": "gallon",
+  "location": "fridge",
+  "category": "dairy",
+  "expirationDate": "2024-01-20",
+  "expirationDateType": "useBy",
+  "purchaseDate": "2024-01-15",
+  "price": 5.99,
+  "notes": "Half consumed",
+  "updatedAt": "2024-01-16T00:00:00Z",
+  "updatedBy": "550e8400-e29b-41d4-a716-446655440001",
+  "version": 2
+}
+
+Errors:
+- 400: Missing required fields
+- 404: Item not found
+- 403: Viewer role cannot edit
+- 409: Conflict - ETag mismatch (returns current state)
+- 428: Precondition Required - If-Match header missing
 ```
 
 ### Delete Item

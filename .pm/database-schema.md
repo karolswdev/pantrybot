@@ -85,6 +85,8 @@ CREATE INDEX idx_household_members_role ON household_members(household_id, role)
 
 ### Inventory Items Table
 ```sql
+-- Simplified: Only tracks CURRENT state of items in inventory
+-- Historical data is tracked in item_history table
 CREATE TABLE inventory_items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     household_id UUID NOT NULL REFERENCES households(id) ON DELETE CASCADE,
@@ -96,36 +98,37 @@ CREATE TABLE inventory_items (
     brand VARCHAR(100),
     barcode VARCHAR(50),
     expiration_date DATE,
-    best_before_date DATE,
+    expiration_date_type VARCHAR(20) DEFAULT 'useBy', -- 'useBy' or 'bestBefore'
     purchase_date DATE,
     price DECIMAL(10,2),
     currency VARCHAR(3) DEFAULT 'USD',
     notes TEXT,
     image_url VARCHAR(500),
     is_shared BOOLEAN DEFAULT true,
+    row_version BIGINT DEFAULT 0, -- For optimistic concurrency control
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_by UUID NOT NULL REFERENCES users(id),
     updated_at TIMESTAMP,
     updated_by UUID REFERENCES users(id),
-    consumed_at TIMESTAMP,
-    consumed_by UUID REFERENCES users(id),
-    deleted_at TIMESTAMP,
-    deleted_by UUID REFERENCES users(id),
-    CONSTRAINT valid_quantity CHECK (quantity >= 0),
+    CONSTRAINT valid_quantity CHECK (quantity > 0), -- Items with 0 quantity are removed
     CONSTRAINT valid_location CHECK (location IN ('fridge', 'freezer', 'pantry', 'other')),
+    CONSTRAINT valid_expiration_type CHECK (expiration_date_type IN ('useBy', 'bestBefore')),
     CONSTRAINT valid_dates CHECK (
-        (expiration_date IS NULL OR expiration_date >= purchase_date) AND
-        (best_before_date IS NULL OR best_before_date >= purchase_date)
+        expiration_date IS NULL OR expiration_date >= purchase_date
     )
 );
+
+-- Note: No consumed_at, consumed_by, deleted_at, deleted_by fields
+-- When an item is consumed/deleted, it is removed from this table
+-- and the action is recorded in item_history
 
 CREATE INDEX idx_items_household_id ON inventory_items(household_id);
 CREATE INDEX idx_items_household_location ON inventory_items(household_id, location);
 CREATE INDEX idx_items_household_expiration ON inventory_items(household_id, expiration_date) 
-    WHERE deleted_at IS NULL AND expiration_date IS NOT NULL;
+    WHERE expiration_date IS NOT NULL;
 CREATE INDEX idx_items_household_category ON inventory_items(household_id, category);
 CREATE INDEX idx_items_barcode ON inventory_items(barcode) WHERE barcode IS NOT NULL;
-CREATE INDEX idx_items_deleted_at ON inventory_items(deleted_at) WHERE deleted_at IS NULL;
+CREATE INDEX idx_items_row_version ON inventory_items(id, row_version); -- For concurrency checks
 ```
 
 ### Item History Table (Audit Log)

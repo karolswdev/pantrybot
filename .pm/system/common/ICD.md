@@ -50,14 +50,42 @@ This document defines all interfaces, contracts, and events for the Fridgr syste
 
 ### Domain Events
 ```csharp
+// Complete representation of all item data for downstream consumers
 public record ItemAdded(
     Guid ItemId,
     Guid HouseholdId,
     string Name,
-    int Quantity,
+    decimal Quantity,
+    string Unit,
     DateTime? ExpirationDate,
+    string ExpirationDateType, // "useBy" or "bestBefore"
     string Location,
+    string Category,
+    DateTime? PurchaseDate,
+    decimal? Price,
+    string? Notes,
+    long Version,
     Guid AddedByUserId,
+    DateTime Timestamp
+);
+
+public record ItemUpdated(
+    Guid ItemId,
+    Guid HouseholdId,
+    string Name,
+    decimal Quantity,
+    string Unit,
+    DateTime? ExpirationDate,
+    string ExpirationDateType,
+    string Location,
+    string Category,
+    DateTime? PurchaseDate,
+    decimal? Price,
+    string? Notes,
+    long Version,
+    long PreviousVersion,
+    Dictionary<string, object> ChangedFields, // Track what actually changed
+    Guid UpdatedByUserId,
     DateTime Timestamp
 );
 
@@ -65,14 +93,24 @@ public record ItemExpiringSoon(
     Guid ItemId,
     Guid HouseholdId,
     string Name,
+    decimal Quantity,
+    string Unit,
+    string Location,
+    string Category,
     DateTime ExpirationDate,
-    int DaysUntilExpiration
+    string ExpirationDateType,
+    int DaysUntilExpiration,
+    DateTime Timestamp
 );
 
 public record ItemConsumed(
     Guid ItemId,
     Guid HouseholdId,
-    int Quantity,
+    string Name,
+    decimal QuantityConsumed,
+    decimal RemainingQuantity,
+    string Unit,
+    string ConsumeReason, // "used", "expired", "spoiled"
     Guid ConsumedByUserId,
     DateTime Timestamp
 );
@@ -80,17 +118,27 @@ public record ItemConsumed(
 public record ItemWasted(
     Guid ItemId,
     Guid HouseholdId,
-    int Quantity,
-    string Reason,
+    string Name,
+    decimal QuantityWasted,
+    string Unit,
+    string Category,
+    DateTime? ExpirationDate,
+    decimal? OriginalPrice,
+    decimal EstimatedWasteValue,
+    string Reason, // "expired", "spoiled", "forgotten", "other"
     Guid WastedByUserId,
     DateTime Timestamp
 );
 
 public record HouseholdMemberAdded(
     Guid HouseholdId,
+    string HouseholdName,
     Guid UserId,
+    string UserEmail,
+    string UserDisplayName,
     string Role,
     Guid AddedByUserId,
+    string AddedByUserEmail,
     DateTime Timestamp
 );
 ```
