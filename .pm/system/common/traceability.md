@@ -8,7 +8,7 @@ This document maps system-level requirements to service-level requirements for t
 | System Requirement ID | Title | Tier | Linked Services (SVC IDs) |
 |----------------------|-------|------|---------------------------|
 | SYS-FUNC-001 | User registration with email/password | MVP | SVC-users-FUNC-001 |
-| SYS-FUNC-002 | JWT authentication | MVP | SVC-users-FUNC-002 |
+| SYS-FUNC-002 | JWT authentication | MVP | SVC-users-FUNC-002 (FE Verified) |
 | SYS-FUNC-003 | Password reset via email | MVP | SVC-users-FUNC-003, SVC-notifications-FUNC-001 |
 | SYS-FUNC-004 | User profiles with display names | MVP | SVC-users-FUNC-004 |
 | SYS-FUNC-005 | Create multiple households | MVP | SVC-users-FUNC-005 |
@@ -49,6 +49,9 @@ This document maps system-level requirements to service-level requirements for t
 | SYS-PERF-002 | 100 concurrent users per household | MVP | SVC-inventory-PERF-001 |
 | SYS-PERF-003 | 1000 items per household | MVP | SVC-inventory-PERF-002 |
 | SYS-PERF-004 | 1 second real-time propagation | MVP | SVC-inventory-PERF-003 |
+| SYS-PORT-001 | System MUST run in Docker containers | MVP | All services (FE Verified) |
+| SYS-PORT-002 | Frontend MUST work as Progressive Web App | MVP | Frontend service (FE Verified) |
+| SYS-PORT-003 | System MUST support PostgreSQL 14+ | MVP | SVC-inventory, SVC-users |
 
 ## Service Dependencies
 

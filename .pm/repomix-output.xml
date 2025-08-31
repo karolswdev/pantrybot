@@ -1,0 +1,6201 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+system/
+  common/
+    ICD.md
+    traceability.md
+  mvp/
+    SRS.md
+api-specifications.md
+concurrency-control.md
+database-schema.md
+feature-roadmap.md
+observability-strategy.md
+privacy-gdpr-compliance.md
+technical-architecture.md
+telegram-bot-requirements.md
+ui-ux-specifications.md
+user-stories.md
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="system/common/ICD.md">
+# Interface Control Document (ICD)
+
+## Overview
+This document defines all interfaces, contracts, and events for the Fridgr system.
+
+## REST API Interfaces
+
+### Authentication Endpoints
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+- `POST /api/auth/refresh` - Refresh JWT token
+- `POST /api/auth/logout` - User logout
+- `POST /api/auth/forgot-password` - Password reset request
+- `POST /api/auth/reset-password` - Password reset confirmation
+
+### Household Management
+- `GET /api/households` - List user's households
+- `POST /api/households` - Create household
+- `GET /api/households/{id}` - Get household details
+- `PUT /api/households/{id}` - Update household
+- `DELETE /api/households/{id}` - Delete household
+- `POST /api/households/{id}/members` - Invite member
+- `DELETE /api/households/{id}/members/{userId}` - Remove member
+- `PUT /api/households/{id}/members/{userId}/role` - Update member role
+
+### Inventory Management
+- `GET /api/households/{householdId}/items` - List items
+- `POST /api/households/{householdId}/items` - Add item
+- `GET /api/households/{householdId}/items/{id}` - Get item details
+- `PUT /api/households/{householdId}/items/{id}` - Update item
+- `DELETE /api/households/{householdId}/items/{id}` - Delete item
+- `POST /api/households/{householdId}/items/{id}/consume` - Mark as consumed
+- `POST /api/households/{householdId}/items/{id}/waste` - Mark as wasted
+- `POST /api/households/{householdId}/items/{id}/move` - Move location
+
+### Notifications
+- `GET /api/notifications/settings` - Get notification preferences
+- `PUT /api/notifications/settings` - Update preferences
+- `POST /api/notifications/telegram/link` - Link Telegram account
+- `DELETE /api/notifications/telegram/unlink` - Unlink Telegram account
+- `GET /api/notifications/history` - Get notification history
+
+### Shopping Lists
+- `GET /api/households/{householdId}/shopping-lists` - List shopping lists
+- `POST /api/households/{householdId}/shopping-lists` - Create list
+- `PUT /api/households/{householdId}/shopping-lists/{id}` - Update list
+- `POST /api/households/{householdId}/shopping-lists/{id}/items` - Add item to list
+
+## Event Contracts
+
+### Domain Events
+```csharp
+// Complete representation of all item data for downstream consumers
+public record ItemAdded(
+    Guid ItemId,
+    Guid HouseholdId,
+    string Name,
+    decimal Quantity,
+    string Unit,
+    DateTime? ExpirationDate,
+    string ExpirationDateType, // "useBy" or "bestBefore"
+    string Location,
+    string Category,
+    DateTime? PurchaseDate,
+    decimal? Price,
+    string? Notes,
+    long Version,
+    Guid AddedByUserId,
+    DateTime Timestamp
+);
+
+public record ItemUpdated(
+    Guid ItemId,
+    Guid HouseholdId,
+    string Name,
+    decimal Quantity,
+    string Unit,
+    DateTime? ExpirationDate,
+    string ExpirationDateType,
+    string Location,
+    string Category,
+    DateTime? PurchaseDate,
+    decimal? Price,
+    string? Notes,
+    long Version,
+    long PreviousVersion,
+    Dictionary<string, object> ChangedFields, // Track what actually changed
+    Guid UpdatedByUserId,
+    DateTime Timestamp
+);
+
+public record ItemExpiringSoon(
+    Guid ItemId,
+    Guid HouseholdId,
+    string Name,
+    decimal Quantity,
+    string Unit,
+    string Location,
+    string Category,
+    DateTime ExpirationDate,
+    string ExpirationDateType,
+    int DaysUntilExpiration,
+    DateTime Timestamp
+);
+
+public record ItemConsumed(
+    Guid ItemId,
+    Guid HouseholdId,
+    string Name,
+    decimal QuantityConsumed,
+    decimal RemainingQuantity,
+    string Unit,
+    string ConsumeReason, // "used", "expired", "spoiled"
+    Guid ConsumedByUserId,
+    DateTime Timestamp
+);
+
+public record ItemWasted(
+    Guid ItemId,
+    Guid HouseholdId,
+    string Name,
+    decimal QuantityWasted,
+    string Unit,
+    string Category,
+    DateTime? ExpirationDate,
+    decimal? OriginalPrice,
+    decimal EstimatedWasteValue,
+    string Reason, // "expired", "spoiled", "forgotten", "other"
+    Guid WastedByUserId,
+    DateTime Timestamp
+);
+
+public record HouseholdMemberAdded(
+    Guid HouseholdId,
+    string HouseholdName,
+    Guid UserId,
+    string UserEmail,
+    string UserDisplayName,
+    string Role,
+    Guid AddedByUserId,
+    string AddedByUserEmail,
+    DateTime Timestamp
+);
+```
+
+### Notification Events
+```csharp
+public record NotificationRequested(
+    Guid UserId,
+    string Type,
+    string Channel,
+    Dictionary<string, object> Payload,
+    DateTime Timestamp
+);
+
+public record TelegramMessageRequested(
+    string ChatId,
+    string Message,
+    Dictionary<string, object> Metadata
+);
+```
+
+## Data Transfer Objects (DTOs)
+
+### Request DTOs
+```csharp
+public class CreateItemRequest
+{
+    public string Name { get; set; }
+    public int Quantity { get; set; }
+    public string Unit { get; set; }
+    public DateTime? ExpirationDate { get; set; }
+    public DateTime? BestBeforeDate { get; set; }
+    public string Location { get; set; } // "fridge", "freezer", "pantry"
+    public string Category { get; set; }
+    public DateTime? PurchaseDate { get; set; }
+    public decimal? Price { get; set; }
+    public string Notes { get; set; }
+}
+
+public class UpdateItemRequest
+{
+    public string Name { get; set; }
+    public int? Quantity { get; set; }
+    public string Unit { get; set; }
+    public DateTime? ExpirationDate { get; set; }
+    public DateTime? BestBeforeDate { get; set; }
+    public string Location { get; set; }
+    public string Category { get; set; }
+    public string Notes { get; set; }
+}
+
+public class ConsumeItemRequest
+{
+    public int Quantity { get; set; }
+    public string Notes { get; set; }
+}
+
+public class CreateHouseholdRequest
+{
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string TimeZone { get; set; }
+}
+
+public class InviteMemberRequest
+{
+    public string Email { get; set; }
+    public string Role { get; set; } // "admin", "member", "viewer"
+}
+
+public class LinkTelegramRequest
+{
+    public string VerificationCode { get; set; }
+}
+
+public class NotificationSettingsRequest
+{
+    public bool EmailEnabled { get; set; }
+    public bool InAppEnabled { get; set; }
+    public bool TelegramEnabled { get; set; }
+    public int ExpirationWarningDays { get; set; }
+    public string[] NotificationTypes { get; set; }
+    public string PreferredTime { get; set; } // HH:mm format
+}
+```
+
+### Response DTOs
+```csharp
+public class ItemResponse
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+    public int Quantity { get; set; }
+    public string Unit { get; set; }
+    public DateTime? ExpirationDate { get; set; }
+    public DateTime? BestBeforeDate { get; set; }
+    public string Location { get; set; }
+    public string Category { get; set; }
+    public DateTime? PurchaseDate { get; set; }
+    public decimal? Price { get; set; }
+    public string Notes { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public Guid CreatedBy { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public Guid? UpdatedBy { get; set; }
+    public int? DaysUntilExpiration { get; set; }
+    public string ExpirationStatus { get; set; } // "fresh", "expiring_soon", "expired"
+}
+
+public class HouseholdResponse
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string TimeZone { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public List<HouseholdMemberResponse> Members { get; set; }
+    public int TotalItems { get; set; }
+    public int ExpiringItems { get; set; }
+}
+
+public class HouseholdMemberResponse
+{
+    public Guid UserId { get; set; }
+    public string Email { get; set; }
+    public string DisplayName { get; set; }
+    public string Role { get; set; }
+    public DateTime JoinedAt { get; set; }
+}
+```
+
+## WebSocket Contracts
+
+### Real-time Updates
+```json
+{
+  "type": "item.updated",
+  "householdId": "uuid",
+  "payload": {
+    "itemId": "uuid",
+    "changes": {},
+    "updatedBy": "uuid",
+    "timestamp": "2024-01-01T00:00:00Z"
+  }
+}
+
+{
+  "type": "notification.new",
+  "userId": "uuid",
+  "payload": {
+    "id": "uuid",
+    "type": "expiration_warning",
+    "message": "3 items expiring soon",
+    "timestamp": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+## Telegram Bot Commands
+
+### User Commands
+- `/start` - Initialize bot and get verification code
+- `/link <code>` - Link Telegram account to Fridgr
+- `/unlink` - Unlink Telegram account
+- `/status` - Show current household inventory status
+- `/expiring` - List items expiring soon
+- `/settings` - Configure notification preferences
+- `/help` - Show available commands
+
+### Bot Webhook Payload
+```json
+{
+  "update_id": 123456789,
+  "message": {
+    "message_id": 1,
+    "from": {
+      "id": 123456789,
+      "username": "user"
+    },
+    "chat": {
+      "id": 123456789,
+      "type": "private"
+    },
+    "text": "/command",
+    "date": 1640995200
+  }
+}
+```
+
+## Error Response Format
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid request data",
+    "details": [
+      {
+        "field": "expirationDate",
+        "message": "Must be a future date"
+      }
+    ],
+    "timestamp": "2024-01-01T00:00:00Z",
+    "traceId": "uuid"
+  }
+}
+```
+
+## Rate Limiting Headers
+- `X-RateLimit-Limit` - Request limit per window
+- `X-RateLimit-Remaining` - Remaining requests in window
+- `X-RateLimit-Reset` - Unix timestamp when window resets
+
+## Authentication Headers
+- `Authorization: Bearer <jwt_token>`
+- `X-Household-Id` - Active household context (optional)
+
+## API Versioning
+- Version in URL path: `/api/v1/...`
+- Version in header: `X-API-Version: 1.0`
+</file>
+
+<file path="system/common/traceability.md">
+# System to Service Requirements Traceability Matrix
+
+## Overview
+This document maps system-level requirements to service-level requirements for traceability.
+
+## Traceability Matrix
+
+| System Requirement ID | Title | Tier | Linked Services (SVC IDs) |
+|----------------------|-------|------|---------------------------|
+| SYS-FUNC-001 | User registration with email/password | MVP | SVC-users-FUNC-001 |
+| SYS-FUNC-002 | JWT authentication | MVP | SVC-users-FUNC-002 |
+| SYS-FUNC-003 | Password reset via email | MVP | SVC-users-FUNC-003, SVC-notifications-FUNC-001 |
+| SYS-FUNC-004 | User profiles with display names | MVP | SVC-users-FUNC-004 |
+| SYS-FUNC-005 | Create multiple households | MVP | SVC-users-FUNC-005 |
+| SYS-FUNC-006 | Users belong to multiple households | MVP | SVC-users-FUNC-006 |
+| SYS-FUNC-007 | Three role levels | MVP | SVC-users-FUNC-007 |
+| SYS-FUNC-008 | Invite members via email | MVP | SVC-users-FUNC-008, SVC-notifications-FUNC-002 |
+| SYS-FUNC-009 | Household activity logs | MVP | SVC-users-FUNC-009, SVC-inventory-FUNC-001 |
+| SYS-FUNC-010 | Add inventory items | MVP | SVC-inventory-FUNC-002 |
+| SYS-FUNC-011 | Track use by and best before dates | MVP | SVC-inventory-FUNC-003 |
+| SYS-FUNC-012 | Edit item details | MVP | SVC-inventory-FUNC-004 |
+| SYS-FUNC-013 | Mark items as consumed | MVP | SVC-inventory-FUNC-005 |
+| SYS-FUNC-014 | Mark items as wasted | MVP | SVC-inventory-FUNC-006 |
+| SYS-FUNC-015 | Move items between locations | MVP | SVC-inventory-FUNC-007 |
+| SYS-FUNC-016 | Calculate days until expiration | MVP | SVC-inventory-FUNC-008 |
+| SYS-FUNC-017 | Categorize items | MVP | SVC-inventory-FUNC-009 |
+| SYS-FUNC-018 | Send expiration warnings | MVP | SVC-inventory-FUNC-010, SVC-notifications-FUNC-003 |
+| SYS-FUNC-019 | Customize warning period | MVP | SVC-notifications-FUNC-004 |
+| SYS-FUNC-020 | Email notifications | MVP | SVC-notifications-FUNC-005 |
+| SYS-FUNC-021 | In-app notifications | MVP | SVC-notifications-FUNC-006 |
+| SYS-FUNC-022 | Telegram bot notifications | MVP | SVC-notifications-FUNC-007 |
+| SYS-FUNC-023 | Link Telegram accounts | MVP | SVC-notifications-FUNC-008 |
+| SYS-FUNC-024 | Shared shopping lists | MVP | SVC-inventory-FUNC-011 |
+| SYS-FUNC-025 | Real-time shopping list sync | MVP | SVC-inventory-FUNC-012 |
+| SYS-FUNC-026 | Add inventory to shopping list | MVP | SVC-inventory-FUNC-013 |
+| SYS-FUNC-027 | Real-time updates | MVP | SVC-inventory-FUNC-014 |
+| SYS-FUNC-028 | Concurrent update handling | MVP | SVC-inventory-FUNC-015 |
+| SYS-SEC-001 | Hash passwords with bcrypt | MVP | SVC-users-SEC-001 |
+| SYS-SEC-002 | HTTPS communications | MVP | All services |
+| SYS-SEC-003 | JWT token expiration | MVP | SVC-users-SEC-002 |
+| SYS-SEC-004 | CORS protection | MVP | All services |
+| SYS-SEC-005 | Input validation | MVP | All services |
+| SYS-SEC-006 | Rate limiting | MVP | All services |
+| SYS-SEC-007* | Tenant data isolation | MVP | SVC-users-SEC-003, SVC-inventory-SEC-001 |
+| SYS-PRIV-001 | No cross-tenant data sharing | MVP | All services |
+| SYS-PRIV-002 | Account deletion | MVP | SVC-users-PRIV-001 |
+| SYS-PRIV-003 | Anonymize deleted user data | MVP | SVC-users-PRIV-002 |
+| SYS-PERF-001 | 200ms API response time | MVP | All services |
+| SYS-PERF-002 | 100 concurrent users per household | MVP | SVC-inventory-PERF-001 |
+| SYS-PERF-003 | 1000 items per household | MVP | SVC-inventory-PERF-002 |
+| SYS-PERF-004 | 1 second real-time propagation | MVP | SVC-inventory-PERF-003 |
+
+## Service Dependencies
+
+### Users Service
+- Depends on: Notifications Service (for email sending)
+- Provides to: Inventory Service (authentication, authorization)
+
+### Inventory Service  
+- Depends on: Users Service (authentication), Notifications Service (alerts)
+- Provides to: Frontend applications
+
+### Notifications Service
+- Depends on: External services (SMTP, Telegram API)
+- Provides to: Users Service, Inventory Service
+</file>
+
+<file path="system/mvp/SRS.md">
+# System Requirements Specification (MVP)
+
+---
+title: Fridgr System SRS
+version: 1.0.0
+status: Draft
+owners: [Product Team, Engineering Team]
+baseline: false
+created: 2025-01-30
+updated: 2025-01-30
+---
+
+## 1. Overview & Objectives
+
+Fridgr is a household food inventory management system designed to reduce food waste and optimize grocery shopping through intelligent tracking of perishable items. The system provides multi-tenant household management with real-time synchronization and multi-channel notifications.
+
+### Primary Objectives
+- Reduce household food waste by 30% through expiration tracking
+- Optimize grocery shopping through inventory visibility
+- Enable household collaboration on food management
+- Provide timely notifications across multiple channels
+
+## 2. Stakeholders & Personas
+
+### Primary Stakeholders
+- **Product Owner**: Defines features and priorities
+- **Development Team**: Implements system components
+- **End Users**: Household members managing inventory
+- **System Administrator**: Manages deployment and operations
+
+### User Personas
+- **Primary User**: Tech-aware individual optimizing produce consumption
+- **Household Admin**: Manages household settings and members
+- **Household Member**: Views and updates inventory
+- **Viewer**: Read-only access to household data
+
+## 3. Scope & Out-of-Scope
+
+### In Scope (MVP)
+- Multi-tenant household management
+- Manual inventory entry and tracking
+- Expiration date monitoring
+- Email and in-app notifications
+- Telegram bot integration
+- Shared shopping lists
+- Basic reporting (consumption/waste)
+- PWA mobile experience
+
+### Out of Scope (MVP)
+- Barcode scanning
+- LLM-powered recipe suggestions
+- External product databases
+- Native mobile applications
+- Advanced analytics
+- Meal planning
+- GDPR compliance implementation
+- Multi-language support
+
+## 4. Domain Context & Use Cases
+
+### Core Domain Concepts
+- **Household**: Shared inventory space with multiple members
+- **Inventory Item**: Tracked food item with metadata
+- **Location**: Storage location (fridge/freezer/pantry)
+- **Expiration**: Date-based freshness tracking
+- **Notification**: Multi-channel alerts for events
+
+### Primary Use Cases
+1. Track household food inventory
+2. Receive expiration warnings
+3. Log consumption and waste
+4. Collaborate on shopping lists
+5. Monitor household food habits
+
+## 5. Interfaces & Contracts
+
+See [ICD.md](../common/ICD.md) for detailed interface specifications.
+
+## 6. Functional Requirements
+
+### User Management
+- **SYS-FUNC-001**: System MUST support user registration with email/password
+- **SYS-FUNC-002**: System MUST authenticate users using JWT tokens
+- **SYS-FUNC-003**: System MUST support password reset via email
+- **SYS-FUNC-004**: System SHALL maintain user profiles with display names
+
+### Household Management
+- **SYS-FUNC-005**: Users MUST be able to create multiple households
+- **SYS-FUNC-006**: Users MUST be able to belong to multiple households
+- **SYS-FUNC-007**: System MUST support three role levels: admin, member, viewer
+- **SYS-FUNC-008**: Household admins MUST be able to invite members via email
+- **SYS-FUNC-009**: System MUST track household activity logs
+
+### Inventory Management
+- **SYS-FUNC-010**: Users MUST be able to add items with: name, quantity, expiration date, location, category
+- **SYS-FUNC-011**: System MUST support tracking both "use by" and "best before" dates
+- **SYS-FUNC-012**: Users MUST be able to edit item details
+- **SYS-FUNC-013**: Users MUST be able to mark items as consumed with quantity
+- **SYS-FUNC-014**: Users MUST be able to mark items as wasted with reason
+- **SYS-FUNC-015**: System MUST support moving items between locations
+- **SYS-FUNC-016**: System MUST calculate days until expiration
+- **SYS-FUNC-017**: System MUST categorize items (produce, dairy, meat, etc.)
+
+### Notifications
+- **SYS-FUNC-018**: System MUST send expiration warnings 3 days before expiry
+- **SYS-FUNC-019**: Users MUST be able to customize warning period (1-7 days)
+- **SYS-FUNC-020**: System MUST support email notifications
+- **SYS-FUNC-021**: System MUST support in-app notifications
+- **SYS-FUNC-022**: System MUST support Telegram bot notifications
+- **SYS-FUNC-023**: Users MUST be able to link Telegram accounts
+
+### Shopping Lists
+- **SYS-FUNC-024**: Households MUST have shared shopping lists
+- **SYS-FUNC-025**: System MUST sync shopping lists in real-time
+- **SYS-FUNC-026**: Users MUST be able to add items from inventory to shopping list
+
+### Data Synchronization
+- **SYS-FUNC-027**: System MUST provide real-time updates across household members
+- **SYS-FUNC-028**: System MUST handle concurrent updates with conflict resolution
+
+## 7. Non-Functional Requirements
+
+### Security Requirements
+- **SYS-SEC-001**: System MUST hash passwords using bcrypt with minimum 10 rounds
+- **SYS-SEC-002**: System MUST use HTTPS for all communications
+- **SYS-SEC-003**: JWT tokens MUST expire after 24 hours
+- **SYS-SEC-004**: System MUST implement CORS protection
+- **SYS-SEC-005**: System MUST validate all input data
+- **SYS-SEC-006**: System MUST implement rate limiting on API endpoints
+- **SYS-SEC-007***: System MUST isolate tenant data in database
+
+### Privacy Requirements
+- **SYS-PRIV-001**: System MUST not share household data between tenants
+- **SYS-PRIV-002**: System MUST allow users to delete their accounts
+- **SYS-PRIV-003**: System MUST anonymize deleted user data in activity logs
+
+### Performance Requirements
+- **SYS-PERF-001**: API responses MUST complete within 200ms for 95th percentile
+- **SYS-PERF-002**: System MUST support 100 concurrent users per household
+- **SYS-PERF-003**: System MUST handle 1000 inventory items per household
+- **SYS-PERF-004**: Real-time updates MUST propagate within 1 second
+
+### Reliability Requirements
+- **SYS-REL-001**: System MUST maintain 99.5% uptime
+- **SYS-REL-002**: System MUST handle database connection failures gracefully
+- **SYS-REL-003**: System MUST implement retry logic for external services
+
+### Availability Requirements
+- **SYS-AVAIL-001**: System MUST be accessible 24/7
+- **SYS-AVAIL-002**: System MUST provide health check endpoints
+- **SYS-AVAIL-003**: System MUST support zero-downtime deployments
+
+### Maintainability Requirements
+- **SYS-MAINT-001**: System MUST use structured logging with correlation IDs
+- **SYS-MAINT-002**: System MUST follow Ports & Adapters architecture
+- **SYS-MAINT-003**: System MUST maintain 80% unit test coverage
+- **SYS-MAINT-004**: System MUST use dependency injection
+
+### Portability Requirements
+- **SYS-PORT-001**: System MUST run in Docker containers
+- **SYS-PORT-002**: Frontend MUST work as Progressive Web App
+- **SYS-PORT-003**: System MUST support PostgreSQL 14+
+
+### Data Requirements
+- **SYS-DATA-001**: System MUST backup data daily
+- **SYS-DATA-002**: System MUST retain activity logs for 90 days
+- **SYS-DATA-003**: System MUST support data export in JSON format
+
+## 8. Risks & Mitigations
+
+| Risk | Impact | Probability | Mitigation |
+|------|--------|-------------|------------|
+| Telegram API rate limits | High | Medium | Implement queue-based message processing |
+| Database scaling issues | High | Low | Design for horizontal scaling from start |
+| User adoption challenges | Medium | Medium | Focus on UX and onboarding |
+| Data loss | High | Low | Implement automated backups |
+
+## 9. WILL-NOT (Deferred to Mid-Maturity)
+
+The following features are explicitly deferred to the next tier:
+- Observability stack (metrics, distributed tracing)
+- Kubernetes deployment configurations
+- Advanced caching strategies
+- GraphQL API alternative
+- Webhook integrations for external services
+- Advanced security measures (2FA, OAuth)
+- Multi-region deployment
+- Automated scaling policies
+
+## 10. Open Questions
+
+- Specific C# framework version (.NET 6, 7, or 8?)
+- Exact cloud provider (AWS, Azure, or agnostic?)
+- Telegram bot hosting approach (webhook vs polling?)
+- Need for offline-first architecture beyond basic read?
+
+## 11. Change Log
+
+| Version | Date | Changes | Author |
+|---------|------|---------|--------|
+| 1.0.0 | 2025-01-30 | Initial MVP requirements | Requirements Team |
+</file>
+
+<file path="api-specifications.md">
+# API Specifications
+
+## API Overview
+
+Base URL: `https://api.fridgr.app/api/v1`
+
+### Authentication
+All authenticated endpoints require a Bearer token in the Authorization header:
+```
+Authorization: Bearer <jwt_access_token>
+```
+
+**Token Lifecycle:**
+- Access Token: 15 minutes expiry
+- Refresh Token: 7 days expiry (rotating)
+- Refresh tokens are single-use and rotated on each refresh
+
+### Common Headers
+```
+Content-Type: application/json
+Accept: application/json
+X-Household-Id: <uuid> (optional, for household context)
+X-Request-Id: <uuid> (optional, for tracing)
+```
+
+### Rate Limiting
+- 100 requests per minute per user
+- 1000 requests per hour per user
+- Rate limit headers included in all responses
+
+### Pagination
+```
+GET /api/v1/resource?page=1&pageSize=20&sortBy=createdAt&sortOrder=desc
+```
+
+## Authentication Endpoints
+
+### Register User
+```http
+POST /api/v1/auth/register
+
+Request:
+{
+  "email": "user@example.com",
+  "password": "SecurePass123!",
+  "displayName": "John Doe",
+  "timezone": "America/New_York"
+}
+
+Response: 201 Created
+{
+  "userId": "550e8400-e29b-41d4-a716-446655440001",
+  "email": "user@example.com",
+  "displayName": "John Doe",
+  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
+  "expiresIn": 900, // 15 minutes in seconds
+  "defaultHouseholdId": "550e8400-e29b-41d4-a716-446655440002"
+}
+
+Errors:
+- 400: Invalid email format or weak password
+- 409: Email already registered
+```
+
+### Login
+```http
+POST /api/v1/auth/login
+
+Request:
+{
+  "email": "user@example.com",
+  "password": "SecurePass123!"
+}
+
+Response: 200 OK
+{
+  "userId": "550e8400-e29b-41d4-a716-446655440001",
+  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
+  "expiresIn": 900, // 15 minutes in seconds
+  "households": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440002",
+      "name": "Home",
+      "role": "admin"
+    }
+  ]
+}
+
+Errors:
+- 401: Invalid credentials
+- 429: Too many failed attempts
+```
+
+### Refresh Token
+```http
+POST /api/v1/auth/refresh
+
+Request:
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
+}
+
+Response: 200 OK
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
+  "expiresIn": 900
+}
+
+Errors:
+- 401: Invalid or expired refresh token
+```
+
+### Logout
+```http
+POST /api/v1/auth/logout
+
+Headers:
+Authorization: Bearer <token>
+
+Request:
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
+}
+
+Response: 204 No Content
+
+Errors:
+- 401: Unauthorized
+```
+
+### Forgot Password
+```http
+POST /api/v1/auth/forgot-password
+
+Request:
+{
+  "email": "user@example.com"
+}
+
+Response: 200 OK
+{
+  "message": "If the email exists, a password reset link has been sent"
+}
+```
+
+### Reset Password
+```http
+POST /api/v1/auth/reset-password
+
+Request:
+{
+  "token": "reset_token_from_email",
+  "newPassword": "NewSecurePass123!"
+}
+
+Response: 200 OK
+{
+  "message": "Password successfully reset"
+}
+
+Errors:
+- 400: Invalid or expired token
+- 400: Weak password
+```
+
+## Household Management Endpoints
+
+### List User's Households
+```http
+GET /api/v1/households
+
+Headers:
+Authorization: Bearer <token>
+
+Response: 200 OK
+{
+  "households": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440002",
+      "name": "Home",
+      "description": "Family household",
+      "role": "admin",
+      "memberCount": 4,
+      "itemCount": 127,
+      "expiringItemCount": 3,
+      "createdAt": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "total": 1
+}
+```
+
+### Create Household
+```http
+POST /api/v1/households
+
+Headers:
+Authorization: Bearer <token>
+
+Request:
+{
+  "name": "Beach House",
+  "description": "Vacation home inventory",
+  "timezone": "America/Los_Angeles"
+}
+
+Response: 201 Created
+{
+  "id": "550e8400-e29b-41d4-a716-446655440003",
+  "name": "Beach House",
+  "description": "Vacation home inventory",
+  "timezone": "America/Los_Angeles",
+  "createdAt": "2024-01-15T00:00:00Z",
+  "createdBy": "550e8400-e29b-41d4-a716-446655440001"
+}
+
+Errors:
+- 400: Invalid data
+- 403: User limit reached
+```
+
+### Get Household Details
+```http
+GET /api/v1/households/{householdId}
+
+Headers:
+Authorization: Bearer <token>
+
+Response: 200 OK
+{
+  "id": "550e8400-e29b-41d4-a716-446655440002",
+  "name": "Home",
+  "description": "Family household",
+  "timezone": "America/New_York",
+  "members": [
+    {
+      "userId": "550e8400-e29b-41d4-a716-446655440001",
+      "email": "user@example.com",
+      "displayName": "John Doe",
+      "role": "admin",
+      "joinedAt": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "statistics": {
+    "totalItems": 127,
+    "expiringItems": 3,
+    "expiredItems": 1,
+    "consumedThisMonth": 45,
+    "wastedThisMonth": 5
+  },
+  "createdAt": "2024-01-01T00:00:00Z"
+}
+
+Errors:
+- 404: Household not found
+- 403: Access denied
+```
+
+### Update Household
+```http
+PUT /api/v1/households/{householdId}
+
+Headers:
+Authorization: Bearer <token>
+
+Request:
+{
+  "name": "Home Sweet Home",
+  "description": "Updated description",
+  "timezone": "America/Chicago"
+}
+
+Response: 200 OK
+{
+  "id": "550e8400-e29b-41d4-a716-446655440002",
+  "name": "Home Sweet Home",
+  "description": "Updated description",
+  "timezone": "America/Chicago",
+  "updatedAt": "2024-01-15T00:00:00Z",
+  "updatedBy": "550e8400-e29b-41d4-a716-446655440001"
+}
+
+Errors:
+- 403: Not admin
+- 404: Household not found
+```
+
+### Invite Member
+```http
+POST /api/v1/households/{householdId}/members
+
+Headers:
+Authorization: Bearer <token>
+
+Request:
+{
+  "email": "newmember@example.com",
+  "role": "member"
+}
+
+Response: 201 Created
+{
+  "invitationId": "550e8400-e29b-41d4-a716-446655440004",
+  "email": "newmember@example.com",
+  "role": "member",
+  "status": "pending",
+  "expiresAt": "2024-01-22T00:00:00Z"
+}
+
+Errors:
+- 403: Not admin
+- 409: User already member
+```
+
+### Remove Member
+```http
+DELETE /api/v1/households/{householdId}/members/{userId}
+
+Headers:
+Authorization: Bearer <token>
+
+Response: 204 No Content
+
+Errors:
+- 403: Not admin or trying to remove last admin
+- 404: Member not found
+```
+
+### Update Member Role
+```http
+PUT /api/v1/households/{householdId}/members/{userId}/role
+
+Headers:
+Authorization: Bearer <token>
+
+Request:
+{
+  "role": "admin"
+}
+
+Response: 200 OK
+{
+  "userId": "550e8400-e29b-41d4-a716-446655440005",
+  "role": "admin",
+  "updatedAt": "2024-01-15T00:00:00Z"
+}
+
+Errors:
+- 403: Not admin
+- 404: Member not found
+```
+
+## Inventory Management Endpoints
+
+### List Household Items
+```http
+GET /api/v1/households/{householdId}/items
+
+Headers:
+Authorization: Bearer <token>
+
+Query Parameters:
+- location: fridge|freezer|pantry
+- category: produce|dairy|meat|etc
+- status: fresh|expiring_soon|expired
+- search: string
+- page: number (default: 1)
+- pageSize: number (default: 20)
+- sortBy: name|expirationDate|createdAt
+- sortOrder: asc|desc
+
+Response: 200 OK
+{
+  "items": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440006",
+      "name": "Organic Milk",
+      "quantity": 1,
+      "unit": "gallon",
+      "location": "fridge",
+      "category": "dairy",
+      "expirationDate": "2024-01-20",
+      "bestBeforeDate": null,
+      "purchaseDate": "2024-01-15",
+      "price": 5.99,
+      "notes": "Whole milk",
+      "daysUntilExpiration": 5,
+      "expirationStatus": "fresh",
+      "createdAt": "2024-01-15T00:00:00Z",
+      "createdBy": {
+        "userId": "550e8400-e29b-41d4-a716-446655440001",
+        "displayName": "John Doe"
+      }
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "pageSize": 20,
+    "total": 127,
+    "totalPages": 7
+  },
+  "summary": {
+    "totalItems": 127,
+    "byLocation": {
+      "fridge": 45,
+      "freezer": 32,
+      "pantry": 50
+    },
+    "byStatus": {
+      "fresh": 120,
+      "expiringSoon": 6,
+      "expired": 1
+    }
+  }
+}
+```
+
+### Add Item
+```http
+POST /api/v1/households/{householdId}/items
+
+Headers:
+Authorization: Bearer <token>
+
+Request:
+{
+  "name": "Organic Milk",
+  "quantity": 1,
+  "unit": "gallon",
+  "location": "fridge",
+  "category": "dairy",
+  "expirationDate": "2024-01-20",
+  "bestBeforeDate": null,
+  "purchaseDate": "2024-01-15",
+  "price": 5.99,
+  "notes": "Whole milk"
+}
+
+Response: 201 Created
+{
+  "id": "550e8400-e29b-41d4-a716-446655440006",
+  "name": "Organic Milk",
+  "quantity": 1,
+  "unit": "gallon",
+  "location": "fridge",
+  "category": "dairy",
+  "expirationDate": "2024-01-20",
+  "daysUntilExpiration": 5,
+  "expirationStatus": "fresh",
+  "createdAt": "2024-01-15T00:00:00Z",
+  "createdBy": "550e8400-e29b-41d4-a716-446655440001"
+}
+
+Errors:
+- 400: Invalid data
+- 403: Viewer role cannot add items
+```
+
+### Get Item Details
+```http
+GET /api/v1/households/{householdId}/items/{itemId}
+
+Headers:
+Authorization: Bearer <token>
+
+Response: 200 OK
+{
+  "id": "550e8400-e29b-41d4-a716-446655440006",
+  "name": "Organic Milk",
+  "quantity": 1,
+  "unit": "gallon",
+  "location": "fridge",
+  "category": "dairy",
+  "expirationDate": "2024-01-20",
+  "bestBeforeDate": null,
+  "purchaseDate": "2024-01-15",
+  "price": 5.99,
+  "notes": "Whole milk",
+  "daysUntilExpiration": 5,
+  "expirationStatus": "fresh",
+  "history": [
+    {
+      "action": "created",
+      "timestamp": "2024-01-15T00:00:00Z",
+      "user": "John Doe"
+    }
+  ],
+  "createdAt": "2024-01-15T00:00:00Z",
+  "createdBy": {
+    "userId": "550e8400-e29b-41d4-a716-446655440001",
+    "displayName": "John Doe"
+  }
+}
+
+Errors:
+- 404: Item not found
+- 403: Access denied
+```
+
+### Update Item (Partial Update)
+```http
+PATCH /api/v1/households/{householdId}/items/{itemId}
+
+Headers:
+Authorization: Bearer <token>
+If-Match: "W/\"1234567890\"" // Required - ETag from previous GET or update
+
+Request (only include fields to update):
+{
+  "name": "Organic Whole Milk",
+  "quantity": 0.5,
+  "notes": "Half consumed"
+}
+
+Response: 200 OK
+Headers:
+ETag: "W/\"1234567891\""
+
+Body:
+{
+  "id": "550e8400-e29b-41d4-a716-446655440006",
+  "name": "Organic Whole Milk",
+  "quantity": 0.5,
+  "unit": "gallon",
+  "updatedAt": "2024-01-16T00:00:00Z",
+  "updatedBy": "550e8400-e29b-41d4-a716-446655440001",
+  "version": 2
+}
+
+Errors:
+- 404: Item not found
+- 403: Viewer role cannot edit
+- 409: Conflict - ETag mismatch (returns current state)
+- 428: Precondition Required - If-Match header missing
+```
+
+### Replace Item (Full Update)
+```http
+PUT /api/v1/households/{householdId}/items/{itemId}
+
+Headers:
+Authorization: Bearer <token>
+If-Match: "W/\"1234567890\"" // Required - ETag from previous GET or update
+
+Request (all fields required):
+{
+  "name": "Organic Whole Milk",
+  "quantity": 0.5,
+  "unit": "gallon",
+  "location": "fridge",
+  "category": "dairy",
+  "expirationDate": "2024-01-20",
+  "expirationDateType": "useBy",
+  "purchaseDate": "2024-01-15",
+  "price": 5.99,
+  "notes": "Half consumed"
+}
+
+Response: 200 OK
+Headers:
+ETag: "W/\"1234567891\""
+
+Body:
+{
+  "id": "550e8400-e29b-41d4-a716-446655440006",
+  "name": "Organic Whole Milk",
+  "quantity": 0.5,
+  "unit": "gallon",
+  "location": "fridge",
+  "category": "dairy",
+  "expirationDate": "2024-01-20",
+  "expirationDateType": "useBy",
+  "purchaseDate": "2024-01-15",
+  "price": 5.99,
+  "notes": "Half consumed",
+  "updatedAt": "2024-01-16T00:00:00Z",
+  "updatedBy": "550e8400-e29b-41d4-a716-446655440001",
+  "version": 2
+}
+
+Errors:
+- 400: Missing required fields
+- 404: Item not found
+- 403: Viewer role cannot edit
+- 409: Conflict - ETag mismatch (returns current state)
+- 428: Precondition Required - If-Match header missing
+```
+
+### Delete Item
+```http
+DELETE /api/v1/households/{householdId}/items/{itemId}
+
+Headers:
+Authorization: Bearer <token>
+
+Response: 204 No Content
+
+Errors:
+- 404: Item not found
+- 403: Viewer role cannot delete
+```
+
+### Mark Item as Consumed
+```http
+POST /api/v1/households/{householdId}/items/{itemId}/consume
+
+Headers:
+Authorization: Bearer <token>
+
+Request:
+{
+  "quantity": 0.5,
+  "notes": "Used for breakfast"
+}
+
+Response: 200 OK
+{
+  "id": "550e8400-e29b-41d4-a716-446655440006",
+  "remainingQuantity": 0.5,
+  "consumedQuantity": 0.5,
+  "consumedAt": "2024-01-16T08:00:00Z",
+  "consumedBy": "550e8400-e29b-41d4-a716-446655440001"
+}
+
+Errors:
+- 400: Quantity exceeds available
+- 404: Item not found
+```
+
+### Mark Item as Wasted
+```http
+POST /api/v1/households/{householdId}/items/{itemId}/waste
+
+Headers:
+Authorization: Bearer <token>
+
+Request:
+{
+  "quantity": 0.5,
+  "reason": "expired",
+  "notes": "Forgot to use in time"
+}
+
+Response: 200 OK
+{
+  "id": "550e8400-e29b-41d4-a716-446655440006",
+  "remainingQuantity": 0,
+  "wastedQuantity": 0.5,
+  "reason": "expired",
+  "wastedAt": "2024-01-21T00:00:00Z",
+  "wastedBy": "550e8400-e29b-41d4-a716-446655440001"
+}
+
+Errors:
+- 400: Quantity exceeds available
+- 404: Item not found
+```
+
+### Move Item Location
+```http
+POST /api/v1/households/{householdId}/items/{itemId}/move
+
+Headers:
+Authorization: Bearer <token>
+
+Request:
+{
+  "newLocation": "freezer",
+  "notes": "Freezing for later use"
+}
+
+Response: 200 OK
+{
+  "id": "550e8400-e29b-41d4-a716-446655440006",
+  "previousLocation": "fridge",
+  "currentLocation": "freezer",
+  "movedAt": "2024-01-16T00:00:00Z",
+  "movedBy": "550e8400-e29b-41d4-a716-446655440001"
+}
+
+Errors:
+- 400: Invalid location
+- 404: Item not found
+```
+
+## Notification Endpoints
+
+### Get Notification Settings
+```http
+GET /api/v1/notifications/settings
+
+Headers:
+Authorization: Bearer <token>
+
+Response: 200 OK
+{
+  "email": {
+    "enabled": true,
+    "address": "user@example.com"
+  },
+  "inApp": {
+    "enabled": true
+  },
+  "telegram": {
+    "enabled": false,
+    "linked": false,
+    "username": null
+  },
+  "preferences": {
+    "expirationWarningDays": 3,
+    "notificationTypes": ["expiration", "lowStock", "shoppingReminder"],
+    "preferredTime": "09:00",
+    "timezone": "America/New_York"
+  }
+}
+```
+
+### Update Notification Settings
+```http
+PUT /api/v1/notifications/settings
+
+Headers:
+Authorization: Bearer <token>
+
+Request:
+{
+  "email": {
+    "enabled": true
+  },
+  "inApp": {
+    "enabled": true
+  },
+  "telegram": {
+    "enabled": true
+  },
+  "preferences": {
+    "expirationWarningDays": 5,
+    "notificationTypes": ["expiration", "lowStock"],
+    "preferredTime": "08:00"
+  }
+}
+
+Response: 200 OK
+{
+  "message": "Notification settings updated",
+  "updatedAt": "2024-01-15T00:00:00Z"
+}
+```
+
+### Link Telegram Account
+```http
+POST /api/v1/notifications/telegram/link
+
+Headers:
+Authorization: Bearer <token>
+
+Request:
+{
+  "verificationCode": "ABC123"
+}
+
+Response: 200 OK
+{
+  "linked": true,
+  "telegramUsername": "@johndoe",
+  "linkedAt": "2024-01-15T00:00:00Z"
+}
+
+Errors:
+- 400: Invalid verification code
+- 409: Already linked to another account
+```
+
+### Unlink Telegram Account
+```http
+DELETE /api/v1/notifications/telegram/unlink
+
+Headers:
+Authorization: Bearer <token>
+
+Response: 204 No Content
+```
+
+### Get Notification History
+```http
+GET /api/v1/notifications/history
+
+Headers:
+Authorization: Bearer <token>
+
+Query Parameters:
+- type: expiration|lowStock|shoppingReminder
+- channel: email|inApp|telegram
+- page: number
+- pageSize: number
+
+Response: 200 OK
+{
+  "notifications": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440007",
+      "type": "expiration",
+      "channel": "email",
+      "subject": "3 items expiring soon",
+      "message": "Milk, Yogurt, and Cheese are expiring within 3 days",
+      "status": "sent",
+      "sentAt": "2024-01-15T09:00:00Z",
+      "readAt": null
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "pageSize": 20,
+    "total": 45
+  }
+}
+```
+
+## Shopping List Endpoints
+
+### List Shopping Lists
+```http
+GET /api/v1/households/{householdId}/shopping-lists
+
+Headers:
+Authorization: Bearer <token>
+
+Response: 200 OK
+{
+  "lists": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440008",
+      "name": "Weekly Groceries",
+      "itemCount": 12,
+      "completedCount": 3,
+      "createdAt": "2024-01-14T00:00:00Z",
+      "createdBy": "John Doe",
+      "lastUpdated": "2024-01-15T00:00:00Z"
+    }
+  ],
+  "total": 1
+}
+```
+
+### Create Shopping List
+```http
+POST /api/v1/households/{householdId}/shopping-lists
+
+Headers:
+Authorization: Bearer <token>
+
+Request:
+{
+  "name": "Weekend Shopping",
+  "notes": "For the party"
+}
+
+Response: 201 Created
+{
+  "id": "550e8400-e29b-41d4-a716-446655440009",
+  "name": "Weekend Shopping",
+  "notes": "For the party",
+  "items": [],
+  "createdAt": "2024-01-15T00:00:00Z",
+  "createdBy": "550e8400-e29b-41d4-a716-446655440001"
+}
+```
+
+### Add Item to Shopping List
+```http
+POST /api/v1/households/{householdId}/shopping-lists/{listId}/items
+
+Headers:
+Authorization: Bearer <token>
+
+Request:
+{
+  "name": "Organic Milk",
+  "quantity": 2,
+  "unit": "gallons",
+  "category": "dairy",
+  "notes": "Whole milk preferred"
+}
+
+Response: 201 Created
+{
+  "id": "550e8400-e29b-41d4-a716-446655440010",
+  "name": "Organic Milk",
+  "quantity": 2,
+  "unit": "gallons",
+  "category": "dairy",
+  "notes": "Whole milk preferred",
+  "completed": false,
+  "addedAt": "2024-01-15T00:00:00Z",
+  "addedBy": "John Doe"
+}
+```
+
+## WebSocket Events
+
+### Connection
+```javascript
+const socket = new WebSocket('wss://api.fridgr.app/ws');
+
+socket.onopen = () => {
+  socket.send(JSON.stringify({
+    type: 'auth',
+    token: 'jwt_token',
+    householdId: 'household_uuid'
+  }));
+};
+```
+
+### Real-time Events
+```javascript
+// Item updated
+{
+  "type": "item.updated",
+  "householdId": "550e8400-e29b-41d4-a716-446655440002",
+  "payload": {
+    "itemId": "550e8400-e29b-41d4-a716-446655440006",
+    "changes": {
+      "quantity": 0.5,
+      "notes": "Half consumed"
+    },
+    "updatedBy": "550e8400-e29b-41d4-a716-446655440001",
+    "timestamp": "2024-01-16T00:00:00Z"
+  }
+}
+
+// Item added
+{
+  "type": "item.added",
+  "householdId": "550e8400-e29b-41d4-a716-446655440002",
+  "payload": {
+    "item": {
+      "id": "550e8400-e29b-41d4-a716-446655440011",
+      "name": "Apples",
+      "quantity": 6,
+      "location": "pantry"
+    },
+    "addedBy": "550e8400-e29b-41d4-a716-446655440001",
+    "timestamp": "2024-01-16T00:00:00Z"
+  }
+}
+
+// Member joined
+{
+  "type": "member.joined",
+  "householdId": "550e8400-e29b-41d4-a716-446655440002",
+  "payload": {
+    "userId": "550e8400-e29b-41d4-a716-446655440012",
+    "displayName": "Jane Doe",
+    "role": "member",
+    "timestamp": "2024-01-16T00:00:00Z"
+  }
+}
+
+// Notification
+{
+  "type": "notification.new",
+  "userId": "550e8400-e29b-41d4-a716-446655440001",
+  "payload": {
+    "id": "550e8400-e29b-41d4-a716-446655440013",
+    "type": "expiration_warning",
+    "message": "3 items expiring soon in Home",
+    "items": ["Milk", "Yogurt", "Cheese"],
+    "timestamp": "2024-01-16T09:00:00Z"
+  }
+}
+```
+
+## Error Responses
+
+### Standard Error Format
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Request validation failed",
+    "details": [
+      {
+        "field": "expirationDate",
+        "message": "Must be a future date"
+      }
+    ],
+    "timestamp": "2024-01-15T00:00:00Z",
+    "traceId": "550e8400-e29b-41d4-a716-446655440014"
+  }
+}
+```
+
+### Common Error Codes
+- `VALIDATION_ERROR`: Request data validation failed
+- `AUTHENTICATION_ERROR`: Authentication required or failed
+- `AUTHORIZATION_ERROR`: Insufficient permissions
+- `NOT_FOUND`: Resource not found
+- `CONFLICT`: Resource conflict (duplicate, etc.)
+- `RATE_LIMIT_ERROR`: Too many requests
+- `INTERNAL_ERROR`: Server error
+
+### HTTP Status Codes
+- `200 OK`: Successful GET/PUT
+- `201 Created`: Successful POST creating resource
+- `204 No Content`: Successful DELETE
+- `400 Bad Request`: Invalid request data
+- `401 Unauthorized`: Authentication required
+- `403 Forbidden`: Insufficient permissions
+- `404 Not Found`: Resource not found
+- `409 Conflict`: Resource conflict
+- `429 Too Many Requests`: Rate limit exceeded
+- `500 Internal Server Error`: Server error
+</file>
+
+<file path="concurrency-control.md">
+# Concurrency Control Strategy
+
+## Overview
+This document defines the concurrency control mechanisms for Fridgr to prevent data corruption and race conditions in our multi-user, real-time collaborative system.
+
+## 1. HTTP API Concurrency (Optimistic Locking with ETags)
+
+### Implementation
+
+All mutable resources will use HTTP ETag headers for optimistic concurrency control:
+
+```csharp
+// Domain Entity Base
+public abstract class Entity
+{
+    public Guid Id { get; protected set; }
+    public byte[] RowVersion { get; protected set; } // PostgreSQL xmin or custom version
+    public DateTime UpdatedAt { get; protected set; }
+    
+    public string GenerateETag() 
+    {
+        return Convert.ToBase64String(RowVersion ?? BitConverter.GetBytes(UpdatedAt.Ticks));
+    }
+}
+
+// Controller Implementation
+[HttpPatch("items/{id}")]
+public async Task<IActionResult> UpdateItem(
+    Guid id, 
+    [FromBody] UpdateItemRequest request,
+    [FromHeader(Name = "If-Match")] string ifMatch)
+{
+    if (string.IsNullOrEmpty(ifMatch))
+        return BadRequest("If-Match header is required for updates");
+    
+    var item = await _itemService.GetByIdAsync(id);
+    if (item == null)
+        return NotFound();
+    
+    var currentETag = item.GenerateETag();
+    if (ifMatch != currentETag)
+    {
+        return StatusCode(409, new ConflictResponse
+        {
+            Message = "Resource has been modified",
+            CurrentETag = currentETag,
+            CurrentData = item
+        });
+    }
+    
+    var updated = await _itemService.UpdateAsync(id, request);
+    Response.Headers.Add("ETag", updated.GenerateETag());
+    
+    return Ok(updated);
+}
+```
+
+### Database Configuration
+
+```sql
+-- Add row versioning to all mutable tables
+ALTER TABLE inventory_items ADD COLUMN row_version BIGINT DEFAULT 0;
+ALTER TABLE households ADD COLUMN row_version BIGINT DEFAULT 0;
+ALTER TABLE users ADD COLUMN row_version BIGINT DEFAULT 0;
+
+-- Trigger to auto-increment version on update
+CREATE OR REPLACE FUNCTION increment_row_version()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.row_version = OLD.row_version + 1;
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_inventory_items_version
+BEFORE UPDATE ON inventory_items
+FOR EACH ROW EXECUTE FUNCTION increment_row_version();
+```
+
+## 2. WebSocket Real-Time Updates
+
+### Versioned Events
+
+All WebSocket events include version information:
+
+```csharp
+public class ItemUpdatedEvent : DomainEvent
+{
+    public Guid ItemId { get; set; }
+    public Guid HouseholdId { get; set; }
+    public long Version { get; set; }  // Row version
+    public DateTime Timestamp { get; set; }
+    public string UpdatedBy { get; set; }
+    public ItemDto Data { get; set; }
+}
+
+// SignalR Hub
+public class InventoryHub : Hub
+{
+    public async Task BroadcastItemUpdate(ItemUpdatedEvent evt)
+    {
+        await Clients.Group($"household-{evt.HouseholdId}")
+            .SendAsync("ItemUpdated", evt);
+    }
+}
+```
+
+### Client-Side Conflict Resolution
+
+```typescript
+// React/Next.js client
+interface VersionedItem {
+  id: string;
+  version: number;
+  timestamp: Date;
+  data: Item;
+}
+
+const useInventorySync = () => {
+  const [items, setItems] = useState<Map<string, VersionedItem>>();
+  const [conflicts, setConflicts] = useState<ConflictInfo[]>([]);
+  
+  const handleItemUpdate = (event: ItemUpdatedEvent) => {
+    setItems(current => {
+      const existing = current.get(event.itemId);
+      
+      // No conflict - accept update
+      if (!existing || existing.version < event.version) {
+        return new Map(current).set(event.itemId, {
+          id: event.itemId,
+          version: event.version,
+          timestamp: event.timestamp,
+          data: event.data
+        });
+      }
+      
+      // Version conflict - user has newer local changes
+      if (existing.version > event.version) {
+        console.log(`Ignoring stale update for item ${event.itemId}`);
+        return current;
+      }
+      
+      // Same version but different data - conflict
+      if (JSON.stringify(existing.data) !== JSON.stringify(event.data)) {
+        setConflicts(prev => [...prev, {
+          itemId: event.itemId,
+          localData: existing.data,
+          remoteData: event.data,
+          timestamp: event.timestamp
+        }]);
+      }
+      
+      return current;
+    });
+  };
+  
+  return { items, conflicts, resolveConflict };
+};
+```
+
+## 3. Distributed Lock for Critical Operations
+
+For operations that must be serialized (e.g., consuming the last item):
+
+```csharp
+public interface IDistributedLock
+{
+    Task<IDisposable> AcquireAsync(string resource, TimeSpan timeout);
+}
+
+public class RedisDistributedLock : IDistributedLock
+{
+    private readonly IConnectionMultiplexer _redis;
+    
+    public async Task<IDisposable> AcquireAsync(string resource, TimeSpan timeout)
+    {
+        var lockKey = $"lock:{resource}";
+        var lockValue = Guid.NewGuid().ToString();
+        var expiry = TimeSpan.FromSeconds(30);
+        
+        var acquired = await _redis.GetDatabase()
+            .StringSetAsync(lockKey, lockValue, expiry, When.NotExists);
+            
+        if (!acquired)
+            throw new LockAcquisitionException($"Failed to acquire lock for {resource}");
+            
+        return new LockHandle(lockKey, lockValue, _redis);
+    }
+}
+
+// Usage in service
+public async Task<ConsumeItemResult> ConsumeItemAsync(Guid itemId, decimal quantity)
+{
+    using (await _distributedLock.AcquireAsync($"item:{itemId}", TimeSpan.FromSeconds(5)))
+    {
+        var item = await _repository.GetByIdAsync(itemId);
+        
+        if (item.Quantity < quantity)
+            throw new InsufficientQuantityException();
+            
+        item.Consume(quantity);
+        await _repository.UpdateAsync(item);
+        
+        return new ConsumeItemResult { Success = true, RemainingQuantity = item.Quantity };
+    }
+}
+```
+
+## 4. Conflict Resolution Strategies
+
+### Strategy 1: Last-Write-Wins (Default for non-critical fields)
+- Used for: Item names, categories, notes
+- Implementation: Accept the most recent update based on timestamp
+
+### Strategy 2: Merge (For quantity operations)
+- Used for: Quantity adjustments
+- Implementation: Apply deltas rather than absolute values
+
+```csharp
+public class QuantityAdjustmentCommand
+{
+    public Guid ItemId { get; set; }
+    public decimal Delta { get; set; } // +/- adjustment, not absolute value
+    public string Reason { get; set; }
+}
+```
+
+### Strategy 3: User Prompt (For critical conflicts)
+- Used for: Expiration date changes, complete item deletion
+- Implementation: Present both versions to user for manual resolution
+
+## 5. Event Sourcing for Audit Trail
+
+All operations are captured as events for complete auditability:
+
+```csharp
+public class ItemEventStore
+{
+    public async Task AppendAsync(ItemEvent evt)
+    {
+        await _context.ItemEvents.AddAsync(new ItemEventEntity
+        {
+            ItemId = evt.ItemId,
+            EventType = evt.GetType().Name,
+            EventData = JsonSerializer.Serialize(evt),
+            Version = evt.Version,
+            Timestamp = evt.Timestamp,
+            UserId = evt.UserId
+        });
+        
+        await _context.SaveChangesAsync();
+    }
+}
+```
+
+## 6. Testing Concurrency
+
+```csharp
+[Fact]
+public async Task UpdateItem_WithStaleETag_Returns409Conflict()
+{
+    // Arrange
+    var item = await CreateTestItem();
+    var originalETag = item.GenerateETag();
+    
+    // Act - Update item (changes ETag)
+    await UpdateItem(item.Id, new { Name = "Updated" });
+    
+    // Act - Try to update with stale ETag
+    var response = await Client.PatchAsync($"/api/items/{item.Id}",
+        JsonContent(new { Quantity = 5 }),
+        headers: new { "If-Match" = originalETag });
+    
+    // Assert
+    Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    var conflict = await response.Content.ReadAsAsync<ConflictResponse>();
+    Assert.NotEqual(originalETag, conflict.CurrentETag);
+}
+```
+
+## 7. Performance Considerations
+
+- ETag generation is lightweight (base64 of version number)
+- Version checks happen at database level using WHERE clauses
+- Distributed locks have 30-second timeout to prevent deadlocks
+- WebSocket events are throttled to max 10 updates/second per item
+
+## 8. Monitoring & Metrics
+
+Track these concurrency-related metrics:
+- Conflict rate per endpoint
+- Lock acquisition failures
+- Average lock hold time
+- WebSocket event lag
+- Version drift between clients
+
+```csharp
+public class ConcurrencyMetrics
+{
+    private readonly IMetricsCollector _metrics;
+    
+    public void RecordConflict(string resource)
+    {
+        _metrics.Increment("concurrency.conflicts", tags: new { resource });
+    }
+    
+    public void RecordLockAcquisition(string resource, TimeSpan duration, bool success)
+    {
+        _metrics.Histogram("concurrency.lock.duration", duration.TotalMilliseconds, 
+            tags: new { resource, success });
+    }
+}
+```
+</file>
+
+<file path="database-schema.md">
+# Database Schema Requirements
+
+## Database Configuration
+
+### PostgreSQL Settings
+- **Version**: PostgreSQL 15+
+- **Character Set**: UTF8
+- **Collation**: en_US.UTF-8
+- **Timezone**: UTC
+- **Connection Pool**: Min 10, Max 100 connections
+
+### Multi-tenancy Strategy
+- Row-level security with HouseholdId in all tenant-specific tables
+- Global query filters in Entity Framework Core
+- Composite indexes on (HouseholdId, frequently queried columns)
+
+## Core Schema
+
+### Users Table
+```sql
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    normalized_email VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    display_name VARCHAR(100),
+    avatar_url VARCHAR(500),
+    email_verified BOOLEAN DEFAULT false,
+    email_verification_token VARCHAR(255),
+    password_reset_token VARCHAR(255),
+    password_reset_expires TIMESTAMP,
+    failed_login_attempts INT DEFAULT 0,
+    lockout_end TIMESTAMP,
+    two_factor_enabled BOOLEAN DEFAULT false,
+    two_factor_secret VARCHAR(255),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
+    last_login_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    CONSTRAINT email_format CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
+);
+
+CREATE INDEX idx_users_email ON users(normalized_email);
+CREATE INDEX idx_users_deleted_at ON users(deleted_at) WHERE deleted_at IS NULL;
+```
+
+### Households Table
+```sql
+CREATE TABLE households (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    timezone VARCHAR(50) DEFAULT 'UTC',
+    settings JSONB DEFAULT '{}',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by UUID NOT NULL REFERENCES users(id),
+    updated_at TIMESTAMP,
+    updated_by UUID REFERENCES users(id),
+    deleted_at TIMESTAMP,
+    CONSTRAINT name_length CHECK (LENGTH(name) >= 1)
+);
+
+CREATE INDEX idx_households_created_by ON households(created_by);
+CREATE INDEX idx_households_deleted_at ON households(deleted_at) WHERE deleted_at IS NULL;
+```
+
+### Household Members Junction Table
+```sql
+CREATE TABLE household_members (
+    household_id UUID NOT NULL REFERENCES households(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role VARCHAR(20) NOT NULL DEFAULT 'member',
+    joined_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    invited_by UUID REFERENCES users(id),
+    invitation_accepted_at TIMESTAMP,
+    last_accessed_at TIMESTAMP,
+    notification_settings JSONB DEFAULT '{}',
+    PRIMARY KEY (household_id, user_id),
+    CONSTRAINT valid_role CHECK (role IN ('admin', 'member', 'viewer'))
+);
+
+CREATE INDEX idx_household_members_user_id ON household_members(user_id);
+CREATE INDEX idx_household_members_role ON household_members(household_id, role);
+```
+
+### Inventory Items Table
+```sql
+-- Simplified: Only tracks CURRENT state of items in inventory
+-- Historical data is tracked in item_history table
+CREATE TABLE inventory_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    household_id UUID NOT NULL REFERENCES households(id) ON DELETE CASCADE,
+    name VARCHAR(200) NOT NULL,
+    quantity DECIMAL(10,3) NOT NULL DEFAULT 1,
+    unit VARCHAR(50),
+    location VARCHAR(20) NOT NULL,
+    category VARCHAR(50),
+    brand VARCHAR(100),
+    barcode VARCHAR(50),
+    expiration_date DATE,
+    expiration_date_type VARCHAR(20) DEFAULT 'useBy', -- 'useBy' or 'bestBefore'
+    purchase_date DATE,
+    price DECIMAL(10,2),
+    currency VARCHAR(3) DEFAULT 'USD',
+    notes TEXT,
+    image_url VARCHAR(500),
+    is_shared BOOLEAN DEFAULT true,
+    row_version BIGINT DEFAULT 0, -- For optimistic concurrency control
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by UUID NOT NULL REFERENCES users(id),
+    updated_at TIMESTAMP,
+    updated_by UUID REFERENCES users(id),
+    CONSTRAINT valid_quantity CHECK (quantity > 0), -- Items with 0 quantity are removed
+    CONSTRAINT valid_location CHECK (location IN ('fridge', 'freezer', 'pantry', 'other')),
+    CONSTRAINT valid_expiration_type CHECK (expiration_date_type IN ('useBy', 'bestBefore')),
+    CONSTRAINT valid_dates CHECK (
+        expiration_date IS NULL OR expiration_date >= purchase_date
+    )
+);
+
+-- Note: No consumed_at, consumed_by, deleted_at, deleted_by fields
+-- When an item is consumed/deleted, it is removed from this table
+-- and the action is recorded in item_history
+
+CREATE INDEX idx_items_household_id ON inventory_items(household_id);
+CREATE INDEX idx_items_household_location ON inventory_items(household_id, location);
+CREATE INDEX idx_items_household_expiration ON inventory_items(household_id, expiration_date) 
+    WHERE expiration_date IS NOT NULL;
+CREATE INDEX idx_items_household_category ON inventory_items(household_id, category);
+CREATE INDEX idx_items_barcode ON inventory_items(barcode) WHERE barcode IS NOT NULL;
+CREATE INDEX idx_items_row_version ON inventory_items(id, row_version); -- For concurrency checks
+```
+
+### Item History Table (Audit Log)
+```sql
+CREATE TABLE item_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    item_id UUID NOT NULL REFERENCES inventory_items(id) ON DELETE CASCADE,
+    household_id UUID NOT NULL REFERENCES households(id) ON DELETE CASCADE,
+    action VARCHAR(50) NOT NULL,
+    quantity_change DECIMAL(10,3),
+    previous_values JSONB,
+    new_values JSONB,
+    reason VARCHAR(255),
+    notes TEXT,
+    performed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    performed_by UUID NOT NULL REFERENCES users(id),
+    CONSTRAINT valid_action CHECK (action IN (
+        'created', 'updated', 'consumed', 'wasted', 
+        'moved', 'deleted', 'restored'
+    ))
+);
+
+CREATE INDEX idx_item_history_item_id ON item_history(item_id);
+CREATE INDEX idx_item_history_household_id ON item_history(household_id);
+CREATE INDEX idx_item_history_performed_at ON item_history(household_id, performed_at DESC);
+```
+
+### Shopping Lists Table
+```sql
+CREATE TABLE shopping_lists (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    household_id UUID NOT NULL REFERENCES households(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by UUID NOT NULL REFERENCES users(id),
+    updated_at TIMESTAMP,
+    updated_by UUID REFERENCES users(id),
+    completed_at TIMESTAMP,
+    completed_by UUID REFERENCES users(id)
+);
+
+CREATE INDEX idx_shopping_lists_household_id ON shopping_lists(household_id);
+CREATE INDEX idx_shopping_lists_active ON shopping_lists(household_id, is_active);
+```
+
+### Shopping List Items Table
+```sql
+CREATE TABLE shopping_list_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    shopping_list_id UUID NOT NULL REFERENCES shopping_lists(id) ON DELETE CASCADE,
+    name VARCHAR(200) NOT NULL,
+    quantity DECIMAL(10,3),
+    unit VARCHAR(50),
+    category VARCHAR(50),
+    notes TEXT,
+    is_completed BOOLEAN DEFAULT false,
+    inventory_item_id UUID REFERENCES inventory_items(id) ON DELETE SET NULL,
+    added_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    added_by UUID NOT NULL REFERENCES users(id),
+    completed_at TIMESTAMP,
+    completed_by UUID REFERENCES users(id),
+    sort_order INT DEFAULT 0
+);
+
+CREATE INDEX idx_shopping_list_items_list_id ON shopping_list_items(shopping_list_id);
+CREATE INDEX idx_shopping_list_items_completed ON shopping_list_items(shopping_list_id, is_completed);
+```
+
+### Notification Preferences Table
+```sql
+CREATE TABLE notification_preferences (
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    household_id UUID NOT NULL REFERENCES households(id) ON DELETE CASCADE,
+    email_enabled BOOLEAN DEFAULT true,
+    in_app_enabled BOOLEAN DEFAULT true,
+    push_enabled BOOLEAN DEFAULT false,
+    telegram_enabled BOOLEAN DEFAULT false,
+    telegram_chat_id VARCHAR(100),
+    telegram_username VARCHAR(100),
+    expiration_warning_days INT DEFAULT 3,
+    low_stock_threshold INT DEFAULT 2,
+    notification_types TEXT[] DEFAULT ARRAY['expiration', 'low_stock', 'shopping_reminder'],
+    preferred_time TIME DEFAULT '09:00:00',
+    quiet_hours_start TIME,
+    quiet_hours_end TIME,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
+    PRIMARY KEY (user_id, household_id),
+    CONSTRAINT valid_warning_days CHECK (expiration_warning_days BETWEEN 1 AND 30),
+    CONSTRAINT valid_threshold CHECK (low_stock_threshold >= 0)
+);
+
+CREATE INDEX idx_notification_prefs_telegram ON notification_preferences(telegram_chat_id) 
+    WHERE telegram_enabled = true;
+```
+
+### Notifications Table
+```sql
+CREATE TABLE notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    household_id UUID REFERENCES households(id) ON DELETE CASCADE,
+    type VARCHAR(50) NOT NULL,
+    channel VARCHAR(20) NOT NULL,
+    subject VARCHAR(255),
+    message TEXT NOT NULL,
+    metadata JSONB DEFAULT '{}',
+    status VARCHAR(20) DEFAULT 'pending',
+    scheduled_for TIMESTAMP,
+    sent_at TIMESTAMP,
+    read_at TIMESTAMP,
+    error_message TEXT,
+    retry_count INT DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT valid_type CHECK (type IN (
+        'expiration_warning', 'item_expired', 'low_stock', 
+        'shopping_reminder', 'member_joined', 'member_left'
+    )),
+    CONSTRAINT valid_channel CHECK (channel IN ('email', 'in_app', 'push', 'telegram')),
+    CONSTRAINT valid_status CHECK (status IN ('pending', 'sent', 'failed', 'cancelled'))
+);
+
+CREATE INDEX idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX idx_notifications_status ON notifications(status) WHERE status = 'pending';
+CREATE INDEX idx_notifications_scheduled ON notifications(scheduled_for) 
+    WHERE status = 'pending' AND scheduled_for IS NOT NULL;
+CREATE INDEX idx_notifications_read ON notifications(user_id, read_at) 
+    WHERE read_at IS NULL;
+```
+
+### Activity Logs Table
+```sql
+CREATE TABLE activity_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    household_id UUID NOT NULL REFERENCES households(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    action VARCHAR(100) NOT NULL,
+    entity_type VARCHAR(50),
+    entity_id UUID,
+    entity_name VARCHAR(200),
+    metadata JSONB DEFAULT '{}',
+    ip_address INET,
+    user_agent TEXT,
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    correlation_id UUID
+);
+
+CREATE INDEX idx_activity_logs_household_id ON activity_logs(household_id);
+CREATE INDEX idx_activity_logs_user_id ON activity_logs(user_id);
+CREATE INDEX idx_activity_logs_timestamp ON activity_logs(household_id, timestamp DESC);
+CREATE INDEX idx_activity_logs_entity ON activity_logs(entity_type, entity_id);
+CREATE INDEX idx_activity_logs_correlation ON activity_logs(correlation_id);
+```
+
+### Categories Table (Reference Data)
+```sql
+CREATE TABLE categories (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(50) UNIQUE NOT NULL,
+    display_name VARCHAR(100) NOT NULL,
+    icon VARCHAR(50),
+    color VARCHAR(7),
+    parent_id UUID REFERENCES categories(id),
+    sort_order INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO categories (name, display_name, icon, color, sort_order) VALUES
+    ('produce', 'Produce', 'apple', '#4CAF50', 1),
+    ('dairy', 'Dairy', 'cheese', '#2196F3', 2),
+    ('meat', 'Meat & Seafood', 'meat', '#F44336', 3),
+    ('bakery', 'Bakery', 'bread', '#FF9800', 4),
+    ('frozen', 'Frozen', 'snowflake', '#00BCD4', 5),
+    ('pantry', 'Pantry', 'cabinet', '#795548', 6),
+    ('beverages', 'Beverages', 'bottle', '#9C27B0', 7),
+    ('snacks', 'Snacks', 'cookie', '#FFC107', 8),
+    ('condiments', 'Condiments & Sauces', 'sauce', '#FF5722', 9),
+    ('other', 'Other', 'box', '#607D8B', 10);
+```
+
+### Units Table (Reference Data)
+```sql
+CREATE TABLE units (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(50) UNIQUE NOT NULL,
+    display_name VARCHAR(50) NOT NULL,
+    abbreviation VARCHAR(10),
+    type VARCHAR(20) NOT NULL,
+    base_unit VARCHAR(50),
+    conversion_factor DECIMAL(10,6),
+    is_metric BOOLEAN DEFAULT false,
+    sort_order INT DEFAULT 0,
+    CONSTRAINT valid_type CHECK (type IN ('weight', 'volume', 'count', 'length'))
+);
+
+INSERT INTO units (name, display_name, abbreviation, type, is_metric, sort_order) VALUES
+    ('piece', 'Piece', 'pc', 'count', false, 1),
+    ('dozen', 'Dozen', 'dz', 'count', false, 2),
+    ('pound', 'Pound', 'lb', 'weight', false, 3),
+    ('ounce', 'Ounce', 'oz', 'weight', false, 4),
+    ('kilogram', 'Kilogram', 'kg', 'weight', true, 5),
+    ('gram', 'Gram', 'g', 'weight', true, 6),
+    ('liter', 'Liter', 'L', 'volume', true, 7),
+    ('milliliter', 'Milliliter', 'mL', 'volume', true, 8),
+    ('gallon', 'Gallon', 'gal', 'volume', false, 9),
+    ('quart', 'Quart', 'qt', 'volume', false, 10),
+    ('cup', 'Cup', 'cup', 'volume', false, 11);
+```
+
+### Telegram Links Table
+```sql
+CREATE TABLE telegram_links (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    telegram_user_id BIGINT UNIQUE NOT NULL,
+    telegram_username VARCHAR(100),
+    chat_id BIGINT NOT NULL,
+    verification_code VARCHAR(10),
+    verified BOOLEAN DEFAULT false,
+    linked_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_interaction_at TIMESTAMP,
+    CONSTRAINT unique_user_telegram UNIQUE (user_id)
+);
+
+CREATE INDEX idx_telegram_links_user_id ON telegram_links(user_id);
+CREATE INDEX idx_telegram_links_chat_id ON telegram_links(chat_id);
+CREATE INDEX idx_telegram_links_verification ON telegram_links(verification_code) 
+    WHERE verified = false;
+```
+
+## Views
+
+### Expiring Items View
+```sql
+CREATE VIEW expiring_items_view AS
+SELECT 
+    i.id,
+    i.household_id,
+    i.name,
+    i.quantity,
+    i.unit,
+    i.location,
+    i.category,
+    i.expiration_date,
+    i.best_before_date,
+    CASE 
+        WHEN i.expiration_date IS NOT NULL THEN 
+            i.expiration_date - CURRENT_DATE
+        WHEN i.best_before_date IS NOT NULL THEN 
+            i.best_before_date - CURRENT_DATE
+        ELSE NULL
+    END AS days_until_expiration,
+    CASE 
+        WHEN i.expiration_date <= CURRENT_DATE OR i.best_before_date <= CURRENT_DATE THEN 'expired'
+        WHEN i.expiration_date <= CURRENT_DATE + INTERVAL '3 days' OR 
+             i.best_before_date <= CURRENT_DATE + INTERVAL '3 days' THEN 'expiring_soon'
+        ELSE 'fresh'
+    END AS expiration_status,
+    u.display_name AS created_by_name
+FROM inventory_items i
+LEFT JOIN users u ON i.created_by = u.id
+WHERE i.deleted_at IS NULL
+  AND (i.expiration_date IS NOT NULL OR i.best_before_date IS NOT NULL);
+```
+
+### Household Statistics View
+```sql
+CREATE VIEW household_statistics AS
+SELECT 
+    h.id AS household_id,
+    COUNT(DISTINCT i.id) FILTER (WHERE i.deleted_at IS NULL) AS total_items,
+    COUNT(DISTINCT i.id) FILTER (
+        WHERE i.deleted_at IS NULL 
+        AND (i.expiration_date <= CURRENT_DATE + INTERVAL '3 days' 
+             OR i.best_before_date <= CURRENT_DATE + INTERVAL '3 days')
+    ) AS expiring_items,
+    COUNT(DISTINCT i.id) FILTER (
+        WHERE i.deleted_at IS NULL 
+        AND (i.expiration_date <= CURRENT_DATE 
+             OR i.best_before_date <= CURRENT_DATE)
+    ) AS expired_items,
+    COUNT(DISTINCT ih.id) FILTER (
+        WHERE ih.action = 'consumed' 
+        AND ih.performed_at >= CURRENT_DATE - INTERVAL '30 days'
+    ) AS consumed_this_month,
+    COUNT(DISTINCT ih.id) FILTER (
+        WHERE ih.action = 'wasted' 
+        AND ih.performed_at >= CURRENT_DATE - INTERVAL '30 days'
+    ) AS wasted_this_month,
+    SUM(i.price * i.quantity) FILTER (WHERE i.deleted_at IS NULL) AS total_value
+FROM households h
+LEFT JOIN inventory_items i ON h.id = i.household_id
+LEFT JOIN item_history ih ON i.id = ih.item_id
+GROUP BY h.id;
+```
+
+## Indexes Strategy
+
+### Primary Indexes
+- All primary keys have automatic B-tree indexes
+- Foreign keys should have indexes for JOIN performance
+
+### Composite Indexes
+- Include household_id as first column for multi-tenant queries
+- Add frequently filtered columns (location, category, status)
+
+### Partial Indexes
+- Use WHERE clauses for soft-deleted records
+- Optimize for common query patterns
+
+### Full-Text Search (Future)
+```sql
+-- For item search functionality
+CREATE INDEX idx_items_search ON inventory_items 
+USING gin(to_tsvector('english', name || ' ' || COALESCE(notes, '')));
+```
+
+## Database Migrations
+
+### Migration Naming Convention
+- `YYYYMMDD_HHMMSS_DescriptiveName.sql`
+- Example: `20240130_120000_CreateUsersTable.sql`
+
+### Migration Tools
+- Entity Framework Core Migrations for C#/.NET
+- Maintain both up and down migrations
+- Version control all migration files
+
+### Sample Migration
+```sql
+-- Up Migration
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS __EFMigrationsHistory (
+    MigrationId varchar(150) NOT NULL,
+    ProductVersion varchar(32) NOT NULL,
+    CONSTRAINT PK___EFMigrationsHistory PRIMARY KEY (MigrationId)
+);
+
+-- Create tables here
+
+INSERT INTO __EFMigrationsHistory (MigrationId, ProductVersion)
+VALUES ('20240130120000_InitialCreate', '8.0.0');
+
+COMMIT;
+
+-- Down Migration
+BEGIN;
+
+-- Drop tables in reverse order
+
+DELETE FROM __EFMigrationsHistory WHERE MigrationId = '20240130120000_InitialCreate';
+
+COMMIT;
+```
+
+## Performance Considerations
+
+### Query Optimization
+- Use EXPLAIN ANALYZE for slow queries
+- Maintain statistics with ANALYZE command
+- Consider materialized views for complex aggregations
+
+### Partitioning Strategy (Future)
+```sql
+-- Partition activity_logs by month for better performance
+CREATE TABLE activity_logs_2024_01 PARTITION OF activity_logs
+FOR VALUES FROM ('2024-01-01') TO ('2024-02-01');
+```
+
+### Connection Pooling
+```csharp
+// Entity Framework configuration
+services.AddDbContext<FridgrDbContext>(options =>
+    options.UseNpgsql(connectionString, npgsqlOptions =>
+    {
+        npgsqlOptions.EnableRetryOnFailure(3);
+    })
+    .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
+);
+```
+
+## Backup and Recovery
+
+### Backup Strategy
+- Daily automated backups
+- Point-in-time recovery enabled
+- Backup retention: 30 days
+- Test restore procedures monthly
+
+### Backup Commands
+```bash
+# Full backup
+pg_dump -h localhost -U fridgr -d fridgr -F c -b -v -f fridgr_backup_$(date +%Y%m%d).backup
+
+# Restore
+pg_restore -h localhost -U fridgr -d fridgr -v fridgr_backup_20240130.backup
+```
+
+## Security Considerations
+
+### Row-Level Security (RLS)
+```sql
+-- Enable RLS on inventory_items
+ALTER TABLE inventory_items ENABLE ROW LEVEL SECURITY;
+
+-- Create policy for household members
+CREATE POLICY household_member_policy ON inventory_items
+    FOR ALL
+    TO application_user
+    USING (
+        household_id IN (
+            SELECT household_id 
+            FROM household_members 
+            WHERE user_id = current_setting('app.current_user_id')::uuid
+        )
+    );
+```
+
+### Encryption
+- Use pgcrypto extension for sensitive data
+- Encrypt PII at rest
+- SSL/TLS for connections
+
+### Audit Requirements
+- Log all data modifications
+- Maintain audit trail for compliance
+- Regular security assessments
+</file>
+
+<file path="feature-roadmap.md">
+# Feature Roadmap
+
+## Overview
+This document outlines the phased development approach for Fridgr, progressing from MVP to a fully-featured household inventory management system.
+
+## Development Phases
+
+### Phase 1: MVP (Months 1-3)
+**Goal**: Launch core functionality with manual entry and basic features
+
+#### Core Features
+- ✅ User authentication (email/password)
+- ✅ Multi-tenant household management
+- ✅ Manual inventory entry
+- ✅ Expiration tracking with warnings
+- ✅ Consumption/waste logging
+- ✅ Email notifications
+- ✅ In-app notifications
+- ✅ Telegram bot integration
+- ✅ Shared shopping lists
+- ✅ PWA for mobile access
+- ✅ Basic reporting
+
+#### Technical Foundation
+- ✅ Modular monolith architecture
+- ✅ Ports & Adapters pattern
+- ✅ PostgreSQL database
+- ✅ Docker deployment
+- ✅ Structured logging
+- ✅ JWT authentication
+- ✅ Real-time updates (SignalR)
+
+#### Success Metrics
+- 100 active households
+- <200ms API response time
+- 99.5% uptime
+- 30% reduction in reported food waste
+
+---
+
+### Phase 2: Enhanced Features (Months 4-6)
+**Goal**: Add convenience features and improve user experience
+
+#### Barcode Scanning
+- **Implementation**: 
+  - Camera-based barcode scanning in PWA
+  - Integration with Open Food Facts API
+  - Fallback to manual entry
+  - Barcode caching for frequently used items
+  
+- **Technical Requirements**:
+  ```typescript
+  interface BarcodeScanner {
+    scan(): Promise<string>;
+    isSupported(): boolean;
+  }
+  
+  interface ProductDatabase {
+    lookup(barcode: string): Promise<Product>;
+    cache(product: Product): void;
+  }
+  ```
+
+#### External Product Databases
+- **Integrations**:
+  - Open Food Facts (open source)
+  - USDA FoodData Central
+  - Nutritionix API (commercial)
+  - Custom product database
+
+- **Data Enrichment**:
+  - Nutritional information
+  - Product images
+  - Average shelf life
+  - Storage recommendations
+  - Allergen information
+
+#### Enhanced Notifications
+- **Push Notifications**: 
+  - Web Push API for browsers
+  - Service workers for offline support
+  - Rich notifications with actions
+
+- **Smart Scheduling**:
+  - Machine learning for optimal notification times
+  - Bundled notifications to reduce noise
+  - Contextual alerts (shopping nearby)
+
+#### Analytics Dashboard
+- **Metrics**:
+  - Waste trends over time
+  - Category-wise consumption
+  - Cost analysis
+  - Seasonal patterns
+  - Household comparisons
+
+- **Visualizations**:
+  - Charts (Chart.js/D3.js)
+  - Heatmaps for expiration patterns
+  - Predictive waste forecasts
+
+#### OAuth Integration
+- **Providers**:
+  - Google Sign-In
+  - Apple Sign-In
+  - Microsoft Account
+  - Facebook Login
+
+- **Implementation**:
+  ```csharp
+  services.AddAuthentication()
+    .AddGoogle(options => {
+      options.ClientId = config["Google:ClientId"];
+      options.ClientSecret = config["Google:ClientSecret"];
+    })
+    .AddApple(options => {
+      options.ClientId = config["Apple:ClientId"];
+      options.TeamId = config["Apple:TeamId"];
+    });
+  ```
+
+---
+
+### Phase 3: AI & Automation (Months 7-9)
+**Goal**: Leverage AI for intelligent features and automation
+
+#### LLM-Powered Recipe Suggestions
+- **Features**:
+  - Recipe generation based on available ingredients
+  - Dietary restriction support
+  - Cuisine preferences
+  - Meal planning assistance
+  - Leftover utilization suggestions
+
+- **Architecture**:
+  ```csharp
+  public interface IRecipeAI {
+    Task<Recipe[]> SuggestRecipes(InventoryItem[] items, UserPreferences prefs);
+    Task<MealPlan> GenerateMealPlan(int days, DietaryRestrictions restrictions);
+    Task<string> AdaptRecipe(Recipe original, InventoryItem[] available);
+  }
+  ```
+
+- **Integration Options**:
+  - OpenAI GPT-4 API
+  - Google PaLM API
+  - Self-hosted LLaMA model
+  - Azure OpenAI Service
+
+#### Smart Inventory Predictions
+- **Predictive Analytics**:
+  - Consumption rate prediction
+  - Automatic shopping list generation
+  - Seasonal adjustment
+  - Event-based predictions (holidays)
+
+- **ML Models**:
+  ```python
+  class ConsumptionPredictor:
+      def predict_consumption(household_id: str, item: str, days: int) -> float
+      def suggest_purchase_quantity(item: str, household_size: int) -> Quantity
+      def predict_expiration_risk(item: InventoryItem) -> float
+  ```
+
+#### Voice Assistant Integration
+- **Platforms**:
+  - Amazon Alexa Skills
+  - Google Assistant Actions
+  - Apple Siri Shortcuts
+
+- **Commands**:
+  - "Add milk to my fridge"
+  - "What's expiring soon?"
+  - "Create shopping list from recipes"
+  - "Log breakfast consumption"
+
+#### Image Recognition
+- **Capabilities**:
+  - Photograph items to add
+  - Receipt scanning
+  - Fridge content analysis
+  - Freshness assessment
+
+- **Technical Stack**:
+  - TensorFlow.js for client-side
+  - Azure Computer Vision API
+  - Custom trained models
+
+---
+
+### Phase 4: Platform Expansion (Months 10-12)
+**Goal**: Native apps and ecosystem integration
+
+#### Native Mobile Applications
+- **iOS App**:
+  - SwiftUI implementation
+  - iOS widgets
+  - Apple Watch companion
+  - Siri integration
+  - iCloud sync
+
+- **Android App**:
+  - Jetpack Compose UI
+  - Android widgets
+  - Wear OS support
+  - Google Assistant integration
+  - Material You theming
+
+- **Shared Features**:
+  - Offline-first architecture
+  - Background sync
+  - Biometric authentication
+  - Camera integration
+  - Location-based reminders
+
+#### Smart Home Integration
+- **Platforms**:
+  - Samsung SmartThings
+  - Google Home
+  - Amazon Echo Show
+  - Apple HomeKit
+
+- **Use Cases**:
+  - Display on smart displays
+  - Voice-controlled inventory
+  - Smart fridge integration
+  - Automated grocery ordering
+
+#### Marketplace Features
+- **Community Recipes**:
+  - User-submitted recipes
+  - Rating system
+  - Recipe collections
+  - Chef partnerships
+
+- **Sharing Economy**:
+  - Neighborhood food sharing
+  - Excess produce exchange
+  - Community fridges integration
+
+---
+
+### Phase 5: Enterprise & Advanced (Year 2)
+**Goal**: B2B features and advanced capabilities
+
+#### Multi-Organization Support
+- **Features**:
+  - Restaurant inventory management
+  - Commercial kitchen support
+  - Supplier integration
+  - Compliance reporting
+  - Multi-location management
+
+#### Advanced Analytics
+- **Business Intelligence**:
+  - Custom report builder
+  - Scheduled reports
+  - Data warehouse integration
+  - API for third-party analytics
+
+#### Regulatory Compliance
+- **Standards**:
+  - HACCP compliance
+  - FDA food safety
+  - GDPR full implementation
+  - SOC 2 certification
+  - ISO 22000
+
+#### API Ecosystem
+- **Developer Platform**:
+  - Public API
+  - Developer portal
+  - SDK libraries
+  - Webhook system
+  - Partner integrations
+
+---
+
+## Technical Debt & Infrastructure Evolution
+
+### MVP → Mid-Maturity
+- Add observability stack (Prometheus, Grafana)
+- Implement distributed tracing (OpenTelemetry)
+- Add caching layer (Redis)
+- Implement CQRS with event sourcing
+- Add API Gateway
+
+### Mid-Maturity → Target
+- Migrate to microservices where beneficial
+- Implement service mesh (Istio)
+- Add message queue (RabbitMQ/Kafka)
+- Multi-region deployment
+- GraphQL API option
+- Implement SAGA pattern
+
+---
+
+## Success Metrics by Phase
+
+### Phase 1 (MVP)
+- 100 active households
+- 70% daily active users
+- <5% food waste reduction
+
+### Phase 2
+- 1,000 active households
+- 10,000 scanned products
+- 15% food waste reduction
+
+### Phase 3
+- 10,000 active households
+- 100,000 AI-generated recipes
+- 25% food waste reduction
+
+### Phase 4
+- 50,000 active households
+- 1M mobile app downloads
+- 30% food waste reduction
+
+### Phase 5
+- 100+ enterprise customers
+- 500,000 active households
+- 40% food waste reduction
+
+---
+
+## Risk Mitigation
+
+### Technical Risks
+- **Scaling Issues**: Design for horizontal scaling from start
+- **AI Costs**: Implement caching and rate limiting
+- **Data Privacy**: Encrypt PII, regular audits
+- **Third-party Dependencies**: Abstract integrations, fallback options
+
+### Business Risks
+- **User Adoption**: Focus on UX, gradual feature rollout
+- **Competition**: Unique features, strong community
+- **Regulatory Changes**: Flexible architecture, compliance monitoring
+
+---
+
+## Resource Requirements
+
+### Phase 1 (MVP)
+- 2 Full-stack developers
+- 1 UI/UX designer
+- 1 DevOps engineer (part-time)
+
+### Phase 2-3
+- 3 Full-stack developers
+- 1 ML engineer
+- 1 UI/UX designer
+- 1 DevOps engineer
+- 1 QA engineer
+
+### Phase 4-5
+- 5 Full-stack developers
+- 2 Mobile developers
+- 2 ML engineers
+- 2 UI/UX designers
+- 2 DevOps engineers
+- 2 QA engineers
+- 1 Product manager
+- 1 Data analyst
+
+---
+
+## Budget Estimates
+
+### Phase 1 (MVP)
+- Development: $50,000
+- Infrastructure: $500/month
+- Third-party services: $200/month
+
+### Phase 2-3
+- Development: $150,000
+- Infrastructure: $2,000/month
+- Third-party services: $1,000/month
+- AI/ML services: $500/month
+
+### Phase 4-5
+- Development: $500,000
+- Infrastructure: $10,000/month
+- Third-party services: $5,000/month
+- AI/ML services: $3,000/month
+
+---
+
+## Go-to-Market Strategy
+
+### Phase 1
+- Beta testing with 50 households
+- Product Hunt launch
+- Content marketing (blog)
+- Social media presence
+
+### Phase 2-3
+- Influencer partnerships
+- App store optimization
+- SEO/SEM campaigns
+- Referral program
+
+### Phase 4-5
+- Enterprise sales team
+- Partnership development
+- International expansion
+- Industry conferences
+</file>
+
+<file path="observability-strategy.md">
+# Observability Strategy - MVP Implementation
+
+## Overview
+Observability is **NOT** deferred. It is a Day 1 requirement for production readiness. This document defines the observability implementation for MVP.
+
+## 1. The Three Pillars (All in MVP)
+
+### 1.1 Structured Logging
+
+```csharp
+// Program.cs
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+    .Enrich.FromLogContext()
+    .Enrich.WithCorrelationId()
+    .Enrich.WithMachineName()
+    .Enrich.WithEnvironmentName()
+    .WriteTo.Console(new JsonFormatter())
+    .WriteTo.OpenTelemetry(options =>
+    {
+        options.Endpoint = "http://otel-collector:4317";
+        options.Protocol = OtlpProtocol.Grpc;
+    }));
+
+// Correlation ID Middleware
+public class CorrelationIdMiddleware
+{
+    public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+    {
+        var correlationId = context.Request.Headers["X-Correlation-ID"].FirstOrDefault() 
+            ?? Guid.NewGuid().ToString();
+            
+        context.Items["CorrelationId"] = correlationId;
+        context.Response.Headers.Add("X-Correlation-ID", correlationId);
+        
+        using (LogContext.PushProperty("CorrelationId", correlationId))
+        using (LogContext.PushProperty("UserId", context.User?.Identity?.Name))
+        using (LogContext.PushProperty("RequestPath", context.Request.Path))
+        {
+            await next(context);
+        }
+    }
+}
+```
+
+### 1.2 Distributed Tracing
+
+```csharp
+// Program.cs - OpenTelemetry Setup
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource
+        .AddService("Fridgr.API")
+        .AddAttributes(new Dictionary<string, object>
+        {
+            ["deployment.environment"] = builder.Environment.EnvironmentName,
+            ["service.version"] = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0"
+        }))
+    .WithTracing(tracing => tracing
+        .AddAspNetCoreInstrumentation(options =>
+        {
+            options.RecordException = true;
+            options.Filter = (httpContext) => !httpContext.Request.Path.StartsWithSegments("/health");
+        })
+        .AddHttpClientInstrumentation()
+        .AddEntityFrameworkCoreInstrumentation(options =>
+        {
+            options.SetDbStatementForText = true;
+            options.SetDbStatementForStoredProcedure = true;
+        })
+        .AddSource("Fridgr.Application")
+        .AddOtlpExporter(options =>
+        {
+            options.Endpoint = new Uri("http://otel-collector:4317");
+        }));
+
+// Custom Activity Source for Business Operations
+public class InventoryService
+{
+    private static readonly ActivitySource ActivitySource = new("Fridgr.Application");
+    
+    public async Task<ItemDto> AddItemAsync(CreateItemRequest request)
+    {
+        using var activity = ActivitySource.StartActivity("AddItem", ActivityKind.Internal);
+        activity?.SetTag("household.id", request.HouseholdId);
+        activity?.SetTag("item.category", request.Category);
+        
+        try
+        {
+            // Business logic
+            var result = await _repository.AddAsync(item);
+            activity?.SetTag("item.id", result.Id);
+            activity?.SetStatus(ActivityStatusCode.Ok);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            activity?.RecordException(ex);
+            throw;
+        }
+    }
+}
+```
+
+### 1.3 Metrics
+
+```csharp
+// Metrics Configuration
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(metrics => metrics
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddRuntimeInstrumentation()
+        .AddMeter("Fridgr.Metrics")
+        .AddOtlpExporter(options =>
+        {
+            options.Endpoint = new Uri("http://otel-collector:4317");
+        }));
+
+// Custom Business Metrics
+public class FridgrMetrics
+{
+    private readonly Meter _meter;
+    private readonly Counter<long> _itemsAdded;
+    private readonly Counter<long> _itemsConsumed;
+    private readonly Counter<long> _itemsExpired;
+    private readonly Histogram<double> _apiResponseTime;
+    private readonly UpDownCounter<long> _activeUsers;
+    
+    public FridgrMetrics(IMeterFactory meterFactory)
+    {
+        _meter = meterFactory.Create("Fridgr.Metrics");
+        
+        _itemsAdded = _meter.CreateCounter<long>("fridgr.items.added", 
+            description: "Number of items added to inventory");
+            
+        _itemsConsumed = _meter.CreateCounter<long>("fridgr.items.consumed",
+            description: "Number of items consumed from inventory");
+            
+        _itemsExpired = _meter.CreateCounter<long>("fridgr.items.expired",
+            description: "Number of items that expired");
+            
+        _apiResponseTime = _meter.CreateHistogram<double>("fridgr.api.response_time",
+            unit: "ms", description: "API response time in milliseconds");
+            
+        _activeUsers = _meter.CreateUpDownCounter<long>("fridgr.users.active",
+            description: "Number of currently active users");
+    }
+    
+    public void RecordItemAdded(string householdId, string category)
+    {
+        _itemsAdded.Add(1, new KeyValuePair<string, object?>("household.id", householdId),
+                           new KeyValuePair<string, object?>("item.category", category));
+    }
+}
+```
+
+## 2. Health Checks (MVP)
+
+```csharp
+// Health Check Configuration
+builder.Services.AddHealthChecks()
+    .AddNpgSql(
+        connectionString: builder.Configuration.GetConnectionString("Default"),
+        name: "database",
+        tags: new[] { "db", "sql", "postgresql" })
+    .AddRedis(
+        builder.Configuration.GetConnectionString("Redis"),
+        name: "redis-cache",
+        tags: new[] { "cache", "redis" })
+    .AddUrlGroup(
+        new Uri("https://api.telegram.org/bot/getMe"),
+        name: "telegram-api",
+        tags: new[] { "external", "telegram" })
+    .AddCheck<CustomBusinessHealthCheck>("business-logic");
+
+// Custom Business Health Check
+public class CustomBusinessHealthCheck : IHealthCheck
+{
+    private readonly IDbContext _context;
+    
+    public async Task<HealthCheckResult> CheckHealthAsync(
+        HealthCheckContext context,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Check if we can query the database
+            var itemCount = await _context.Items.CountAsync(cancellationToken);
+            
+            // Check if background jobs are running
+            var lastJobRun = await _context.BackgroundJobs
+                .OrderByDescending(j => j.LastRun)
+                .FirstOrDefaultAsync(cancellationToken);
+                
+            if (lastJobRun?.LastRun < DateTime.UtcNow.AddHours(-1))
+            {
+                return HealthCheckResult.Degraded("Background jobs may be stalled");
+            }
+            
+            return HealthCheckResult.Healthy($"System operational. {itemCount} items tracked.");
+        }
+        catch (Exception ex)
+        {
+            return HealthCheckResult.Unhealthy("Database connection failed", ex);
+        }
+    }
+}
+
+// Health Check Endpoints
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false // Liveness - just check if service is responsive
+});
+
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("db") || check.Tags.Contains("cache"),
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+
+app.MapHealthChecks("/health/startup", new HealthCheckOptions
+{
+    Predicate = _ => true, // All checks for startup probe
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+```
+
+## 3. Application Performance Monitoring (APM)
+
+```csharp
+// Performance Tracking Middleware
+public class PerformanceTrackingMiddleware
+{
+    private readonly RequestDelegate _next;
+    private readonly FridgrMetrics _metrics;
+    private readonly ILogger<PerformanceTrackingMiddleware> _logger;
+    
+    public async Task InvokeAsync(HttpContext context)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        
+        try
+        {
+            await _next(context);
+        }
+        finally
+        {
+            stopwatch.Stop();
+            var responseTime = stopwatch.Elapsed.TotalMilliseconds;
+            
+            _metrics.RecordResponseTime(
+                context.Request.Path,
+                context.Request.Method,
+                context.Response.StatusCode,
+                responseTime);
+            
+            if (responseTime > 1000) // Log slow requests
+            {
+                _logger.LogWarning("Slow request detected: {Method} {Path} took {ResponseTime}ms",
+                    context.Request.Method,
+                    context.Request.Path,
+                    responseTime);
+            }
+        }
+    }
+}
+```
+
+## 4. Error Tracking
+
+```csharp
+// Global Exception Handler with Detailed Tracking
+public class GlobalExceptionMiddleware
+{
+    private readonly RequestDelegate _next;
+    private readonly ILogger<GlobalExceptionMiddleware> _logger;
+    
+    public async Task InvokeAsync(HttpContext context)
+    {
+        try
+        {
+            await _next(context);
+        }
+        catch (Exception ex)
+        {
+            var errorId = Guid.NewGuid().ToString();
+            
+            _logger.LogError(ex, 
+                "Unhandled exception occurred. ErrorId: {ErrorId}, Path: {Path}, Method: {Method}, User: {User}",
+                errorId,
+                context.Request.Path,
+                context.Request.Method,
+                context.User?.Identity?.Name ?? "Anonymous");
+            
+            // Record exception in metrics
+            Activity.Current?.RecordException(ex);
+            Activity.Current?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            
+            await HandleExceptionAsync(context, ex, errorId);
+        }
+    }
+    
+    private async Task HandleExceptionAsync(HttpContext context, Exception exception, string errorId)
+    {
+        context.Response.StatusCode = exception switch
+        {
+            NotFoundException => 404,
+            ValidationException => 400,
+            UnauthorizedException => 401,
+            ConflictException => 409,
+            _ => 500
+        };
+        
+        await context.Response.WriteAsJsonAsync(new
+        {
+            error = new
+            {
+                id = errorId,
+                message = exception.Message,
+                type = exception.GetType().Name,
+                timestamp = DateTime.UtcNow,
+                path = context.Request.Path.ToString()
+            }
+        });
+    }
+}
+```
+
+## 5. Dashboard & Alerting (MVP with Open Source Stack)
+
+### Docker Compose for Observability Stack
+
+```yaml
+version: '3.8'
+
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # Prometheus metrics
+      
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+      
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+      
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+```
+
+### Key Metrics to Track (MVP)
+
+1. **Golden Signals**
+   - Latency: P50, P95, P99 response times
+   - Traffic: Requests per second
+   - Errors: 4xx and 5xx rates
+   - Saturation: CPU, memory, database connections
+
+2. **Business Metrics**
+   - Items added/consumed per hour
+   - Expiration warning effectiveness
+   - User engagement (active users, sessions)
+   - API usage by endpoint
+
+3. **Alert Rules**
+   ```yaml
+   # prometheus-alerts.yml
+   groups:
+     - name: fridgr
+       rules:
+         - alert: HighErrorRate
+           expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+           for: 5m
+           annotations:
+             summary: "High error rate detected"
+             
+         - alert: SlowAPIResponse
+           expr: histogram_quantile(0.95, http_request_duration_seconds_bucket) > 1
+           for: 10m
+           annotations:
+             summary: "95th percentile response time above 1 second"
+             
+         - alert: DatabaseDown
+           expr: up{job="postgresql"} == 0
+           for: 1m
+           annotations:
+             summary: "PostgreSQL database is down"
+   ```
+
+## 6. Development Tools
+
+```csharp
+// MiniProfiler for Development
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddMiniProfiler(options =>
+    {
+        options.RouteBasePath = "/profiler";
+        options.ColorScheme = StackExchange.Profiling.ColorScheme.Dark;
+    }).AddEntityFramework();
+    
+    app.UseMiniProfiler();
+}
+
+// Swagger with Health Check UI
+builder.Services.AddHealthChecksUI()
+    .AddInMemoryStorage();
+    
+app.MapHealthChecksUI(options =>
+{
+    options.UIPath = "/health-ui";
+    options.ApiPath = "/health-api";
+});
+```
+
+## 7. Cost-Effective Implementation
+
+For MVP with minimal cost:
+1. Use OpenTelemetry Collector to export to multiple backends
+2. Start with open-source stack (Prometheus + Grafana + Loki)
+3. Use sampling for traces (sample 10% of requests initially)
+4. Implement log levels properly (Debug only in dev, Info in production)
+5. Use structured logging to reduce storage needs
+
+## 8. Migration Path
+
+When ready to scale:
+1. Cloud-native: Azure Monitor / AWS CloudWatch
+2. Commercial APM: DataDog, New Relic, or Dynatrace
+3. Dedicated log management: ELK Stack or Splunk
+4. Incident management: PagerDuty or Opsgenie integration
+</file>
+
+<file path="privacy-gdpr-compliance.md">
+# Privacy & GDPR Compliance Strategy
+
+## Overview
+This document defines the privacy implementation for Fridgr, ensuring proper GDPR compliance with true anonymization, not pseudonymization.
+
+## 1. User Data Deletion & Anonymization
+
+### The Problem with NULL User IDs
+Setting `user_id` to NULL in logs is **pseudonymization**, not anonymization:
+- All NULL entries can be linked together
+- Patterns in NULL user actions can reveal identity
+- This fails GDPR's anonymization requirements
+
+### Correct Implementation
+
+```sql
+-- Static anonymous user ID for ALL deleted users
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+SELECT uuid_nil(); -- Returns: 00000000-0000-0000-0000-000000000000
+
+-- Activity logs table with proper anonymization
+CREATE TABLE activity_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    household_id UUID NOT NULL REFERENCES households(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL, -- Never NULL, uses uuid_nil() for deleted users
+    action VARCHAR(100) NOT NULL,
+    entity_type VARCHAR(50),
+    entity_id UUID,
+    details JSONB,
+    ip_address_hash VARCHAR(64), -- Hashed, not plain IP
+    user_agent_hash VARCHAR(64), -- Hashed user agent
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT valid_user_ref CHECK (
+        user_id = uuid_nil() OR 
+        EXISTS (SELECT 1 FROM users WHERE id = user_id)
+    )
+);
+
+-- Anonymization trigger for deleted users
+CREATE OR REPLACE FUNCTION anonymize_user_logs()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Replace all user_id references with anonymous ID
+    UPDATE activity_logs 
+    SET user_id = uuid_nil(),
+        ip_address_hash = 'ANONYMIZED',
+        user_agent_hash = 'ANONYMIZED',
+        details = jsonb_strip_nulls(
+            details - '{email,name,phone,address}'::text[]
+        )
+    WHERE user_id = OLD.id;
+    
+    UPDATE item_history 
+    SET performed_by = uuid_nil(),
+        notes = CASE 
+            WHEN notes IS NOT NULL THEN '[Anonymized]' 
+            ELSE NULL 
+        END
+    WHERE performed_by = OLD.id;
+    
+    UPDATE notifications 
+    SET user_id = uuid_nil(),
+        metadata = '{}'::jsonb
+    WHERE user_id = OLD.id;
+    
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_anonymize_user_logs
+BEFORE DELETE ON users
+FOR EACH ROW EXECUTE FUNCTION anonymize_user_logs();
+```
+
+## 2. Personal Data Inventory
+
+### Data Categories
+
+```csharp
+public enum PersonalDataCategory
+{
+    Identity,      // Name, email, phone
+    Financial,     // Payment info, purchase history
+    Behavioral,    // Usage patterns, preferences
+    Location,      // IP addresses, timezone
+    Content        // User-generated content (notes, photos)
+}
+
+[AttributeUsage(AttributeTargets.Property)]
+public class PersonalDataAttribute : Attribute
+{
+    public PersonalDataCategory Category { get; }
+    public bool RequiresEncryption { get; }
+    public int RetentionDays { get; }
+    
+    public PersonalDataAttribute(
+        PersonalDataCategory category, 
+        bool requiresEncryption = false,
+        int retentionDays = 365)
+    {
+        Category = category;
+        RequiresEncryption = requiresEncryption;
+        RetentionDays = retentionDays;
+    }
+}
+
+public class User
+{
+    public Guid Id { get; set; }
+    
+    [PersonalData(PersonalDataCategory.Identity, true)]
+    public string Email { get; set; }
+    
+    [PersonalData(PersonalDataCategory.Identity)]
+    public string DisplayName { get; set; }
+    
+    [PersonalData(PersonalDataCategory.Location)]
+    public string Timezone { get; set; }
+    
+    [PersonalData(PersonalDataCategory.Behavioral)]
+    public UserPreferences Preferences { get; set; }
+}
+```
+
+## 3. Right to Be Forgotten Implementation
+
+```csharp
+public class UserDeletionService
+{
+    private readonly ILogger<UserDeletionService> _logger;
+    private readonly IDbContext _context;
+    
+    public async Task<DeletionResult> DeleteUserAsync(Guid userId, string reason)
+    {
+        using var transaction = await _context.BeginTransactionAsync();
+        
+        try
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return DeletionResult.NotFound;
+            
+            // 1. Export user data for their records (GDPR requirement)
+            var exportedData = await ExportUserDataAsync(userId);
+            
+            // 2. Anonymize related data
+            await AnonymizeUserDataAsync(userId);
+            
+            // 3. Delete user record (triggers anonymization of logs)
+            _context.Users.Remove(user);
+            
+            // 4. Log the deletion (without personal data)
+            await _context.DeletionLogs.AddAsync(new DeletionLog
+            {
+                DeletedAt = DateTime.UtcNow,
+                Reason = reason,
+                DataCategories = GetDataCategories(user),
+                Success = true
+            });
+            
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            
+            // 5. Send confirmation email before final deletion
+            await SendDeletionConfirmationAsync(user.Email, exportedData);
+            
+            return DeletionResult.Success(exportedData);
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            _logger.LogError(ex, "Failed to delete user {UserId}", userId);
+            return DeletionResult.Failed(ex.Message);
+        }
+    }
+    
+    private async Task AnonymizeUserDataAsync(Guid userId)
+    {
+        // Anonymize items created by user
+        await _context.Database.ExecuteSqlRawAsync(@"
+            UPDATE inventory_items 
+            SET created_by = uuid_nil(), 
+                updated_by = CASE 
+                    WHEN updated_by = @userId THEN uuid_nil() 
+                    ELSE updated_by 
+                END,
+                notes = CASE 
+                    WHEN created_by = @userId THEN NULL 
+                    ELSE notes 
+                END
+            WHERE created_by = @userId",
+            new NpgsqlParameter("userId", userId));
+        
+        // Anonymize household ownership
+        await _context.Database.ExecuteSqlRawAsync(@"
+            UPDATE households 
+            SET created_by = uuid_nil()
+            WHERE created_by = @userId 
+            AND EXISTS (
+                SELECT 1 FROM household_members 
+                WHERE household_id = households.id 
+                AND user_id != @userId 
+                AND role = 'admin'
+            )",
+            new NpgsqlParameter("userId", userId));
+    }
+}
+```
+
+## 4. Data Encryption at Rest
+
+```csharp
+public class EncryptionService
+{
+    private readonly IDataProtector _protector;
+    
+    public EncryptionService(IDataProtectionProvider provider)
+    {
+        _protector = provider.CreateProtector("PersonalData.v1");
+    }
+    
+    public string Encrypt(string plaintext)
+    {
+        if (string.IsNullOrEmpty(plaintext)) return plaintext;
+        return _protector.Protect(plaintext);
+    }
+    
+    public string Decrypt(string ciphertext)
+    {
+        if (string.IsNullOrEmpty(ciphertext)) return ciphertext;
+        return _protector.Unprotect(ciphertext);
+    }
+}
+
+// Entity Framework Interceptor for automatic encryption
+public class EncryptionInterceptor : SaveChangesInterceptor
+{
+    private readonly IEncryptionService _encryption;
+    
+    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
+        DbContextEventData eventData,
+        InterceptionResult<int> result,
+        CancellationToken cancellationToken = default)
+    {
+        var context = eventData.Context;
+        
+        foreach (var entry in context.ChangeTracker.Entries())
+        {
+            foreach (var property in entry.Properties)
+            {
+                var attribute = property.Metadata.PropertyInfo?
+                    .GetCustomAttribute<PersonalDataAttribute>();
+                    
+                if (attribute?.RequiresEncryption == true && 
+                    property.CurrentValue is string value)
+                {
+                    property.CurrentValue = _encryption.Encrypt(value);
+                }
+            }
+        }
+        
+        return base.SavingChangesAsync(eventData, result, cancellationToken);
+    }
+}
+```
+
+## 5. Consent Management
+
+```sql
+CREATE TABLE user_consents (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    consent_type VARCHAR(50) NOT NULL,
+    granted BOOLEAN NOT NULL,
+    granted_at TIMESTAMP,
+    revoked_at TIMESTAMP,
+    ip_address_hash VARCHAR(64),
+    version VARCHAR(20) NOT NULL, -- Version of terms/privacy policy
+    CONSTRAINT valid_consent_type CHECK (consent_type IN (
+        'marketing_emails',
+        'data_analytics',
+        'third_party_sharing',
+        'telegram_notifications',
+        'push_notifications'
+    ))
+);
+
+CREATE INDEX idx_user_consents_user_id ON user_consents(user_id);
+CREATE INDEX idx_user_consents_active ON user_consents(user_id, consent_type) 
+    WHERE revoked_at IS NULL;
+```
+
+```csharp
+public class ConsentService
+{
+    public async Task<bool> HasConsentAsync(Guid userId, string consentType)
+    {
+        return await _context.UserConsents
+            .AnyAsync(c => c.UserId == userId 
+                && c.ConsentType == consentType 
+                && c.Granted 
+                && c.RevokedAt == null);
+    }
+    
+    public async Task RecordConsentAsync(ConsentRequest request)
+    {
+        // Revoke previous consent of same type
+        var existing = await _context.UserConsents
+            .Where(c => c.UserId == request.UserId 
+                && c.ConsentType == request.ConsentType 
+                && c.RevokedAt == null)
+            .FirstOrDefaultAsync();
+            
+        if (existing != null)
+        {
+            existing.RevokedAt = DateTime.UtcNow;
+        }
+        
+        // Record new consent
+        await _context.UserConsents.AddAsync(new UserConsent
+        {
+            UserId = request.UserId,
+            ConsentType = request.ConsentType,
+            Granted = request.Granted,
+            GrantedAt = request.Granted ? DateTime.UtcNow : null,
+            IpAddressHash = HashIpAddress(request.IpAddress),
+            Version = GetCurrentPolicyVersion()
+        });
+        
+        await _context.SaveChangesAsync();
+    }
+}
+```
+
+## 6. Data Retention Policy
+
+```csharp
+public class DataRetentionService : BackgroundService
+{
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            await CleanupOldDataAsync();
+            await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
+        }
+    }
+    
+    private async Task CleanupOldDataAsync()
+    {
+        // Delete old activity logs (keep 90 days)
+        await _context.Database.ExecuteSqlRawAsync(@"
+            DELETE FROM activity_logs 
+            WHERE timestamp < CURRENT_TIMESTAMP - INTERVAL '90 days'");
+        
+        // Delete old notifications (keep 30 days)
+        await _context.Database.ExecuteSqlRawAsync(@"
+            DELETE FROM notifications 
+            WHERE created_at < CURRENT_TIMESTAMP - INTERVAL '30 days'
+            AND read_at IS NOT NULL");
+        
+        // Anonymize old item history (keep details for 1 year)
+        await _context.Database.ExecuteSqlRawAsync(@"
+            UPDATE item_history 
+            SET notes = '[Retained for analytics]',
+                previous_values = jsonb_strip_nulls(
+                    previous_values - '{notes,image_url}'::text[]
+                ),
+                new_values = jsonb_strip_nulls(
+                    new_values - '{notes,image_url}'::text[]
+                )
+            WHERE performed_at < CURRENT_TIMESTAMP - INTERVAL '1 year'");
+    }
+}
+```
+
+## 7. Data Portability
+
+```csharp
+public class DataExportService
+{
+    public async Task<ExportedData> ExportUserDataAsync(Guid userId)
+    {
+        var export = new ExportedData
+        {
+            ExportDate = DateTime.UtcNow,
+            Format = "JSON",
+            User = await GetUserDataAsync(userId),
+            Households = await GetHouseholdDataAsync(userId),
+            Items = await GetItemDataAsync(userId),
+            ActivityLogs = await GetActivityLogsAsync(userId),
+            Consents = await GetConsentsAsync(userId)
+        };
+        
+        return export;
+    }
+    
+    public async Task<byte[]> GenerateGdprExportAsync(Guid userId)
+    {
+        var data = await ExportUserDataAsync(userId);
+        var json = JsonSerializer.Serialize(data, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        });
+        
+        // Create ZIP with JSON and README
+        using var stream = new MemoryStream();
+        using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, true))
+        {
+            var jsonEntry = archive.CreateEntry("user_data.json");
+            using (var entryStream = jsonEntry.Open())
+            using (var writer = new StreamWriter(entryStream))
+            {
+                await writer.WriteAsync(json);
+            }
+            
+            var readmeEntry = archive.CreateEntry("README.txt");
+            using (var entryStream = readmeEntry.Open())
+            using (var writer = new StreamWriter(entryStream))
+            {
+                await writer.WriteAsync(GenerateReadme(data));
+            }
+        }
+        
+        return stream.ToArray();
+    }
+}
+```
+
+## 8. Privacy-Preserving Analytics
+
+```csharp
+public class PrivacyPreservingMetrics
+{
+    // Use differential privacy for aggregate metrics
+    public async Task RecordMetricAsync(string metricName, double value)
+    {
+        // Add Laplace noise for differential privacy
+        var noise = GenerateLaplaceNoise(sensitivity: 1.0, epsilon: 0.1);
+        var noisyValue = value + noise;
+        
+        await _metrics.RecordAsync(new Metric
+        {
+            Name = metricName,
+            Value = noisyValue,
+            Timestamp = DateTime.UtcNow,
+            // No user ID - only aggregate metrics
+            HouseholdId = GetHashedHouseholdId(),
+            DayOfWeek = DateTime.UtcNow.DayOfWeek,
+            HourOfDay = DateTime.UtcNow.Hour
+        });
+    }
+    
+    private double GenerateLaplaceNoise(double sensitivity, double epsilon)
+    {
+        var random = new Random();
+        var u = random.NextDouble() - 0.5;
+        var b = sensitivity / epsilon;
+        return -b * Math.Sign(u) * Math.Log(1 - 2 * Math.Abs(u));
+    }
+}
+```
+
+## 9. Security Headers & Cookie Configuration
+
+```csharp
+// Program.cs
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Add("X-Frame-Options", "DENY");
+    context.Response.Headers.Add("X-XSS-Protection", "1; mode=block");
+    context.Response.Headers.Add("Referrer-Policy", "strict-origin-when-cross-origin");
+    context.Response.Headers.Add("Permissions-Policy", 
+        "geolocation=(), microphone=(), camera=()");
+    
+    await next();
+});
+
+// Cookie configuration
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.Name = "fridgr_session";
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(15);
+    options.SlidingExpiration = true;
+});
+```
+
+## 10. Compliance Checklist
+
+- ✅ True anonymization (not pseudonymization) using uuid_nil()
+- ✅ Encryption of sensitive personal data at rest
+- ✅ Right to erasure (delete account) implementation
+- ✅ Data portability (export user data)
+- ✅ Consent management system
+- ✅ Data retention policies
+- ✅ Privacy-preserving analytics
+- ✅ Audit logging without personal data after deletion
+- ✅ Secure cookie configuration
+- ✅ Data minimization principles
+</file>
+
+<file path="technical-architecture.md">
+# Technical Architecture Requirements
+
+## 1. Architecture Overview
+
+### System Architecture Pattern
+The system follows a **Modular Monolith** architecture with **Ports & Adapters (Hexagonal Architecture)** pattern, preparing for potential future decomposition into microservices.
+
+### Key Architectural Principles
+- **Domain-Driven Design (DDD)**: Clear bounded contexts and aggregates
+- **CQRS**: Separate read and write models where beneficial
+- **Event-Driven**: Domain events for loose coupling between modules
+- **Dependency Inversion**: Core domain independent of infrastructure
+- **Clean Architecture**: Clear separation of concerns
+
+## 2. Technology Stack
+
+### Backend (.NET/C#)
+- **Framework**: .NET 8 (latest LTS)
+- **API**: ASP.NET Core Web API
+- **Real-time**: SignalR for WebSocket connections
+- **ORM**: Entity Framework Core 8
+- **Database**: PostgreSQL 15+
+- **Caching**: Redis (In-memory for MVP)
+- **Message Queue**: MediatR (in-process for MVP)
+- **Background Jobs**: Hangfire or hosted services
+- **Testing**: xUnit, Moq, FluentAssertions
+- **API Documentation**: Swagger/OpenAPI
+- **Logging**: Serilog with structured logging
+- **Validation**: FluentValidation
+
+### Frontend (React/Next.js)
+- **Framework**: Next.js 14+ with App Router
+- **Language**: TypeScript
+- **UI Library**: React 18+
+- **State Management**: Zustand or Redux Toolkit
+- **Styling**: Tailwind CSS
+- **Components**: Shadcn/ui or Material-UI
+- **Real-time**: SignalR client
+- **Forms**: React Hook Form
+- **Validation**: Zod
+- **API Client**: Axios or native fetch with interceptors
+- **Testing**: Jest, React Testing Library
+- **PWA**: next-pwa for offline capabilities
+
+### Infrastructure
+- **Containerization**: Docker
+- **Orchestration**: Docker Compose (MVP), Kubernetes-ready
+- **CI/CD**: GitHub Actions
+- **Cloud**: AWS or Azure (cloud-agnostic design)
+- **Monitoring**: Application Insights or custom logging
+- **Secrets**: Azure Key Vault or AWS Secrets Manager
+
+## 3. Backend Architecture (Ports & Adapters)
+
+### Project Structure
+```
+src/
+├── Fridgr.Domain/              # Core domain (entities, value objects, domain services)
+│   ├── Aggregates/
+│   ├── Events/
+│   ├── Exceptions/
+│   ├── Services/
+│   └── ValueObjects/
+├── Fridgr.Application/          # Application layer (use cases, DTOs, interfaces)
+│   ├── Commands/
+│   ├── Queries/
+│   ├── DTOs/
+│   ├── Interfaces/
+│   └── Services/
+├── Fridgr.Infrastructure/       # Infrastructure (adapters, persistence, external services)
+│   ├── Persistence/
+│   ├── Identity/
+│   ├── Notifications/
+│   ├── Telegram/
+│   └── Caching/
+├── Fridgr.API/                  # Web API (controllers, middleware, configuration)
+│   ├── Controllers/
+│   ├── Middleware/
+│   ├── Filters/
+│   └── Hubs/
+└── Fridgr.Tests/               # Test projects
+    ├── Unit/
+    ├── Integration/
+    └── E2E/
+```
+
+### Domain Model
+
+#### Core Aggregates
+```csharp
+// User Aggregate
+public class User : AggregateRoot
+{
+    public UserId Id { get; private set; }
+    public Email Email { get; private set; }
+    public HashedPassword Password { get; private set; }
+    public UserProfile Profile { get; private set; }
+    public List<HouseholdMembership> Memberships { get; private set; }
+    
+    // Domain logic methods
+    public void JoinHousehold(HouseholdId householdId, MemberRole role) { }
+    public void UpdateProfile(UserProfile profile) { }
+}
+
+// Household Aggregate
+public class Household : AggregateRoot
+{
+    public HouseholdId Id { get; private set; }
+    public HouseholdName Name { get; private set; }
+    public List<Member> Members { get; private set; }
+    public HouseholdSettings Settings { get; private set; }
+    
+    // Domain logic methods
+    public void AddMember(UserId userId, MemberRole role) { }
+    public void RemoveMember(UserId userId) { }
+    public void UpdateSettings(HouseholdSettings settings) { }
+}
+
+// Inventory Item Aggregate
+public class InventoryItem : AggregateRoot
+{
+    public ItemId Id { get; private set; }
+    public HouseholdId HouseholdId { get; private set; }
+    public ItemName Name { get; private set; }
+    public Quantity Quantity { get; private set; }
+    public StorageLocation Location { get; private set; }
+    public ExpirationInfo Expiration { get; private set; }
+    public Category Category { get; private set; }
+    
+    // Domain logic methods
+    public void Consume(Quantity amount, UserId consumedBy) { }
+    public void MarkAsWasted(Quantity amount, string reason, UserId wastedBy) { }
+    public void MoveToLocation(StorageLocation newLocation) { }
+    public bool IsExpiringSoon(int warningDays) { }
+}
+```
+
+### Application Services
+
+#### Command Handlers (CQRS Write Side)
+```csharp
+public class AddInventoryItemCommandHandler : IRequestHandler<AddInventoryItemCommand, ItemId>
+{
+    private readonly IInventoryRepository _repository;
+    private readonly IEventDispatcher _eventDispatcher;
+    
+    public async Task<ItemId> Handle(AddInventoryItemCommand command, CancellationToken ct)
+    {
+        var item = InventoryItem.Create(
+            command.HouseholdId,
+            command.Name,
+            command.Quantity,
+            command.Location,
+            command.ExpirationDate
+        );
+        
+        await _repository.AddAsync(item, ct);
+        await _eventDispatcher.DispatchAsync(new ItemAddedEvent(item), ct);
+        
+        return item.Id;
+    }
+}
+```
+
+#### Query Handlers (CQRS Read Side)
+```csharp
+public class GetExpiringItemsQueryHandler : IRequestHandler<GetExpiringItemsQuery, List<ExpiringItemDto>>
+{
+    private readonly IReadOnlyInventoryRepository _repository;
+    
+    public async Task<List<ExpiringItemDto>> Handle(GetExpiringItemsQuery query, CancellationToken ct)
+    {
+        var items = await _repository.GetExpiringItemsAsync(
+            query.HouseholdId, 
+            query.DaysAhead, 
+            ct
+        );
+        
+        return items.Select(i => new ExpiringItemDto
+        {
+            Id = i.Id,
+            Name = i.Name,
+            DaysUntilExpiration = i.DaysUntilExpiration,
+            Location = i.Location
+        }).ToList();
+    }
+}
+```
+
+### Infrastructure Adapters
+
+#### Repository Implementation
+```csharp
+public class EfInventoryRepository : IInventoryRepository
+{
+    private readonly FridgrDbContext _context;
+    
+    public async Task<InventoryItem> GetByIdAsync(ItemId id, CancellationToken ct)
+    {
+        return await _context.Items
+            .Where(i => i.Id == id)
+            .FirstOrDefaultAsync(ct);
+    }
+    
+    public async Task AddAsync(InventoryItem item, CancellationToken ct)
+    {
+        await _context.Items.AddAsync(item, ct);
+        await _context.SaveChangesAsync(ct);
+    }
+}
+```
+
+#### Notification Adapter
+```csharp
+public interface INotificationPort
+{
+    Task SendAsync(NotificationRequest request, CancellationToken ct);
+}
+
+public class EmailNotificationAdapter : INotificationPort
+{
+    private readonly IEmailService _emailService;
+    
+    public async Task SendAsync(NotificationRequest request, CancellationToken ct)
+    {
+        var email = new EmailMessage
+        {
+            To = request.Recipient,
+            Subject = request.Subject,
+            Body = request.Content
+        };
+        
+        await _emailService.SendAsync(email, ct);
+    }
+}
+
+public class TelegramNotificationAdapter : INotificationPort
+{
+    private readonly ITelegramBotClient _botClient;
+    
+    public async Task SendAsync(NotificationRequest request, CancellationToken ct)
+    {
+        await _botClient.SendTextMessageAsync(
+            request.TelegramChatId,
+            request.Content,
+            cancellationToken: ct
+        );
+    }
+}
+```
+
+## 4. API Design
+
+### RESTful Principles
+- Resource-based URLs
+- HTTP verbs for operations
+- Stateless communication
+- JSON request/response
+- HATEOAS where beneficial
+
+### API Versioning Strategy
+```csharp
+[ApiController]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
+public class InventoryController : ControllerBase
+{
+    // Controller implementation
+}
+```
+
+### Authentication & Authorization
+```csharp
+public class JwtAuthenticationMiddleware
+{
+    public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+    {
+        var token = context.Request.Headers["Authorization"]
+            .FirstOrDefault()?.Split(" ").Last();
+            
+        if (token != null)
+        {
+            var principal = ValidateToken(token);
+            context.User = principal;
+        }
+        
+        await next(context);
+    }
+}
+
+[Authorize(Policy = "HouseholdMember")]
+public class InventoryController : ControllerBase
+{
+    [HttpPost]
+    [Authorize(Policy = "CanEditInventory")]
+    public async Task<IActionResult> AddItem([FromBody] AddItemRequest request)
+    {
+        // Implementation
+    }
+}
+```
+
+### Error Handling
+```csharp
+public class GlobalExceptionMiddleware
+{
+    public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+    {
+        try
+        {
+            await next(context);
+        }
+        catch (DomainException ex)
+        {
+            await HandleDomainException(context, ex);
+        }
+        catch (ValidationException ex)
+        {
+            await HandleValidationException(context, ex);
+        }
+        catch (Exception ex)
+        {
+            await HandleGenericException(context, ex);
+        }
+    }
+}
+```
+
+## 5. Database Design
+
+### Multi-tenancy Strategy
+- **Row-level security**: All tables include HouseholdId
+- **Query filters**: Automatic filtering by household
+- **Indexes**: Composite indexes on (HouseholdId, other columns)
+
+### Core Tables
+```sql
+-- Users table
+CREATE TABLE users (
+    id UUID PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    display_name VARCHAR(100),
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP
+);
+
+-- Households table
+CREATE TABLE households (
+    id UUID PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    timezone VARCHAR(50),
+    created_at TIMESTAMP NOT NULL,
+    created_by UUID REFERENCES users(id)
+);
+
+-- Household members junction table
+CREATE TABLE household_members (
+    household_id UUID REFERENCES households(id),
+    user_id UUID REFERENCES users(id),
+    role VARCHAR(20) NOT NULL,
+    joined_at TIMESTAMP NOT NULL,
+    PRIMARY KEY (household_id, user_id)
+);
+
+-- Inventory items table
+CREATE TABLE inventory_items (
+    id UUID PRIMARY KEY,
+    household_id UUID REFERENCES households(id),
+    name VARCHAR(200) NOT NULL,
+    quantity DECIMAL(10,2) NOT NULL,
+    unit VARCHAR(20),
+    location VARCHAR(20) NOT NULL,
+    category VARCHAR(50),
+    expiration_date DATE,
+    best_before_date DATE,
+    purchase_date DATE,
+    price DECIMAL(10,2),
+    notes TEXT,
+    created_at TIMESTAMP NOT NULL,
+    created_by UUID REFERENCES users(id),
+    updated_at TIMESTAMP,
+    updated_by UUID REFERENCES users(id),
+    INDEX idx_household_expiration (household_id, expiration_date),
+    INDEX idx_household_location (household_id, location)
+);
+
+-- Activity log table
+CREATE TABLE activity_logs (
+    id UUID PRIMARY KEY,
+    household_id UUID REFERENCES households(id),
+    user_id UUID REFERENCES users(id),
+    action VARCHAR(50) NOT NULL,
+    entity_type VARCHAR(50),
+    entity_id UUID,
+    metadata JSONB,
+    timestamp TIMESTAMP NOT NULL,
+    INDEX idx_household_timestamp (household_id, timestamp DESC)
+);
+
+-- Notification preferences table
+CREATE TABLE notification_preferences (
+    user_id UUID REFERENCES users(id),
+    household_id UUID REFERENCES households(id),
+    email_enabled BOOLEAN DEFAULT true,
+    in_app_enabled BOOLEAN DEFAULT true,
+    telegram_enabled BOOLEAN DEFAULT false,
+    telegram_chat_id VARCHAR(100),
+    warning_days INTEGER DEFAULT 3,
+    notification_types TEXT[],
+    preferred_time TIME,
+    PRIMARY KEY (user_id, household_id)
+);
+```
+
+## 6. Security Requirements
+
+### Authentication
+- JWT tokens with refresh token rotation
+- Token expiration: Access (15 min), Refresh (7 days)
+- Secure password requirements enforced
+- Account lockout after failed attempts
+
+### Authorization
+- Role-based access control (RBAC)
+- Resource-based authorization
+- Household isolation enforcement
+
+### Data Protection
+- Encryption at rest (database)
+- Encryption in transit (TLS 1.2+)
+- Sensitive data masking in logs
+- Input validation and sanitization
+- SQL injection prevention via parameterized queries
+- XSS protection via content security policy
+
+### API Security
+- Rate limiting per user/IP
+- CORS configuration
+- API key for service-to-service
+- Request signing for webhooks
+
+## 7. Performance Requirements
+
+### Caching Strategy
+```csharp
+public class CachedInventoryService : IInventoryService
+{
+    private readonly IMemoryCache _cache;
+    private readonly IInventoryService _innerService;
+    
+    public async Task<List<InventoryItem>> GetHouseholdItemsAsync(HouseholdId id)
+    {
+        var cacheKey = $"household:{id}:items";
+        
+        return await _cache.GetOrCreateAsync(cacheKey, async entry =>
+        {
+            entry.SlidingExpiration = TimeSpan.FromMinutes(5);
+            return await _innerService.GetHouseholdItemsAsync(id);
+        });
+    }
+}
+```
+
+### Database Optimization
+- Connection pooling
+- Query optimization with proper indexes
+- Pagination for large result sets
+- Batch operations where possible
+- Read replicas for reporting (future)
+
+### Real-time Updates
+- SignalR hubs for WebSocket connections
+- Efficient message serialization
+- Connection management and reconnection
+- Message queuing for offline clients
+
+## 8. Deployment Architecture
+
+### Container Configuration
+```dockerfile
+# Backend Dockerfile
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+EXPOSE 80
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+COPY ["Fridgr.API/Fridgr.API.csproj", "Fridgr.API/"]
+COPY ["Fridgr.Application/Fridgr.Application.csproj", "Fridgr.Application/"]
+COPY ["Fridgr.Domain/Fridgr.Domain.csproj", "Fridgr.Domain/"]
+COPY ["Fridgr.Infrastructure/Fridgr.Infrastructure.csproj", "Fridgr.Infrastructure/"]
+RUN dotnet restore "Fridgr.API/Fridgr.API.csproj"
+COPY . .
+WORKDIR "/src/Fridgr.API"
+RUN dotnet build "Fridgr.API.csproj" -c Release -o /app/build
+
+FROM build AS publish
+RUN dotnet publish "Fridgr.API.csproj" -c Release -o /app/publish
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "Fridgr.API.dll"]
+```
+
+### Docker Compose (MVP)
+```yaml
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: fridgr
+      POSTGRES_USER: fridgr
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  backend:
+    build: ./backend
+    environment:
+      ConnectionStrings__DefaultConnection: ${DB_CONNECTION}
+      Redis__ConnectionString: redis:6379
+      Jwt__Secret: ${JWT_SECRET}
+      Email__SmtpHost: ${SMTP_HOST}
+      Telegram__BotToken: ${TELEGRAM_TOKEN}
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "5000:80"
+
+  frontend:
+    build: ./frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:80
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:
+```
+
+## 9. Testing Strategy
+
+### Unit Testing
+```csharp
+[Fact]
+public async Task AddItem_WithValidData_CreatesItem()
+{
+    // Arrange
+    var household = new Household(HouseholdId.New(), "Test House");
+    var command = new AddItemCommand
+    {
+        Name = "Milk",
+        Quantity = 1,
+        Location = StorageLocation.Fridge
+    };
+    
+    // Act
+    var item = await _handler.Handle(command, CancellationToken.None);
+    
+    // Assert
+    item.Should().NotBeNull();
+    item.Name.Should().Be("Milk");
+    _repository.Verify(r => r.AddAsync(It.IsAny<InventoryItem>(), It.IsAny<CancellationToken>()), Times.Once);
+}
+```
+
+### Integration Testing
+```csharp
+public class InventoryApiTests : IClassFixture<WebApplicationFactory<Program>>
+{
+    [Fact]
+    public async Task GetItems_ReturnsOnlyHouseholdItems()
+    {
+        // Arrange
+        var client = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                // Add test database
+            });
+        }).CreateClient();
+        
+        // Act
+        var response = await client.GetAsync("/api/v1/households/123/items");
+        
+        // Assert
+        response.EnsureSuccessStatusCode();
+        var items = await response.Content.ReadAsAsync<List<ItemDto>>();
+        items.Should().OnlyContain(i => i.HouseholdId == "123");
+    }
+}
+```
+
+## 10. Monitoring & Observability (Post-MVP)
+
+### Structured Logging
+```csharp
+public class InventoryService
+{
+    private readonly ILogger<InventoryService> _logger;
+    
+    public async Task<ItemId> AddItemAsync(AddItemRequest request)
+    {
+        using var activity = Activity.StartActivity("AddItem");
+        
+        _logger.LogInformation("Adding item {ItemName} to household {HouseholdId}",
+            request.Name, request.HouseholdId);
+        
+        try
+        {
+            var itemId = await _repository.AddAsync(item);
+            
+            _logger.LogInformation("Successfully added item {ItemId}", itemId);
+            return itemId;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to add item {ItemName}", request.Name);
+            throw;
+        }
+    }
+}
+```
+
+### Health Checks
+```csharp
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddHealthChecks()
+            .AddDbContextCheck<FridgrDbContext>()
+            .AddRedis(Configuration.GetConnectionString("Redis"))
+            .AddUrlGroup(new Uri(Configuration["Telegram:WebhookUrl"]), "telegram");
+    }
+}
+```
+</file>
+
+<file path="telegram-bot-requirements.md">
+# Telegram Bot Integration Requirements
+
+## Overview
+
+The Fridgr Telegram bot provides users with a convenient way to receive notifications and interact with their household inventory through Telegram messenger. The bot supports both push notifications and interactive commands.
+
+## Bot Configuration
+
+### Bot Setup
+- **Bot Name**: @FridgrBot
+- **Bot Username**: fridgr_bot
+- **Description**: "Manage your household food inventory and receive expiration alerts"
+- **Commands Menu**: Display available commands in Telegram UI
+
+### Technical Configuration
+```csharp
+public class TelegramBotConfiguration
+{
+    public string BotToken { get; set; }
+    public string WebhookUrl { get; set; }
+    public string SecretToken { get; set; } // For webhook validation
+    public int MaxConnections { get; set; } = 40;
+    public string[] AllowedUpdates { get; set; } = { "message", "callback_query" };
+}
+```
+
+## Authentication & Linking
+
+### Account Linking Flow
+1. User initiates linking from web/mobile app
+2. System generates unique 6-character verification code
+3. User sends `/link <code>` to bot
+4. Bot verifies code and links accounts
+5. User receives confirmation in both app and Telegram
+
+### Verification Code Generation
+```csharp
+public class VerificationCodeService
+{
+    public string GenerateCode()
+    {
+        // Generate 6-character alphanumeric code
+        var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        var random = new SecureRandom();
+        return new string(Enumerable.Range(0, 6)
+            .Select(_ => chars[random.Next(chars.Length)])
+            .ToArray());
+    }
+    
+    public TimeSpan CodeExpiration => TimeSpan.FromMinutes(10);
+}
+```
+
+### Security Requirements
+- Verification codes expire after 10 minutes
+- One-time use only
+- Rate limiting on verification attempts
+- Secure token storage
+- User privacy protection (no sharing between households)
+
+## Bot Commands
+
+### Basic Commands
+
+#### /start
+- **Description**: Initialize bot and show welcome message
+- **Response**: Welcome message with instructions
+- **Example Response**:
+```
+Welcome to Fridgr Bot! 🏠
+
+I can help you manage your household inventory and send you notifications about expiring items.
+
+To get started, link your Fridgr account:
+1. Go to Settings in the Fridgr app
+2. Select "Link Telegram"
+3. Use /link <code> with the code shown
+
+Type /help to see all available commands.
+```
+
+#### /link `<code>`
+- **Description**: Link Telegram account to Fridgr
+- **Parameters**: 6-character verification code
+- **Response**: Success/failure message
+- **Example**: `/link ABC123`
+
+#### /unlink
+- **Description**: Unlink Telegram account
+- **Response**: Confirmation request with inline keyboard
+- **Requires**: Confirmation via callback query
+
+#### /help
+- **Description**: Show all available commands
+- **Response**: Formatted list of commands with descriptions
+
+### Inventory Commands
+
+#### /status
+- **Description**: Show household inventory overview
+- **Response**: Summary statistics
+- **Example Response**:
+```
+📊 Household: Home
+Total Items: 127
+Expiring Soon: 3
+Expired: 1
+Low Stock: 5
+
+Type /expiring to see items expiring soon
+```
+
+#### /expiring
+- **Description**: List items expiring within warning period
+- **Response**: Formatted list with details
+- **Example Response**:
+```
+⚠️ Items Expiring Soon:
+
+1. 🥛 Milk (Fridge)
+   Expires: Tomorrow
+   Quantity: 0.5 gallon
+
+2. 🥪 Bread (Pantry)
+   Expires: In 2 days
+   Quantity: 1 loaf
+
+3. 🧀 Cheese (Fridge)
+   Expires: In 3 days
+   Quantity: 200g
+```
+
+#### /search `<query>`
+- **Description**: Search for items in inventory
+- **Parameters**: Search query
+- **Response**: Matching items list
+- **Example**: `/search milk`
+
+#### /add `<item>`
+- **Description**: Quick add item to inventory
+- **Parameters**: Item name
+- **Response**: Inline keyboard for details
+- **Flow**:
+  1. User types `/add Milk`
+  2. Bot responds with inline keyboard for location selection
+  3. User selects location
+  4. Bot asks for quantity
+  5. Bot confirms addition
+
+#### /shopping
+- **Description**: Show active shopping list
+- **Response**: Current shopping list items
+- **Interactive**: Mark items as purchased via inline buttons
+
+### Notification Commands
+
+#### /settings
+- **Description**: Configure notification preferences
+- **Response**: Current settings with inline keyboard for changes
+- **Options**:
+  - Enable/disable notifications
+  - Set warning days (1-7)
+  - Choose notification types
+  - Set quiet hours
+
+#### /mute `<hours>`
+- **Description**: Temporarily mute notifications
+- **Parameters**: Number of hours (1-24)
+- **Response**: Confirmation message
+- **Example**: `/mute 8`
+
+#### /unmute
+- **Description**: Resume notifications
+- **Response**: Confirmation message
+
+## Notification Types
+
+### Expiration Warnings
+```
+⚠️ Expiration Alert - Home
+
+3 items expiring soon:
+• Milk - Tomorrow
+• Yogurt - In 2 days  
+• Bread - In 3 days
+
+Tap to mark as consumed:
+[Milk ✓] [Yogurt ✓] [Bread ✓]
+```
+
+### Daily Summary
+```
+📅 Daily Summary - Home
+
+Expiring Today: 1 item
+Expiring This Week: 5 items
+Low Stock: 3 items
+Shopping List: 8 items
+
+View details in app →
+```
+
+### Item Added by Others
+```
+➕ New Item Added - Home
+
+Jane added:
+• Apples (6 pieces) to Pantry
+
+Current Pantry Items: 32
+```
+
+### Shopping Reminder
+```
+🛒 Shopping Reminder
+
+You have 12 items on your shopping list.
+Going shopping today?
+
+[View List] [Snooze 1hr]
+```
+
+## Inline Keyboards & Callbacks
+
+### Inline Keyboard Types
+
+#### Action Buttons
+```csharp
+var keyboard = new InlineKeyboardMarkup(new[]
+{
+    new[]
+    {
+        InlineKeyboardButton.CallbackData("✅ Consumed", $"consume:{itemId}"),
+        InlineKeyboardButton.CallbackData("🗑 Wasted", $"waste:{itemId}")
+    },
+    new[]
+    {
+        InlineKeyboardButton.CallbackData("📝 Edit", $"edit:{itemId}"),
+        InlineKeyboardButton.CallbackData("ℹ️ Details", $"details:{itemId}")
+    }
+});
+```
+
+#### Navigation
+```csharp
+var keyboard = new InlineKeyboardMarkup(new[]
+{
+    new[]
+    {
+        InlineKeyboardButton.CallbackData("◀️ Previous", $"page:{page-1}"),
+        InlineKeyboardButton.CallbackData($"{page}/{total}", "noop"),
+        InlineKeyboardButton.CallbackData("Next ▶️", $"page:{page+1}")
+    }
+});
+```
+
+### Callback Query Handling
+```csharp
+public async Task HandleCallbackQuery(CallbackQuery query)
+{
+    var data = query.Data.Split(':');
+    var action = data[0];
+    var parameter = data.Length > 1 ? data[1] : null;
+    
+    switch (action)
+    {
+        case "consume":
+            await HandleConsumeItem(query.From.Id, parameter);
+            break;
+        case "waste":
+            await HandleWasteItem(query.From.Id, parameter);
+            break;
+        case "page":
+            await HandlePagination(query.Message, int.Parse(parameter));
+            break;
+    }
+    
+    // Answer callback to remove loading state
+    await botClient.AnswerCallbackQueryAsync(query.Id);
+}
+```
+
+## Webhook Integration
+
+### Webhook Setup
+```csharp
+public class TelegramWebhookController : ControllerBase
+{
+    [HttpPost("telegram/webhook")]
+    public async Task<IActionResult> Webhook(
+        [FromBody] Update update,
+        [FromHeader(Name = "X-Telegram-Bot-Api-Secret-Token")] string secretToken)
+    {
+        if (secretToken != _config.SecretToken)
+            return Unauthorized();
+            
+        await _botService.HandleUpdateAsync(update);
+        return Ok();
+    }
+}
+```
+
+### Webhook Configuration
+```bash
+# Set webhook
+curl -X POST https://api.telegram.org/bot{token}/setWebhook \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://api.fridgr.app/telegram/webhook",
+    "secret_token": "your_secret_token",
+    "allowed_updates": ["message", "callback_query"]
+  }'
+```
+
+## Message Formatting
+
+### Rich Text Formatting
+```csharp
+public class MessageFormatter
+{
+    public string FormatExpiringItem(InventoryItem item)
+    {
+        return $"*{EscapeMarkdown(item.Name)}*\n" +
+               $"📍 _{item.Location}_\n" +
+               $"📅 Expires: {item.DaysUntilExpiration} days\n" +
+               $"📦 Quantity: {item.Quantity} {item.Unit}";
+    }
+    
+    private string EscapeMarkdown(string text)
+    {
+        var escapeChars = new[] { '_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!' };
+        foreach (var c in escapeChars)
+            text = text.Replace(c.ToString(), $"\\{c}");
+        return text;
+    }
+}
+```
+
+### Emoji Usage
+```csharp
+public static class EmojiConstants
+{
+    public const string House = "🏠";
+    public const string Warning = "⚠️";
+    public const string Clock = "⏰";
+    public const string ShoppingCart = "🛒";
+    public const string CheckMark = "✅";
+    public const string CrossMark = "❌";
+    public const string Fridge = "❄️";
+    public const string Fire = "🔥"; // For expired
+    public const string Leaf = "🌿"; // For fresh
+    
+    // Category emojis
+    public const string Produce = "🍎";
+    public const string Dairy = "🥛";
+    public const string Meat = "🥩";
+    public const string Bakery = "🍞";
+    public const string Frozen = "🧊";
+}
+```
+
+## Error Handling
+
+### User-Friendly Error Messages
+```csharp
+public class BotErrorHandler
+{
+    public string GetUserMessage(Exception ex)
+    {
+        return ex switch
+        {
+            AccountNotLinkedException => "❌ Your account is not linked. Use /link <code> to connect.",
+            NoHouseholdException => "❌ You're not a member of any household.",
+            NoPermissionException => "❌ You don't have permission for this action.",
+            InvalidCommandException => "❌ Invalid command format. Type /help for usage.",
+            _ => "❌ Something went wrong. Please try again or contact support."
+        };
+    }
+}
+```
+
+### Rate Limiting
+- 30 messages per second per user
+- 1 message per second to same chat
+- Implement exponential backoff for retries
+
+## Monitoring & Analytics
+
+### Metrics to Track
+- Daily active users
+- Command usage frequency
+- Notification delivery rate
+- Link/unlink success rate
+- Response times
+- Error rates
+
+### Logging
+```csharp
+public class TelegramBotLogger
+{
+    public void LogCommand(long userId, string command, string parameters)
+    {
+        _logger.LogInformation("Telegram command executed: {Command} by {UserId} with {Parameters}",
+            command, userId, parameters);
+    }
+    
+    public void LogNotification(long chatId, string notificationType, bool success)
+    {
+        _logger.LogInformation("Telegram notification sent: {Type} to {ChatId}, Success: {Success}",
+            notificationType, chatId, success);
+    }
+}
+```
+
+## Deployment Considerations
+
+### High Availability
+- Deploy bot service separately from main API
+- Use message queue for notification processing
+- Implement circuit breaker for Telegram API calls
+- Handle webhook failures gracefully
+
+### Scaling
+```csharp
+public class TelegramNotificationQueue
+{
+    private readonly IBackgroundTaskQueue _queue;
+    
+    public async Task EnqueueNotification(TelegramNotification notification)
+    {
+        await _queue.QueueBackgroundWorkItemAsync(async token =>
+        {
+            await SendNotificationWithRetry(notification, token);
+        });
+    }
+    
+    private async Task SendNotificationWithRetry(TelegramNotification notification, CancellationToken ct)
+    {
+        var retryPolicy = Policy
+            .Handle<ApiRequestException>()
+            .WaitAndRetryAsync(3, retryAttempt => 
+                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+                
+        await retryPolicy.ExecuteAsync(async () =>
+            await _botClient.SendTextMessageAsync(notification.ChatId, notification.Message, ct));
+    }
+}
+```
+
+## Privacy & Compliance
+
+### Data Protection
+- Store minimal user data
+- Encrypt chat IDs at rest
+- No message content logging
+- Clear data on unlink
+- GDPR compliance for EU users
+
+### User Consent
+- Explicit opt-in for notifications
+- Clear privacy policy
+- Easy opt-out mechanism
+- Data deletion on request
+
+## Future Enhancements
+
+### Phase 2 Features
+- Voice commands
+- Image recognition for items
+- Location sharing for store recommendations
+- Group chat support for household coordination
+- Rich media messages (charts, images)
+
+### Phase 3 Features
+- Natural language processing
+- Barcode scanning via photo
+- Recipe suggestions
+- Meal planning integration
+- Shopping list collaboration
+</file>
+
+<file path="ui-ux-specifications.md">
+# UI/UX Specifications - Fridgr
+
+## Design System
+
+### Color Palette
+```css
+:root {
+  /* Primary - Fresh Green */
+  --primary-50: #f0fdf4;
+  --primary-100: #dcfce7;
+  --primary-500: #22c55e;
+  --primary-600: #16a34a;
+  --primary-700: #15803d;
+  
+  /* Secondary - Cool Blue */
+  --secondary-50: #eff6ff;
+  --secondary-100: #dbeafe;
+  --secondary-500: #3b82f6;
+  --secondary-600: #2563eb;
+  
+  /* Danger - Expiry Red */
+  --danger-50: #fef2f2;
+  --danger-100: #fee2e2;
+  --danger-500: #ef4444;
+  --danger-600: #dc2626;
+  
+  /* Warning - Caution Yellow */
+  --warning-50: #fffbeb;
+  --warning-100: #fef3c7;
+  --warning-500: #f59e0b;
+  --warning-600: #d97706;
+  
+  /* Neutral */
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-500: #6b7280;
+  --gray-700: #374151;
+  --gray-900: #111827;
+}
+```
+
+### Typography
+- **Font Family**: Inter (headings), System UI (body)
+- **Sizes**: 
+  - xs: 12px
+  - sm: 14px
+  - base: 16px
+  - lg: 18px
+  - xl: 20px
+  - 2xl: 24px
+  - 3xl: 30px
+  - 4xl: 36px
+
+### Spacing Scale
+- 1: 4px
+- 2: 8px
+- 3: 12px
+- 4: 16px
+- 5: 20px
+- 6: 24px
+- 8: 32px
+- 10: 40px
+- 12: 48px
+- 16: 64px
+
+### Components Library
+- Based on Shadcn/ui or Radix UI
+- Consistent border radius: 8px (cards), 6px (buttons), 4px (inputs)
+- Subtle shadows for depth
+- Focus states with primary color outline
+
+---
+
+## 1. Authentication Pages
+
+### 1.1 Login Page (`/login`)
+
+```
+┌─────────────────────────────────────────┐
+│                                         │
+│            🥦 Fridgr                    │
+│     Keep your food fresh, waste less    │
+│                                         │
+│  ┌─────────────────────────────────┐   │
+│  │  Welcome back                    │   │
+│  │                                  │   │
+│  │  Email                           │   │
+│  │  ┌────────────────────────────┐  │   │
+│  │  │ user@example.com          │  │   │
+│  │  └────────────────────────────┘  │   │
+│  │                                  │   │
+│  │  Password                        │   │
+│  │  ┌────────────────────────────┐  │   │
+│  │  │ ••••••••••                │  │   │
+│  │  └────────────────────────────┘  │   │
+│  │                                  │   │
+│  │  □ Remember me   Forgot password?│   │
+│  │                                  │   │
+│  │  ┌────────────────────────────┐  │   │
+│  │  │      Sign In               │  │   │
+│  │  └────────────────────────────┘  │   │
+│  │                                  │   │
+│  │  ─────── or continue with ────── │   │
+│  │                                  │   │
+│  │  ┌──────┐ ┌──────┐ ┌──────┐    │   │
+│  │  │Google│ │Apple │ │GitHub│    │   │
+│  │  └──────┘ └──────┘ └──────┘    │   │
+│  │                                  │   │
+│  │  Don't have an account? Sign up  │   │
+│  └─────────────────────────────────┘   │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+**Components:**
+- Logo with tagline
+- Card container (max-width: 400px)
+- Email input with validation
+- Password input with toggle visibility
+- Remember me checkbox
+- Forgot password link
+- Primary sign-in button (full width)
+- Social login options (optional for MVP)
+- Sign up link
+
+### 1.2 Sign Up Page (`/signup`)
+
+```
+┌─────────────────────────────────────────┐
+│                                         │
+│            🥦 Fridgr                    │
+│                                         │
+│  ┌─────────────────────────────────┐   │
+│  │  Create your account             │   │
+│  │                                  │   │
+│  │  Display Name                    │   │
+│  │  ┌────────────────────────────┐  │   │
+│  │  │ John Doe                  │  │   │
+│  │  └────────────────────────────┘  │   │
+│  │                                  │   │
+│  │  Email                           │   │
+│  │  ┌────────────────────────────┐  │   │
+│  │  │ john@example.com          │  │   │
+│  │  └────────────────────────────┘  │   │
+│  │                                  │   │
+│  │  Password                        │   │
+│  │  ┌────────────────────────────┐  │   │
+│  │  │ ••••••••••                │  │   │
+│  │  └────────────────────────────┘  │   │
+│  │  ✓ 8+ characters                 │   │
+│  │  ✓ One uppercase letter          │   │
+│  │  ✓ One number                    │   │
+│  │                                  │   │
+│  │  Household Name                   │   │
+│  │  ┌────────────────────────────┐  │   │
+│  │  │ Smith Family              │  │   │
+│  │  └────────────────────────────┘  │   │
+│  │                                  │   │
+│  │  Timezone                         │   │
+│  │  ┌────────────────────────────┐  │   │
+│  │  │ America/New_York ▼        │  │   │
+│  │  └────────────────────────────┘  │   │
+│  │                                  │   │
+│  │  □ I agree to Terms & Privacy    │   │
+│  │                                  │   │
+│  │  ┌────────────────────────────┐  │   │
+│  │  │      Create Account        │  │   │
+│  │  └────────────────────────────┘  │   │
+│  │                                  │   │
+│  │  Already have an account? Sign in │   │
+│  └─────────────────────────────────┘   │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+---
+
+## 2. Main Application Layout
+
+### 2.1 App Shell (Wrapper for all authenticated pages)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ 🥦 Fridgr    │ 🏠 Home │ + Add │ 🔔 3 │ [JS] ▼         │ │
+│ └─────────────────────────────────────────────────────────┘ │
+│                                                             │
+│ ┌───────────┬─────────────────────────────────────────────┐ │
+│ │           │                                             │ │
+│ │ Dashboard │                                             │ │
+│ │ ─────────│                                             │ │
+│ │           │                                             │ │
+│ │ Inventory │         Main Content Area                   │ │
+│ │  ├ Fridge │                                             │ │
+│ │  ├ Freezer│                                             │ │
+│ │  └ Pantry │                                             │ │
+│ │           │                                             │ │
+│ │ Shopping  │                                             │ │
+│ │           │                                             │ │
+│ │ Reports   │                                             │ │
+│ │           │                                             │ │
+│ │ Settings  │                                             │ │
+│ │           │                                             │ │
+│ └───────────┴─────────────────────────────────────────────┘ │
+│                                                             │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ © 2024 Fridgr · Help · Privacy · Terms                  │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Components:**
+- **Top Navigation Bar**:
+  - Logo (clickable, returns home)
+  - Current household selector
+  - Quick add button
+  - Notifications bell with badge
+  - User avatar with dropdown menu
+- **Side Navigation** (collapsible on mobile):
+  - Dashboard
+  - Inventory (with sub-items)
+  - Shopping Lists
+  - Reports
+  - Settings
+- **Main Content Area**: Dynamic based on route
+- **Footer**: Copyright, links
+
+---
+
+## 3. Dashboard Page (`/dashboard`)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Welcome back, John! 👋                                    │
+│  Smith Family Household                                    │
+│                                                             │
+│  ┌──────────────┬──────────────┬──────────────┬──────────┐ │
+│  │ Total Items  │ Expiring Soon│ This Week    │ Wasted   │ │
+│  │     47       │      5       │   $124.50    │   $12    │ │
+│  │ ↑ 12%        │ ⚠️ 2 today   │ ↓ 8%         │ ↑ 3%     │ │
+│  └──────────────┴──────────────┴──────────────┴──────────┘ │
+│                                                             │
+│  Expiring Soon                                   View All > │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ 🥛 Milk           │ Fridge  │ Expires today    │ → │   │
+│  │ 🥬 Lettuce        │ Fridge  │ Tomorrow         │ → │   │
+│  │ 🍞 Whole Wheat    │ Pantry  │ In 2 days        │ → │   │
+│  │ 🧀 Cheddar        │ Fridge  │ In 3 days        │ → │   │
+│  │ 🍓 Strawberries   │ Fridge  │ In 3 days        │ → │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  Quick Actions                                             │
+│  ┌──────────┬──────────┬──────────┬──────────┐           │
+│  │   Add    │  Scan    │ Shopping │ Recipe   │           │
+│  │   Item   │ Barcode  │   List   │ Ideas    │           │
+│  │    +     │   📷     │    📝    │   🍳     │           │
+│  └──────────┴──────────┴──────────┴──────────┘           │
+│                                                             │
+│  Recent Activity                                           │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ • Jane added 6 items from Walmart         2h ago   │   │
+│  │ • You consumed Almond Milk                5h ago   │   │
+│  │ • System: 2 items expired (Yogurt, Salad) Yesterday│   │
+│  │ • Mike added Pizza to freezer             Yesterday│   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 4. Inventory Pages
+
+### 4.1 Inventory List View (`/inventory/fridge`)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Fridge Inventory (23 items)                               │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ 🔍 Search...        │ ⚙️ Filter │ ↕️ Sort │ + Add  │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  View: [Grid] List                                         │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐    │   │
+│  │ │    🥛      │ │     🥗      │ │     🧀      │    │   │
+│  │ │   Milk     │ │   Salad     │ │   Cheese    │    │   │
+│  │ │  0.5 gal   │ │   1 bag     │ │   200g      │    │   │
+│  │ │            │ │             │ │             │    │   │
+│  │ │ ⚠️ Today   │ │ ⚠️ Tomorrow │ │  In 5 days  │    │   │
+│  │ │            │ │             │ │             │    │   │
+│  │ │ [Use][Edit]│ │ [Use][Edit] │ │ [Use][Edit] │    │   │
+│  │ └─────────────┘ └─────────────┘ └─────────────┘    │   │
+│  │                                                     │   │
+│  │ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐    │   │
+│  │ │    🍎      │ │     🥚      │ │     🥓      │    │   │
+│  │ │  Apples    │ │    Eggs     │ │   Bacon     │    │   │
+│  │ │  6 count   │ │  12 count   │ │   1 pack    │    │   │
+│  │ │            │ │             │ │             │    │   │
+│  │ │  In 7 days │ │  In 10 days │ │  In 14 days │    │   │
+│  │ │            │ │             │ │             │    │   │
+│  │ │ [Use][Edit]│ │ [Use][Edit] │ │ [Use][Edit] │    │   │
+│  │ └─────────────┘ └─────────────┘ └─────────────┘    │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  Categories: All | Dairy (5) | Produce (8) | Meat (3) ... │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Item Card States:**
+- **Critical** (red border): Expires today or expired
+- **Warning** (yellow border): Expires in 1-3 days
+- **Normal** (gray border): More than 3 days
+- **Good** (green border): Recently added
+
+### 4.2 Add/Edit Item Modal
+
+```
+┌─────────────────────────────────────────────┐
+│  Add Item to Fridge                     X  │
+│ ─────────────────────────────────────────── │
+│                                             │
+│  Item Name *                                │
+│  ┌─────────────────────────────────────┐   │
+│  │ Organic Whole Milk                  │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  Quantity *              Unit              │
+│  ┌──────────┐           ┌──────────────┐  │
+│  │   1     │           │ gallon    ▼  │  │
+│  └──────────┘           └──────────────┘  │
+│                                             │
+│  Category               Location *         │
+│  ┌──────────────┐      ┌──────────────┐   │
+│  │ Dairy     ▼  │      │ Fridge    ▼  │   │
+│  └──────────────┘      └──────────────┘   │
+│                                             │
+│  Expiration Date *      Type               │
+│  ┌──────────────┐      ┌──────────────┐   │
+│  │ 01/25/2024 📅│      │ Use By    ▼  │   │
+│  └──────────────┘      └──────────────┘   │
+│                                             │
+│  Purchase Date          Price              │
+│  ┌──────────────┐      ┌──────────────┐   │
+│  │ 01/15/2024 📅│      │ $ 5.99       │   │
+│  └──────────────┘      └──────────────┘   │
+│                                             │
+│  Notes                                     │
+│  ┌─────────────────────────────────────┐   │
+│  │ Bought from Whole Foods             │   │
+│  │                                     │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  □ Share with household members            │
+│                                             │
+│  ┌──────────┐  ┌────────────────────┐     │
+│  │  Cancel  │  │    Save Item      │     │
+│  └──────────┘  └────────────────────┘     │
+└─────────────────────────────────────────────┐
+```
+
+---
+
+## 5. Shopping List Page (`/shopping`)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Shopping Lists                                   + New List│
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ Weekly Groceries              Share │ Edit │ Delete │   │
+│  │ 12 items · $85 estimated                           │   │
+│  │                                                     │   │
+│  │ To Buy (8)                                         │   │
+│  │ ┌─────────────────────────────────────────────┐    │   │
+│  │ │ □ Milk (1 gal)                    Dairy    │    │   │
+│  │ │ □ Bread (1 loaf)                  Bakery   │    │   │
+│  │ │ □ Eggs (1 dozen)                  Dairy    │    │   │
+│  │ │ □ Chicken Breast (2 lbs)          Meat     │    │   │
+│  │ └─────────────────────────────────────────────┘    │   │
+│  │                                                     │   │
+│  │ Bought (4)                                         │   │
+│  │ ┌─────────────────────────────────────────────┐    │   │
+│  │ │ ✓ Apples (6)                      Produce  │    │   │
+│  │ │ ✓ Yogurt (4 pack)                 Dairy    │    │   │
+│  │ └─────────────────────────────────────────────┘    │   │
+│  │                                                     │   │
+│  │ ┌─────────────────────────────────────┐            │   │
+│  │ │ + Add item...                       │            │   │
+│  │ └─────────────────────────────────────┘            │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ Party Supplies                                      │   │
+│  │ 5 items · For Saturday                              │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 6. Reports & Analytics Page (`/reports`)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Reports & Analytics                    Date Range: 30 days │
+│                                                             │
+│  Food Waste Tracking                                       │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │                                                     │   │
+│  │     $45 wasted this month (↓ 20% from last month)  │   │
+│  │                                                     │   │
+│  │  40 ┤                                              │   │
+│  │  30 ┤    ╱╲                                        │   │
+│  │  20 ┤   ╱  ╲    ╱╲                                │   │
+│  │  10 ┤  ╱    ╲__╱  ╲___                           │   │
+│  │   0 └────────────────────────────────────         │   │
+│  │     Week 1    Week 2    Week 3    Week 4          │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  Top Categories          │  Expiry Patterns               │
+│  ┌───────────────────┐   │  ┌─────────────────────────┐   │
+│  │ Produce    45%  █│   │  │ Mon ████████           │   │
+│  │ Dairy      30%  █│   │  │ Tue ██████             │   │
+│  │ Leftovers  15%  █│   │  │ Wed ████               │   │
+│  │ Meat       10%  █│   │  │ Thu ██                 │   │
+│  └───────────────────┘   │  │ Fri ████████████       │   │
+│                           │  │ Sat ██████████         │   │
+│                           │  │ Sun ████████           │   │
+│                           │  └─────────────────────────┘   │
+│                                                             │
+│  Inventory Value: $487                     Export Report > │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 7. Settings Pages
+
+### 7.1 General Settings (`/settings`)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Settings                                                  │
+│                                                             │
+│  ┌───────────────┬─────────────────────────────────────┐   │
+│  │ General      │  Profile                             │   │
+│  │ Households   │  ┌─────────────────────────────────┐ │   │
+│  │ Notifications│  │ Display Name                    │ │   │
+│  │ Integrations │  │ ┌─────────────────────────────┐  │ │   │
+│  │ Privacy      │  │ │ John Smith                  │  │ │   │
+│  │ About        │  │ └─────────────────────────────┘  │ │   │
+│  │               │  │                                 │ │   │
+│  │               │  │ Email                           │ │   │
+│  │               │  │ ┌─────────────────────────────┐  │ │   │
+│  │               │  │ │ john@example.com            │  │ │   │
+│  │               │  │ └─────────────────────────────┘  │ │   │
+│  │               │  │                                 │ │   │
+│  │               │  │ Timezone                        │ │   │
+│  │               │  │ ┌─────────────────────────────┐  │ │   │
+│  │               │  │ │ America/New_York        ▼  │  │ │   │
+│  │               │  │ └─────────────────────────────┘  │ │   │
+│  │               │  │                                 │ │   │
+│  │               │  │ Language                        │ │   │
+│  │               │  │ ┌─────────────────────────────┐  │ │   │
+│  │               │  │ │ English (US)            ▼  │  │ │   │
+│  │               │  │ └─────────────────────────────┘  │ │   │
+│  │               │  │                                 │ │   │
+│  │               │  │ ┌─────────────────┐             │ │   │
+│  │               │  │ │  Save Changes   │             │ │   │
+│  │               │  │ └─────────────────┘             │ │   │
+│  │               │  └─────────────────────────────────┘ │   │
+│  └───────────────┴─────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 7.2 Household Management (`/settings/households`)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Household Management                                      │
+│                                                             │
+│  Current Household: Smith Family                           │
+│                                                             │
+│  Members (4)                                    + Invite   │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ John Smith (You)        Admin         Settings     │   │
+│  │ jane@example.com        Member        Remove       │   │
+│  │ mike@example.com        Member        Remove       │   │
+│  │ sarah@example.com       Viewer        Remove       │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  Household Settings                                        │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ Household Name                                      │   │
+│  │ ┌─────────────────────────────────────┐            │   │
+│  │ │ Smith Family                        │            │   │
+│  │ └─────────────────────────────────────┘            │   │
+│  │                                                     │   │
+│  │ Default Expiry Warning (days)                       │   │
+│  │ ┌─────────────────────────────────────┐            │   │
+│  │ │ 3                                   │            │   │
+│  │ └─────────────────────────────────────┘            │   │
+│  │                                                     │   │
+│  │ ☑ Auto-delete expired items after 7 days           │   │
+│  │ ☑ Share shopping lists with all members            │   │
+│  │ ☑ Enable collaborative editing                     │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  Other Households                            + Create New  │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ Beach House              Member         Switch      │   │
+│  │ Office Pantry            Admin          Switch      │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 7.3 Notification Settings (`/settings/notifications`)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Notification Settings                                     │
+│                                                             │
+│  Email Notifications                                       │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ ☑ Daily expiry summary (8:00 AM)                    │   │
+│  │ ☑ Items expiring today                              │   │
+│  │ ☑ Items expiring tomorrow                           │   │
+│  │ ☐ Weekly inventory report                           │   │
+│  │ ☑ Shopping list reminders                           │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  In-App Notifications                                      │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ ☑ Real-time expiry alerts                          │   │
+│  │ ☑ Member activity (items added/removed)             │   │
+│  │ ☑ Shopping list updates                             │   │
+│  │ ☐ Recipe suggestions                                │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  Telegram Bot                              Not Connected   │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ Connect your Telegram account to receive           │   │
+│  │ notifications on your phone                         │   │
+│  │                                                     │   │
+│  │ ┌─────────────────────────┐                        │   │
+│  │ │  Connect with Telegram   │                        │   │
+│  │ └─────────────────────────┘                        │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  ┌─────────────────┐                                       │
+│  │  Save Settings  │                                       │
+│  └─────────────────┘                                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 8. Mobile Responsive Design
+
+### 8.1 Mobile Navigation (Bottom Tab Bar)
+
+```
+┌─────────────────┐
+│   Smith Family  │
+│   🥦 Fridgr     │
+├─────────────────┤
+│                 │
+│  Main Content   │
+│    (Scrollable) │
+│                 │
+│                 │
+│                 │
+│                 │
+│                 │
+│                 │
+├─────────────────┤
+│  🏠  📦  ➕  📝  ⚙️ │
+│ Home Inv Add List│
+└─────────────────┘
+```
+
+### 8.2 Mobile Item Card (Swipeable)
+
+```
+┌─────────────────┐
+│ ← Swipe         │
+│ ┌───────────┐   │
+│ │ 🥛 Milk   │   │
+│ │ 0.5 gal   │   │
+│ │ ⚠️ Today  │   │
+│ └───────────┘   │
+│ [Use] [Delete]  │
+└─────────────────┘
+```
+
+---
+
+## 9. Empty States
+
+### 9.1 Empty Inventory
+
+```
+┌─────────────────────────────────────────────┐
+│                                             │
+│             📦                              │
+│                                             │
+│     Your fridge is empty!                  │
+│                                             │
+│     Start adding items to track            │
+│     expiration dates and reduce            │
+│     food waste.                            │
+│                                             │
+│     ┌───────────────────┐                  │
+│     │   Add First Item  │                  │
+│     └───────────────────┘                  │
+│                                             │
+│     or                                      │
+│                                             │
+│     Import from shopping list              │
+│                                             │
+└─────────────────────────────────────────────┘
+```
+
+### 9.2 No Notifications
+
+```
+┌─────────────────────────────────────────────┐
+│                                             │
+│             🔔                              │
+│                                             │
+│     All caught up!                         │
+│                                             │
+│     No new notifications.                  │
+│     We'll let you know when                │
+│     items are expiring soon.               │
+│                                             │
+└─────────────────────────────────────────────┘
+```
+
+---
+
+## 10. Loading & Error States
+
+### 10.1 Loading State
+
+```
+┌─────────────────────────────────────────────┐
+│                                             │
+│          ⟳ Loading...                       │
+│                                             │
+│     ░░░░░░░░░░░░░░░░░░░                    │
+│     ░░░░░░░░░░░░░░░░░░░                    │
+│     ░░░░░░░░░░░░░░░░░░░                    │
+│                                             │
+└─────────────────────────────────────────────┘
+```
+
+### 10.2 Error State
+
+```
+┌─────────────────────────────────────────────┐
+│                                             │
+│             ⚠️                              │
+│                                             │
+│     Oops! Something went wrong             │
+│                                             │
+│     We couldn't load your items.           │
+│     Please try again.                      │
+│                                             │
+│     ┌───────────────────┐                  │
+│     │    Try Again      │                  │
+│     └───────────────────┘                  │
+│                                             │
+│     Error: Network timeout                 │
+│                                             │
+└─────────────────────────────────────────────┘
+```
+
+---
+
+## Component Library Specification
+
+### Buttons
+- **Primary**: Green background, white text
+- **Secondary**: White background, green border
+- **Danger**: Red background for destructive actions
+- **Ghost**: Transparent with hover effect
+
+### Forms
+- Labels above inputs
+- Helper text below inputs
+- Error messages in red
+- Required fields marked with *
+- Real-time validation feedback
+
+### Cards
+- White background
+- Subtle shadow
+- 8px border radius
+- Padding: 16px
+- Hover state with slight elevation
+
+### Modals
+- Dark overlay (60% opacity)
+- Centered modal
+- Close button in top-right
+- Max-width: 500px
+- Smooth fade-in animation
+
+### Tables
+- Zebra striping for better readability
+- Sortable column headers
+- Pagination controls
+- Bulk action checkboxes
+
+### Toasts/Notifications
+- Appear top-right
+- Auto-dismiss after 5 seconds
+- Different colors for success/warning/error
+- Progress bar for auto-dismiss
+
+---
+
+## Accessibility Requirements
+
+1. **WCAG 2.1 AA Compliance**
+2. **Keyboard Navigation**: All interactive elements accessible via keyboard
+3. **Screen Reader Support**: Proper ARIA labels and roles
+4. **Focus Indicators**: Visible focus states
+5. **Color Contrast**: Minimum 4.5:1 for normal text
+6. **Touch Targets**: Minimum 44x44px on mobile
+7. **Reduced Motion**: Respect prefers-reduced-motion
+8. **Alt Text**: For all images and icons
+
+---
+
+## Performance Targets
+
+- **First Contentful Paint**: < 1.5s
+- **Time to Interactive**: < 3.5s
+- **Largest Contentful Paint**: < 2.5s
+- **Cumulative Layout Shift**: < 0.1
+- **Bundle Size**: < 200KB (initial)
+- **Image Optimization**: WebP with fallbacks
+- **Lazy Loading**: For images and non-critical components
+</file>
+
+<file path="user-stories.md">
+# User Stories and Acceptance Criteria
+
+## Epic: User Management
+
+### US-001: User Registration
+**As a** new user  
+**I want to** register for an account  
+**So that** I can start managing my household inventory
+
+**Acceptance Criteria:**
+- Given I am on the registration page
+- When I provide a valid email and password
+- Then my account is created and I receive a welcome email
+- And I am automatically logged in
+- And a default household is created for me
+
+**Technical Notes:**
+- Password must be at least 8 characters with 1 uppercase, 1 lowercase, 1 number
+- Email must be validated for format and uniqueness
+- JWT token issued upon successful registration
+
+---
+
+### US-002: User Login
+**As a** registered user  
+**I want to** log into my account  
+**So that** I can access my household inventory
+
+**Acceptance Criteria:**
+- Given I have a registered account
+- When I enter my email and password
+- Then I am authenticated and redirected to my default household
+- And a JWT token is stored for session management
+- And I see my household dashboard
+
+---
+
+### US-003: Password Reset
+**As a** user who forgot my password  
+**I want to** reset my password via email  
+**So that** I can regain access to my account
+
+**Acceptance Criteria:**
+- Given I click "Forgot Password"
+- When I enter my registered email
+- Then I receive a password reset link within 2 minutes
+- And the link is valid for 1 hour
+- And I can set a new password using the link
+
+---
+
+## Epic: Household Management
+
+### US-004: Create Household
+**As a** logged-in user  
+**I want to** create a new household  
+**So that** I can manage separate inventories
+
+**Acceptance Criteria:**
+- Given I am logged in
+- When I create a new household with name and description
+- Then the household is created with me as admin
+- And I can switch between my households
+- And each household has its own inventory
+
+---
+
+### US-005: Invite Household Members
+**As a** household admin  
+**I want to** invite others to join my household  
+**So that** we can collaborate on inventory management
+
+**Acceptance Criteria:**
+- Given I am a household admin
+- When I invite someone via email with a specific role
+- Then they receive an invitation email
+- And they can accept and join the household
+- And they have the assigned role permissions
+
+**Role Permissions:**
+- Admin: Full access including member management
+- Member: Can add/edit/delete items
+- Viewer: Read-only access
+
+---
+
+## Epic: Inventory Management
+
+### US-006: Add Inventory Item
+**As a** household member  
+**I want to** add items to our inventory  
+**So that** we can track what food we have
+
+**Acceptance Criteria:**
+- Given I have member or admin role
+- When I add an item with required fields (name, quantity, location)
+- And optional fields (expiration date, category, notes)
+- Then the item appears in the household inventory
+- And other household members see it immediately
+- And an activity log entry is created
+
+**Required Fields:**
+- Name (text, max 100 chars)
+- Quantity (number with unit)
+- Location (fridge/freezer/pantry)
+
+**Optional Fields:**
+- Expiration date
+- Best before date
+- Category
+- Purchase date
+- Price
+- Notes
+
+---
+
+### US-007: Edit Inventory Item
+**As a** household member  
+**I want to** edit item details  
+**So that** I can correct mistakes or update information
+
+**Acceptance Criteria:**
+- Given I have member or admin role
+- When I edit an item's details
+- Then the changes are saved
+- And other members see updates in real-time
+- And the activity log shows who made changes
+
+---
+
+### US-008: Mark Item as Consumed
+**As a** household member  
+**I want to** mark items as consumed  
+**So that** we track what we've used
+
+**Acceptance Criteria:**
+- Given an item exists in inventory
+- When I mark it as consumed with quantity
+- Then the quantity is reduced or item removed if fully consumed
+- And consumption is logged with timestamp and user
+- And statistics are updated
+
+---
+
+### US-009: Mark Item as Wasted
+**As a** household member  
+**I want to** mark items as wasted  
+**So that** we can track and reduce food waste
+
+**Acceptance Criteria:**
+- Given an item exists in inventory
+- When I mark it as wasted with quantity and optional reason
+- Then the quantity is reduced or item removed
+- And waste is logged with timestamp, user, and reason
+- And waste statistics are updated
+
+---
+
+### US-010: Move Item Location
+**As a** household member  
+**I want to** move items between storage locations  
+**So that** inventory reflects actual storage
+
+**Acceptance Criteria:**
+- Given an item exists in one location
+- When I move it to another location
+- Then the item's location is updated
+- And the move is logged in activity history
+- And other members see the update immediately
+
+---
+
+## Epic: Notifications
+
+### US-011: Receive Expiration Warnings
+**As a** household member  
+**I want to** receive warnings about expiring items  
+**So that** I can use them before they spoil
+
+**Acceptance Criteria:**
+- Given I have items with expiration dates
+- When an item is within the warning period (default 3 days)
+- Then I receive notifications via my enabled channels
+- And notifications include item name, location, and days until expiry
+- And I can acknowledge or snooze notifications
+
+---
+
+### US-012: Configure Notification Preferences
+**As a** user  
+**I want to** configure my notification preferences  
+**So that** I receive alerts how and when I want
+
+**Acceptance Criteria:**
+- Given I am in settings
+- When I configure notification preferences
+- Then I can enable/disable each channel (email, in-app, Telegram)
+- And set warning period (1-7 days)
+- And choose notification types to receive
+- And set preferred notification time
+
+---
+
+### US-013: Link Telegram Account
+**As a** user  
+**I want to** link my Telegram account  
+**So that** I receive notifications via Telegram
+
+**Acceptance Criteria:**
+- Given I want Telegram notifications
+- When I start the linking process
+- Then I receive a verification code
+- And I can enter it in the Telegram bot
+- And my accounts are linked
+- And I start receiving Telegram notifications
+
+---
+
+## Epic: Shopping Lists
+
+### US-014: Create Shopping List
+**As a** household member  
+**I want to** create shopping lists  
+**So that** we can plan grocery shopping
+
+**Acceptance Criteria:**
+- Given I am a household member
+- When I create a shopping list
+- Then it's shared with all household members
+- And members can add/remove items
+- And changes sync in real-time
+
+---
+
+### US-015: Add Low Stock Items to Shopping List
+**As a** household member  
+**I want to** easily add low stock items to shopping list  
+**So that** we remember to buy them
+
+**Acceptance Criteria:**
+- Given an item is running low
+- When I view the item
+- Then I can add it to shopping list with one click
+- And the suggested quantity is based on typical usage
+- And the item appears on the shared shopping list
+
+---
+
+## Epic: Reporting & Analytics
+
+### US-016: View Consumption Statistics
+**As a** household member  
+**I want to** see consumption statistics  
+**So that** I understand our usage patterns
+
+**Acceptance Criteria:**
+- Given items have been consumed over time
+- When I view statistics
+- Then I see consumption by category
+- And consumption trends over time
+- And most/least consumed items
+
+---
+
+### US-017: View Waste Statistics
+**As a** household member  
+**I want to** see waste statistics  
+**So that** we can reduce food waste
+
+**Acceptance Criteria:**
+- Given items have been wasted over time
+- When I view waste statistics
+- Then I see waste by category
+- And waste trends over time
+- And common waste reasons
+- And estimated money lost
+
+---
+
+## Epic: Mobile Experience
+
+### US-018: Use App on Mobile Device
+**As a** user on the go  
+**I want to** access the app from my phone  
+**So that** I can check inventory while shopping
+
+**Acceptance Criteria:**
+- Given I access the app from a mobile browser
+- When I use core features
+- Then the interface is responsive and touch-friendly
+- And I can install it as a PWA
+- And it works offline for reading data
+- And changes sync when online
+
+---
+
+## Epic: Search and Filter
+
+### US-019: Search Inventory
+**As a** household member  
+**I want to** search for items in inventory  
+**So that** I can quickly find what I need
+
+**Acceptance Criteria:**
+- Given I have many items in inventory
+- When I search by name or category
+- Then I see filtered results immediately
+- And search works across all item fields
+- And results are sorted by relevance
+
+---
+
+### US-020: Filter by Location
+**As a** household member  
+**I want to** filter inventory by location  
+**So that** I can see what's in specific storage areas
+
+**Acceptance Criteria:**
+- Given items in different locations
+- When I filter by location
+- Then I only see items in that location
+- And I can combine with other filters
+- And the count shows filtered items
+
+---
+
+### US-021: Filter by Expiration Status
+**As a** household member  
+**I want to** filter by expiration status  
+**So that** I can focus on items needing attention
+
+**Acceptance Criteria:**
+- Given items with various expiration dates
+- When I filter by status (expired, expiring soon, fresh)
+- Then I see only matching items
+- And items are sorted by urgency
+- And counts are shown for each status
+</file>
+
+</files>

@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database Service
+  postgres:
+    image: postgres:15-alpine
+    container_name: fridgr-postgres
+    environment:
+      POSTGRES_DB: fridgr
+      POSTGRES_USER: fridgr_user
+      POSTGRES_PASSWORD: fridgr_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - fridgr-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fridgr_user -d fridgr"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache Service
+  redis:
+    image: redis:7-alpine
+    container_name: fridgr-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - fridgr-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API Service (placeholder for future implementation)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fridgr-backend
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5000
+      ConnectionStrings__DefaultConnection: Host=postgres;Database=fridgr;Username=fridgr_user;Password=fridgr_password
+      ConnectionStrings__Redis: redis:6379
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - fridgr-network
+    # Temporarily use a simple alpine image until backend is implemented
+    image: alpine:latest
+    command: /bin/sh -c "echo 'Backend placeholder running' && sleep infinity"
+
+  # Frontend Next.js Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: fridgr-frontend
+    environment:
+      # API URL pointing to the backend service
+      NEXT_PUBLIC_API_URL: http://backend:5000
+      # WebSocket URL for real-time features
+      NEXT_PUBLIC_WS_URL: ws://backend:5000/ws
+      # Public application URL
+      NEXT_PUBLIC_APP_URL: http://localhost:3003
+      # Node environment
+      NODE_ENV: development
+    ports:
+      - "3003:3000"
+    depends_on:
+      - backend
+    networks:
+      - fridgr-network
+    # volumes:
+    #   # Mount source code for development with hot reload (uncomment for development)
+    #   - ./frontend:/app
+    #   # Prevent node_modules from being overwritten
+    #   - /app/node_modules
+    #   # Mount Next.js build cache
+    #   - /app/.next
+
+# Docker Networks
+networks:
+  fridgr-network:
+    driver: bridge
+
+# Docker Volumes for persistent data
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

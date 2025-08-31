@@ -1,0 +1,198 @@
+[ ] PHASE-FE-3: Core Inventory Management (CRUD)
+
+### **1. Phase Context (What & Why)**
+
+| ID           | Title                             |
+| :----------- | :-------------------------------- |
+| PHASE-FE-3 | Core Inventory Management (CRUD)  |
+
+> **As a** household member, **I want** to view, add, edit, and remove items from my household's inventory, **so that** I can maintain an accurate, real-time list of our food supplies.
+
+---
+
+### **2. Phase Scope & Test Case Definitions (The Contract)**
+
+This section is a reference library defining the acceptance criteria for this phase.
+
+*   **Requirement:** **SYS-FUNC-010** - Users MUST be able to add items ([Link to file](./system/mvp/SRS.md#functional-requirements))
+    *   **Test Case ID:** `TC-FE-3.1`
+        *   **Test Method Signature:** `AddItemModal.test.tsx - it('should show validation errors for required fields')`
+        *   **Test Logic:** (Component Test) - **Arrange:** Render the Add Item modal component. **Act:** Simulate a form submission with empty required fields (Name, Quantity, Location). **Assert:** Verify that validation error messages appear for each of the empty required fields.
+        *   **Required Proof of Passing:** Jest/RTL test output showing the validation test passes.
+    *   **Test Case ID:** `TC-FE-3.2`
+        *   **Test Method Signature:** `Inventory.cy.ts - it('should successfully add a new item and see it in the list')`
+        *   **Test Logic:** (E2E Test) - **Arrange:** Intercept `POST /api/v1/households/{id}/items` for a successful response. Intercept the inventory list `GET` call to ensure it's re-fetched. **Act:** Click the "Add Item" button, fill the form with valid data, and submit. **Assert:** Verify the `POST` was called with the correct payload. Verify a success notification appears and the new item is rendered in the inventory list without a page reload.
+        *   **Required Proof of Passing:** Cypress test runner output showing the end-to-end add item test passes.
+
+*   **Requirement:** **SYS-FUNC-012** & **SYS-FUNC-028** - Users can edit items & handle concurrent updates ([Link to file](./system/mvp/SRS.md#functional-requirements))
+    *   **Test Case ID:** `TC-FE-3.3`
+        *   **Test Method Signature:** `Inventory.cy.ts - it('should successfully edit an item and send the ETag')`
+        *   **Test Logic:** (E2E Test) - **Arrange:** Intercept `GET /api/v1/households/{id}/items/{itemId}` to return an item with a specific ETag (e.g., `"W/\"123\""`). Intercept the `PATCH` update call. **Act:** Open the edit modal for an item, change a field, and save. **Assert:** Verify the `PATCH` request was sent with the correct `If-Match: "W/\"123\""` header. Verify the UI updates with the new data.
+        *   **Required Proof of Passing:** Cypress test runner output showing the test passes.
+    *   **Test Case ID:** `TC-FE-3.4`
+        *   **Test Method Signature:** `Inventory.cy.ts - it('should display a conflict error when editing with a stale ETag')`
+        *   **Test Logic:** (E2E Test) - **Arrange:** Intercept the initial `GET` to provide an ETag. Intercept the `PATCH` request and return a `409 Conflict` status. **Act:** Attempt to edit and save an item. **Assert:** Verify the form does not close and a specific error message "This item was modified by someone else. Please refresh and try again." is displayed to the user.
+        *   **Required Proof of Passing:** Cypress test runner output showing the test passes.
+
+*   **Requirement:** **SYS-FUNC-013** - Users MUST be able to mark items as consumed ([Link to file](./system/mvp/SRS.md#functional-requirements))
+    *   **Test Case ID:** `TC-FE-3.5`
+        *   **Test Method Signature:** `Inventory.cy.ts - it('should successfully mark an item as consumed')`
+        *   **Test Logic:** (E2E Test) - **Arrange:** Intercept `POST /api/v1/households/{id}/items/{itemId}/consume`. **Act:** Find an item in the list, click its "Consume" action, enter a quantity in the confirmation modal, and submit. **Assert:** Verify the `POST` request was called with the correct quantity. Verify the item's quantity is updated in the UI.
+        *   **Required Proof of Passing:** Cypress test runner output showing the test passes.
+
+*   **Requirement:** **SYS-FUNC-014** - Users MUST be able to mark items as wasted ([Link to file](./system/mvp/SRS.md#functional-requirements))
+    *   **Test Case ID:** `TC-FE-3.6`
+        *   **Test Method Signature:** `Inventory.cy.ts - it('should successfully mark an item as wasted')`
+        *   **Test Logic:** (E2E Test) - **Arrange:** Intercept `POST /api/v1/households/{id}/items/{itemId}/waste`. **Act:** Click the "Waste" action on an item, enter a quantity and reason, and submit. **Assert:** Verify the `POST` request was called with the correct payload. Verify the item is updated or removed from the UI.
+        *   **Required Proof of Passing:** Cypress test runner output showing the test passes.
+
+*   **Requirement:** **(Implied)** - Users must be able to view and delete their inventory items.
+    *   **Test Case ID:** `TC-FE-3.7`
+        *   **Test Method Signature:** `Inventory.cy.ts - it('should display a list of items from the API')`
+        *   **Test Logic:** (E2E Test) - **Arrange:** Intercept `GET /api/v1/households/{id}/items` and return a mock array of 3 specific items. **Act:** Navigate to an inventory page (e.g., `/inventory/fridge`). **Assert:** Verify that exactly 3 item card components are rendered, and their content matches the mocked data.
+        *   **Required Proof of Passing:** Cypress test runner output showing the test passes.
+    *   **Test Case ID:** `TC-FE-3.8`
+        *   **Test Method Signature:** `Inventory.cy.ts - it('should successfully delete an item')`
+        *   **Test Logic:** (E2E Test) - **Arrange:** Intercept `DELETE /api/v1/households/{id}/items/{itemId}` for a 204 response. **Act:** Click the "Delete" action on an item and confirm in the dialog. **Assert:** Verify the `DELETE` request was called. Verify the item is removed from the UI.
+        *   **Required Proof of Passing:** Cypress test runner output showing the test passes.
+
+---
+
+### **3. Implementation Plan (The Execution)**
+
+#### [ ] STORY-FE-3.1: Viewing Inventory
+
+1.  **Task:** Build the Inventory Page Layout and Item Card Component.
+    *   **Instruction:** `Create the static UI for the main inventory page, including the layout for location-based views (Fridge, Freezer, Pantry). Build the reusable 'ItemCard' component, ensuring it has visual states for expiring, warning, and fresh items, as designed in [ui-ux-specifications.md#4.1-inventory-list-view...](./ui-ux-specifications.md#4.1-inventory-list-view-inventoryfridge). Use placeholder data.`
+    *   **Fulfills:** This task is a prerequisite for viewing inventory.
+    *   **Verification via Test Cases:** This task is visually and structurally verified in the next task's E2E test.
+    *   **Documentation:**
+        *   [ ] **Documentation Updated:** Checked after the relevant documentation is updated. **Instruction:** `Add documentation for the 'ItemCard' component to frontend/components/README.md, detailing its props and visual states.` **Evidence:** Provide a diff of the updated README.md.
+
+2.  **Task:** Fetch and Display Inventory Items.
+    *   **Instruction:** `Create a new react-query hook to fetch items from GET /api/v1/households/{householdId}/items. The hook should accept parameters for location filtering. Integrate this hook into the inventory page to display the list of items. Handle loading, error, and empty states according to [ui-ux-specifications.md#9-empty-states](./ui-ux-specifications.md#9-empty-states) and [#10-loading--error-states](./ui-ux-specifications.md#10-loading--error-states).`
+    *   **Fulfills:** This task contributes to the implied requirement of viewing items.
+    *   **Verification via Test Cases:**
+        *   **Test Case `TC-FE-3.7`:**
+            *   [ ] **Test Method Created:** Checked after the test method is written. **Evidence:** Provide the complete code for the test method.
+            *   [ ] **Test Method Passed:** Checked after the test passes. **Evidence:** Provide the console output from the test runner proving the specific test passed.
+            *   [ ] **Traceability Matrix Updated:** This is an implied requirement. No update needed until a formal REQ ID is assigned.
+    *   **Documentation:**
+        *   [ ] **Documentation Updated:** Checked after the relevant documentation is updated. **Instruction:** `Update frontend/hooks/queries/README.md to include documentation for the new inventory query hook.` **Evidence:** Provide a diff of the updated README.md.
+
+---
+> ### **Story Completion: STORY-FE-3.1**
+>
+> You may only proceed once all checkboxes for all tasks within this story are marked `[x]`. Then, you **MUST** complete the following steps in order:
+>
+> 1.  **Run Full Regression Test:**
+>     *   [ ] **All Prior Tests Passed:** Checked after running all tests created in the project up to this point.
+>     *   **Instruction:** `Execute 'docker-compose exec frontend npm test'.`
+>     *   **Evidence:** Provide the full summary output from the test runner, showing the total number of tests executed and confirming all have passed.
+> 2.  **Create Git Commit:**
+>     *   [ ] **Work Committed:** Checked after creating the Git commit.
+>     *   **Instruction:** `Execute 'git add .' followed by 'git commit -m "feat(inventory): Complete STORY-FE-3.1 - Viewing Inventory"'.`
+>     *   **Evidence:** Provide the full commit hash returned by the Git command.
+> 3.  **Finalize Story:**
+>     *   **Instruction:** Once the two checkboxes above are complete, you **MUST** update this story's main checkbox from `[ ]` to `[x]`.
+
+---
+
+#### [ ] STORY-FE-3.2: Adding & Editing Inventory Items
+
+1.  **Task:** Build the Add/Edit Item Modal Form.
+    *   **Instruction:** `Create a single, reusable modal component for both adding and editing items, following the design in [ui-ux-specifications.md#4.2-addedit-item-modal](./ui-ux-specifications.md#4.2-addedit-item-modal). Use React Hook Form for form state management and Zod for schema-based validation.`
+    *   **Fulfills:** This task contributes to requirements **SYS-FUNC-010** and **SYS-FUNC-012**.
+    *   **Verification via Test Cases:**
+        *   **Test Case `TC-FE-3.1`:**
+            *   [ ] **Test Method Created:** Checked after the test method is written. **Evidence:** Provide the complete code for the test method.
+            *   [ ] **Test Method Passed:** Checked after the test passes. **Evidence:** Provide the console output from the test runner proving the specific test passed.
+    *   **Documentation:**
+        *   [ ] **Documentation Updated:** Checked after the relevant documentation is updated. **Instruction:** `Add documentation for the 'AddItemModal' component to frontend/components/README.md.` **Evidence:** Provide a diff of the updated README.md.
+
+2.  **Task:** Implement Create and Update (PATCH) Mutations.
+    *   **Instruction:** `Create two react-query mutation hooks: one for adding an item (POST) and one for updating (PATCH). The update hook MUST correctly retrieve the current item's ETag from the query cache and include it in the 'If-Match' header. On success, both hooks must invalidate the main inventory list query to trigger a UI refresh. Handle the 409 Conflict error in the update hook.`
+    *   **Fulfills:** This task contributes to requirements **SYS-FUNC-010**, **SYS-FUNC-012**, and **SYS-FUNC-028**.
+    *   **Verification via Test Cases:**
+        *   **Test Case `TC-FE-3.2`:**
+            *   [ ] **Test Method Created:** Checked after the test method is written. **Evidence:** Provide the complete code for the test method.
+            *   [ ] **Test Method Passed:** Checked after the test passes. **Evidence:** Provide the console output from the test runner proving the specific test passed.
+            *   [ ] **Traceability Matrix Updated:** Checked after updating the matrix. **Instruction:** `Update system/common/traceability.md. For Requirement ID 'SYS-FUNC-010', add '(FE Verified)'.` **Evidence:** Provide a diff of the changed line.
+        *   **Test Case `TC-FE-3.3`:**
+            *   [ ] **Test Method Created:** Checked after the test method is written. **Evidence:** Provide the complete code for the test method.
+            *   [ ] **Test Method Passed:** Checked after the test passes. **Evidence:** Provide the console output from the test runner proving the specific test passed.
+            *   [ ] **Traceability Matrix Updated:** Checked after updating the matrix. **Instruction:** `Update system/common/traceability.md. For Requirement IDs 'SYS-FUNC-012' and 'SYS-FUNC-028', add '(FE Verified)'.` **Evidence:** Provide a diff of the changed lines.
+        *   **Test Case `TC-FE-3.4`:**
+            *   [ ] **Test Method Created:** Checked after the test method is written. **Evidence:** Provide the complete code for the test method.
+            *   [ ] **Test Method Passed:** Checked after the test passes. **Evidence:** Provide the console output from the test runner proving the specific test passed.
+    *   **Documentation:**
+        *   [ ] **Documentation Updated:** Checked after the relevant documentation is updated. **Instruction:** `Update frontend/hooks/mutations/README.md to include documentation for the new item create and update hooks.` **Evidence:** Provide a diff of the updated README.md.
+
+---
+> ### **Story Completion: STORY-FE-3.2**
+>
+> You may only proceed once all checkboxes for all tasks within this story are marked `[x]`. Then, you **MUST** complete the following steps in order:
+>
+> 1.  **Run Full Regression Test:**
+>     *   [ ] **All Prior Tests Passed:** Checked after running all tests created in the project up to this point.
+>     *   **Instruction:** `Execute 'docker-compose exec frontend npm test'.`
+>     *   **Evidence:** Provide the full summary output from the test runner, showing the total number of tests executed and confirming all have passed.
+> 2.  **Create Git Commit:**
+>     *   [ ] **Work Committed:** Checked after creating the Git commit.
+>     *   **Instruction:** `Execute 'git add .' followed by 'git commit -m "feat(inventory): Complete STORY-FE-3.2 - Adding & Editing Inventory Items"'.`
+>     *   **Evidence:** Provide the full commit hash returned by the Git command.
+> 3.  **Finalize Story:**
+>     *   **Instruction:** Once the two checkboxes above are complete, you **MUST** update this story's main checkbox from `[ ]` to `[x]`.
+
+---
+
+#### [ ] STORY-FE-3.3: Item Actions (Consume, Waste, Delete)
+
+1.  **Task:** Implement Consume, Waste, and Delete Mutations and UI.
+    *   **Instruction:** `Create react-query mutation hooks for the Consume, Waste, and Delete actions. Add the corresponding buttons/menus to the 'ItemCard' component. Each action should trigger a confirmation modal before dispatching the API call. On success, the mutation must invalidate the inventory list query to ensure the UI reflects the change.`
+    *   **Fulfills:** This task contributes to requirements **SYS-FUNC-013**, **SYS-FUNC-014**, and the implied delete requirement.
+    *   **Verification via Test Cases:**
+        *   **Test Case `TC-FE-3.5`:**
+            *   [ ] **Test Method Created:** Checked after the test method is written. **Evidence:** Provide the complete code for the test method.
+            *   [ ] **Test Method Passed:** Checked after the test passes. **Evidence:** Provide the console output from the test runner proving the specific test passed.
+            *   [ ] **Traceability Matrix Updated:** Checked after updating the matrix. **Instruction:** `Update system/common/traceability.md. For Requirement ID 'SYS-FUNC-013', add '(FE Verified)'.` **Evidence:** Provide a diff of the changed line.
+        *   **Test Case `TC-FE-3.6`:**
+            *   [ ] **Test Method Created:** Checked after the test method is written. **Evidence:** Provide the complete code for the test method.
+            *   [ ] **Test Method Passed:** Checked after the test passes. **Evidence:** Provide the console output from the test runner proving the specific test passed.
+            *   [ ] **Traceability Matrix Updated:** Checked after updating the matrix. **Instruction:** `Update system/common/traceability.md. For Requirement ID 'SYS-FUNC-014', add '(FE Verified)'.` **Evidence:** Provide a diff of the changed line.
+        *   **Test Case `TC-FE-3.8`:**
+            *   [ ] **Test Method Created:** Checked after the test method is written. **Evidence:** Provide the complete code for the test method.
+            *   [ ] **Test Method Passed:** Checked after the test passes. **Evidence:** Provide the console output from the test runner proving the specific test passed.
+    *   **Documentation:**
+        *   [ ] **Documentation Updated:** Checked after the relevant documentation is updated. **Instruction:** `Update frontend/hooks/mutations/README.md to include documentation for the new item action hooks (consume, waste, delete).` **Evidence:** Provide a diff of the updated README.md.
+
+---
+> ### **Story Completion: STORY-FE-3.3**
+>
+> You may only proceed once all checkboxes for all tasks within this story are marked `[x]`. Then, you **MUST** complete the following steps in order:
+>
+> 1.  **Run Full Regression Test:**
+>     *   [ ] **All Prior Tests Passed:** Checked after running all tests created in the project up to this point.
+>     *   **Instruction:** `Execute 'docker-compose exec frontend npm test'.`
+>     *   **Evidence:** Provide the full summary output from the test runner, showing the total number of tests executed and confirming all have passed.
+> 2.  **Create Git Commit:**
+>     *   [ ] **Work Committed:** Checked after creating the Git commit.
+>     *   **Instruction:** `Execute 'git add .' followed by 'git commit -m "feat(inventory): Complete STORY-FE-3.3 - Item Actions (Consume, Waste, Delete)"'.`
+>     *   **Evidence:** Provide the full commit hash returned by the Git command.
+> 3.  **Finalize Story:**
+>     *   **Instruction:** Once the two checkboxes above are complete, you **MUST** update this story's main checkbox from `[ ]` to `[x]`.
+
+---
+
+### **4. Definition of Done**
+
+This Phase is officially complete **only when all `STORY-FE` checkboxes in Section 3 are marked `[x]` AND the Final Acceptance Gate below is passed.**
+
+#### Final Acceptance Gate
+
+*   **Instruction:** You are at the final gate for this phase. Before marking the entire phase as done, you must perform one last, full regression test to ensure nothing was broken by the final commits.
+*   [ ] **Final Full Regression Test Passed:**
+    *   **Instruction:** `Execute 'docker-compose exec frontend npm test' one last time.`
+    *   **Evidence:** Provide the full, final summary output from the test runner, showing the grand total of tests for this phase and confirming that 100% have passed.
+
+*   **Final Instruction:** Once the `Final Full Regression Test Passed` checkbox above is marked `[x]`, your final action for this phase is to modify the main title of this document, changing `[ ] PHASE-FE-3` to `[x] PHASE-FE-3`. This concludes your work on this phase file.

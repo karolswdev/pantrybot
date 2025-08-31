@@ -79,12 +79,38 @@ fridgr/
 ## Getting Started
 
 ### Prerequisites
-- .NET 8 SDK
-- Node.js 18+
-- Docker & Docker Compose
-- PostgreSQL 15+ (or use Docker)
+- Docker & Docker Compose (required)
+- Node.js 18+ (for local development without Docker)
+- .NET 8 SDK (for local development without Docker)
 
-### Local Development Setup
+### Quick Start with Docker (Recommended)
+
+1. Clone the repository
+```bash
+git clone https://github.com/yourusername/fridgr.git
+cd fridgr
+```
+
+2. Build and start all services with Docker Compose
+```bash
+docker-compose up --build
+```
+
+This single command will:
+- Build the frontend and backend containers
+- Start PostgreSQL database
+- Start Redis cache
+- Run database migrations
+- Start the application
+
+3. Access the application
+- Frontend: http://localhost:3000
+- API: http://localhost:5000
+- API Documentation: http://localhost:5000/swagger
+
+### Alternative: Local Development Setup (Without Docker)
+
+If you prefer to run services locally without Docker:
 
 1. Clone the repository
 ```bash
