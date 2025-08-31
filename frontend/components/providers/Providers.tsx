@@ -2,7 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AppShell from "@/components/layout/AppShell";
 
 interface ProvidersProps {
@@ -23,6 +23,13 @@ export default function Providers({ children }: ProvidersProps) {
         },
       })
   );
+
+  // Expose queryClient to window for Cypress testing
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).__queryClient = queryClient;
+    }
+  }, [queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>

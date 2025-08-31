@@ -25,15 +25,15 @@ This document maps system-level requirements to service-level requirements for t
 | SYS-FUNC-016 | Calculate days until expiration | MVP | SVC-inventory-FUNC-008 |
 | SYS-FUNC-017 | Categorize items | MVP | SVC-inventory-FUNC-009 |
 | SYS-FUNC-018 | Send expiration warnings | MVP | SVC-inventory-FUNC-010, SVC-notifications-FUNC-003 |
-| SYS-FUNC-019 | Customize warning period | MVP | SVC-notifications-FUNC-004 |
+| SYS-FUNC-019 | Customize warning period | MVP | SVC-notifications-FUNC-004 (FE Verified) |
 | SYS-FUNC-020 | Email notifications | MVP | SVC-notifications-FUNC-005 |
-| SYS-FUNC-021 | In-app notifications | MVP | SVC-notifications-FUNC-006 |
+| SYS-FUNC-021 | In-app notifications | MVP | SVC-notifications-FUNC-006 (FE Verified) |
 | SYS-FUNC-022 | Telegram bot notifications | MVP | SVC-notifications-FUNC-007 |
-| SYS-FUNC-023 | Link Telegram accounts | MVP | SVC-notifications-FUNC-008 |
+| SYS-FUNC-023 | Link Telegram accounts | MVP | SVC-notifications-FUNC-008 (FE Verified) |
 | SYS-FUNC-024 | Shared shopping lists | MVP | SVC-inventory-FUNC-011 |
 | SYS-FUNC-025 | Real-time shopping list sync | MVP | SVC-inventory-FUNC-012 |
 | SYS-FUNC-026 | Add inventory to shopping list | MVP | SVC-inventory-FUNC-013 |
-| SYS-FUNC-027 | Real-time updates | MVP | SVC-inventory-FUNC-014 |
+| SYS-FUNC-027 | Real-time updates | MVP | SVC-inventory-FUNC-014 (FE Verified) |
 | SYS-FUNC-028 | Concurrent update handling | MVP | SVC-inventory-FUNC-015 (FE Verified) |
 | SYS-SEC-001 | Hash passwords with bcrypt | MVP | SVC-users-SEC-001 |
 | SYS-SEC-002 | HTTPS communications | MVP | All services |

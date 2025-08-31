@@ -1,0 +1,120 @@
+diff --git a/frontend/hooks/mutations/README.md b/frontend/hooks/mutations/README.md
+index 6c71476..bcd36d5 100644
+--- a/frontend/hooks/mutations/README.md
++++ b/frontend/hooks/mutations/README.md
+@@ -281,6 +281,115 @@ Default mutation options:
+ - **onError:** Global error handler shows toast notifications
+ - **onSuccess:** Automatic cache invalidation
+ 
++## Notification Mutation Hooks
++
++### useUpdateNotificationSettings
++
++**Location:** `useUpdateNotificationSettings.ts`
++
++**Description:** Updates user notification preferences including email, in-app, and Telegram settings.
++
++**Parameters:**
++```typescript
++interface UpdateNotificationSettingsPayload {
++  email?: {
++    enabled: boolean;
++  };
++  inApp?: {
++    enabled: boolean;
++  };
++  telegram?: {
++    enabled: boolean;
++  };
++  preferences?: {
++    expirationWarningDays: number;
++    notificationTypes: string[];
++    preferredTime: string;
++  };
++}
++```
++
++**Returns:** Standard React Query mutation object with automatic cache invalidation for `['notifications', 'settings']`.
++
++**Usage Example:**
++```tsx
++import { useUpdateNotificationSettings } from "@/hooks/mutations/useUpdateNotificationSettings";
++
++function NotificationSettings() {
++  const updateSettings = useUpdateNotificationSettings();
++  
++  const handleSave = async (formData) => {
++    try {
++      await updateSettings.mutateAsync({
++        preferences: {
++          expirationWarningDays: 5,
++          notificationTypes: ['expiration', 'lowStock'],
++          preferredTime: '08:00'
++        }
++      });
++      showToast({ type: 'success', title: 'Settings saved' });
++    } catch (error) {
++      showToast({ type: 'error', title: 'Failed to save settings' });
++    }
++  };
++}
++```
++
++### useLinkTelegram
++
++**Location:** `useLinkTelegram.ts`
++
++**Description:** Links a Telegram account to the user's Fridgr account using a verification code.
++
++**Parameters:**
++```typescript
++interface LinkTelegramPayload {
++  verificationCode: string;
++}
++```
++
++**Returns:**
++```typescript
++interface LinkTelegramResponse {
++  linked: boolean;
++  telegramUsername: string;
++  linkedAt: string;
++}
++```
++
++**Features:**
++- Updates cached notification settings on success
++- Mock support: code "ABC123" triggers success in development mode
++- Automatic cache invalidation for notification settings
++
++**Usage Example:**
++```tsx
++import { useLinkTelegram } from "@/hooks/mutations/useLinkTelegram";
++
++function TelegramLinkModal() {
++  const linkTelegram = useLinkTelegram();
++  const [code, setCode] = useState('');
++  
++  const handleLink = async () => {
++    try {
++      const result = await linkTelegram.mutateAsync({ 
++        verificationCode: code 
++      });
++      showToast({ 
++        type: 'success', 
++        title: `Linked to ${result.telegramUsername}` 
++      });
++      closeModal();
++    } catch (error) {
++      showToast({ 
++        type: 'error', 
++        title: 'Invalid verification code' 
++      });
++    }
++  };
++}
++```
++
+ ## Testing Considerations
+ 
+ When testing components that use mutation hooks:

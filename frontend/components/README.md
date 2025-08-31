@@ -367,3 +367,120 @@ The household management page for viewing members and household information.
 - **Admin**: Can invite members, manage roles, delete household
 - **Member**: Can view members and household info
 - **Viewer**: Read-only access to household information
+
+## Notification Components
+
+### NotificationBell Component (`/components/notifications/NotificationBell.tsx`)
+
+A dropdown notification bell component displayed in the app header that shows real-time notifications with an unread count badge.
+
+**Features:**
+- Unread notification count badge (shows "9+" for more than 9)
+- Dropdown menu with recent notifications (max 10 shown)
+- Auto-marks notifications as read after 1 second when opened
+- Visual indicators for read/unread status
+- Different icons based on notification type
+- Relative timestamps using date-fns
+- Empty state when no notifications exist
+- Link to view all notifications (when > 10)
+
+**Notification Types & Icons:**
+- `expiring` - ⚠️ Warning icon for items expiring soon
+- `expired` - 🚨 Alert icon for expired items
+- `low_stock` - 📦 Package icon for low stock items
+- `shopping` - 🛒 Cart icon for shopping list updates
+- `household` - 🏠 House icon for household events
+- Default - 📢 Speaker icon for general notifications
+
+**Integration:**
+The NotificationBell component integrates with:
+- Zustand notification store for state management
+- SignalR service for real-time notification updates
+- React Query for syncing with backend
+
+**Usage:**
+The component is already integrated into the AppShell header. No additional setup required.
+
+### Toast Component (`/components/notifications/Toast.tsx`)
+
+A toast notification system that displays temporary messages with auto-dismiss functionality and visual feedback.
+
+**Props:** None (uses notification store)
+
+**Features:**
+- Multiple toast types: success, error, warning, info
+- Auto-dismiss after 5 seconds (configurable per toast)
+- Manual dismiss via close button
+- Animated progress bar showing time until auto-dismiss
+- Stacking support for multiple toasts
+- Different colors and icons for each type
+- Positioned top-right for visibility
+
+**Toast Types:**
+- **Success** (green): Confirmation of successful actions
+- **Error** (red): Error messages and failures
+- **Warning** (yellow): Important warnings
+- **Info** (blue): General information
+
+**Animation:**
+Uses Tailwind CSS animation for the shrinking progress bar that visually indicates time remaining before auto-dismiss.
+
+**Usage:**
+The Toast component is integrated into AppShell. To show a toast from any component:
+
+```tsx
+import { useNotificationStore } from '@/stores/notifications.store';
+
+function MyComponent() {
+  const { showToast } = useNotificationStore();
+  
+  const handleAction = () => {
+    showToast({
+      type: 'success',
+      title: 'Item added successfully',
+      message: 'The item has been added to your inventory',
+      duration: 5000 // optional, defaults to 5000ms
+    });
+  };
+}
+```
+
+## Settings Components
+
+### NotificationSettingsForm (`/app/settings/notifications/page.tsx`)
+
+A comprehensive form component for managing notification preferences across email, in-app, and Telegram channels.
+
+**Features:**
+- Email notification toggles (daily summary, expiry alerts, reports)
+- In-app notification toggles (real-time alerts, member activity)
+- Telegram bot connection with verification code flow
+- Customizable expiration warning days (1-30)
+- Preferred notification time selector
+- Auto-save with optimistic updates
+- Loading and error states
+
+**State Management:**
+- Fetches current settings using `useNotificationSettings` query hook
+- Updates settings via `useUpdateNotificationSettings` mutation
+- Links Telegram accounts via `useLinkTelegram` mutation
+- Displays success/error toasts for all actions
+
+**Telegram Integration:**
+The component includes a modal dialog for linking Telegram accounts:
+1. User clicks "Connect with Telegram" button
+2. Modal provides instructions for bot interaction
+3. User enters verification code from @FridgrBot
+4. System validates and links the account
+
+**Usage:**
+The NotificationSettingsForm is rendered at `/settings/notifications`. It automatically:
+- Loads user's current notification preferences
+- Populates form fields with existing settings
+- Handles all API interactions with proper error handling
+- Updates the UI optimistically while saving
+
+**Validation:**
+- Expiration warning days: min 1, max 30
+- Verification code: required for Telegram linking
+- Time format: 24-hour format (HH:MM)

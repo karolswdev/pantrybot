@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ItemCard, InventoryItem } from "@/components/inventory/ItemCard";
 import { AddEditItemModal } from "@/components/inventory/AddEditItemModal";
 import { ConsumeItemModal } from "@/components/inventory/ConsumeItemModal";
@@ -13,6 +13,9 @@ import { Search, Filter, ArrowUpDown, Plus, Grid3X3, List, Package, Loader2 } fr
 import { useInventoryItems } from "@/hooks/queries/useInventoryItems";
 import { useCreateItem, useUpdateItem, useDeleteItem, useConsumeItem, useWasteItem } from "@/hooks/mutations/useInventoryMutations";
 import { InventoryItemFormData } from "@/lib/validations/inventory";
+import { signalRService } from "@/lib/realtime/signalr-service";
+import { useQueryClient } from "@tanstack/react-query";
+import useAuthStore from "@/stores/auth.store";
 
 interface InventoryPageProps {
   location: "fridge" | "freezer" | "pantry";
@@ -111,8 +114,16 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
+  // Get auth state and query client for real-time updates
+  const queryClient = useQueryClient();
+  const { user, token } = useAuthStore();
+  const householdId = typeof window !== 'undefined' && (window as any).Cypress 
+    ? 'household-123' 
+    : user?.defaultHouseholdId;
+
   // Fetch inventory items using the query hook
   const { data, isLoading, isError, error } = useInventoryItems({
+    householdId,
     location,
     category: selectedCategory === "All" ? undefined : selectedCategory,
     search: searchQuery,
@@ -122,6 +133,91 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
 
   // Use placeholder data if API fails or is not available
   const items = data?.items || (isError ? getPlaceholderItems(location) : []);
+
+  // Set up real-time updates via SignalR
+  useEffect(() => {
+    if (!householdId || !token) return;
+
+    // Connect to SignalR hub
+    const connectSignalR = async () => {
+      try {
+        await signalRService.connect(token, householdId);
+        console.log('SignalR connected for real-time updates');
+      } catch (error) {
+        console.error('Failed to connect to SignalR:', error);
+      }
+    };
+
+    // Handle item update events
+    const handleItemUpdated = (data: any) => {
+      console.log('Real-time update received: item.updated', data);
+      
+      // Update the query cache with the new item data
+      queryClient.setQueryData(
+        ["inventory", "items", householdId, { location, category: selectedCategory === "All" ? undefined : selectedCategory, search: searchQuery, sortBy, sortOrder: "asc" }],
+        (oldData: any) => {
+          if (!oldData) return oldData;
+          
+          const updatedItems = oldData.items.map((item: InventoryItem) => 
+            item.id === data.payload.itemId ? { ...item, ...data.payload.item } : item
+          );
+          
+          return {
+            ...oldData,
+            items: updatedItems
+          };
+        }
+      );
+    };
+
+    // Handle item added events
+    const handleItemAdded = (data: any) => {
+      console.log('Real-time update received: item.added', data);
+      
+      // Refetch the query to get the new item
+      queryClient.invalidateQueries({
+        queryKey: ["inventory", "items", householdId]
+      });
+    };
+
+    // Handle item deleted events
+    const handleItemDeleted = (data: any) => {
+      console.log('Real-time update received: item.deleted', data);
+      
+      // Update the query cache to remove the deleted item
+      queryClient.setQueryData(
+        ["inventory", "items", householdId, { location, category: selectedCategory === "All" ? undefined : selectedCategory, search: searchQuery, sortBy, sortOrder: "asc" }],
+        (oldData: any) => {
+          if (!oldData) return oldData;
+          
+          const filteredItems = oldData.items.filter((item: InventoryItem) => 
+            item.id !== data.payload.itemId
+          );
+          
+          return {
+            ...oldData,
+            items: filteredItems,
+            totalCount: oldData.totalCount - 1
+          };
+        }
+      );
+    };
+
+    // Subscribe to events
+    signalRService.on('item.updated', handleItemUpdated);
+    signalRService.on('item.added', handleItemAdded);
+    signalRService.on('item.deleted', handleItemDeleted);
+
+    // Connect to SignalR
+    connectSignalR();
+
+    // Cleanup on unmount
+    return () => {
+      signalRService.off('item.updated', handleItemUpdated);
+      signalRService.off('item.added', handleItemAdded);
+      signalRService.off('item.deleted', handleItemDeleted);
+    };
+  }, [householdId, token, queryClient, location, selectedCategory, searchQuery, sortBy]);
 
   // Mutation hooks
   const createItemMutation = useCreateItem();

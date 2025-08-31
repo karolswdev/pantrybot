@@ -224,3 +224,63 @@ Query keys follow a consistent pattern for cache management:
 - Single item: `["inventory", "items", householdId, itemId]`
 
 This allows for precise cache invalidation when mutations occur.
+
+## Real-time Integration
+
+The inventory query hooks integrate seamlessly with SignalR for real-time updates. When WebSocket events are received, the query cache is updated intelligently without triggering a full refetch.
+
+### How Real-time Updates Work
+
+1. **Item Updated Event (`item.updated`)**: 
+   - The query cache is updated using `queryClient.setQueryData()`
+   - Only the modified item is updated in the cache
+   - UI updates instantly without a network request
+
+2. **Item Added Event (`item.added`)**:
+   - The query is invalidated to fetch the new item
+   - Ensures proper sorting and filtering of the new item
+
+3. **Item Deleted Event (`item.deleted`)**:
+   - The item is removed from the cache immediately
+   - Total count is decremented accordingly
+
+### Implementation Example
+
+```tsx
+import { signalRService } from "@/lib/realtime/signalr-service";
+import { useQueryClient } from "@tanstack/react-query";
+
+// In your inventory component
+useEffect(() => {
+  const handleItemUpdate = (data: any) => {
+    // Update the specific item in the cache
+    queryClient.setQueryData(
+      ["inventory", "items", householdId, queryParams],
+      (oldData: any) => {
+        if (!oldData) return oldData;
+        
+        const updatedItems = oldData.items.map((item: InventoryItem) => 
+          item.id === data.payload.itemId 
+            ? { ...item, ...data.payload.item } 
+            : item
+        );
+        
+        return { ...oldData, items: updatedItems };
+      }
+    );
+  };
+
+  signalRService.on('item.updated', handleItemUpdate);
+  
+  return () => {
+    signalRService.off('item.updated', handleItemUpdate);
+  };
+}, [householdId, queryClient, queryParams]);
+```
+
+### Benefits
+
+- **Instant Updates**: Changes appear immediately without manual refresh
+- **Bandwidth Efficient**: Only the changed data is transmitted
+- **Cache Consistency**: React Query cache stays in sync with server state
+- **Optimistic Updates**: Combined with mutations for immediate feedback
