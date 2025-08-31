@@ -19,12 +19,14 @@
   /* Danger - Expiry Red */
   --danger-50: #fef2f2;
   --danger-100: #fee2e2;
+  --danger-400: #f87171;
   --danger-500: #ef4444;
   --danger-600: #dc2626;
   
   /* Warning - Caution Yellow */
   --warning-50: #fffbeb;
   --warning-100: #fef3c7;
+  --warning-400: #fbbf24;
   --warning-500: #f59e0b;
   --warning-600: #d97706;
   
@@ -56,10 +58,12 @@
   --color-secondary-600: var(--secondary-600);
   --color-danger-50: var(--danger-50);
   --color-danger-100: var(--danger-100);
+  --color-danger-400: var(--danger-400);
   --color-danger-500: var(--danger-500);
   --color-danger-600: var(--danger-600);
   --color-warning-50: var(--warning-50);
   --color-warning-100: var(--warning-100);
+  --color-warning-400: var(--warning-400);
   --color-warning-500: var(--warning-500);
   --color-warning-600: var(--warning-600);
   --color-gray-50: var(--gray-50);

@@ -265,13 +265,21 @@ export const api = {
       notes?: string;
     }) => apiClient.post(`/households/${householdId}/items`, data),
     
-    update: (householdId: string, itemId: string, data: any) =>
-      apiClient.put(`/households/${householdId}/items/${itemId}`, data),
+    update: (householdId: string, itemId: string, data: any, etag?: string) => {
+      const headers: any = {};
+      if (etag) {
+        headers['If-Match'] = etag;
+      }
+      return apiClient.patch(`/households/${householdId}/items/${itemId}`, data, { headers });
+    },
     
     delete: (householdId: string, itemId: string) =>
       apiClient.delete(`/households/${householdId}/items/${itemId}`),
     
-    consume: (householdId: string, itemId: string, quantity?: number) =>
-      apiClient.post(`/households/${householdId}/items/${itemId}/consume`, { quantity }),
+    consume: (householdId: string, itemId: string, quantity?: number, notes?: string) =>
+      apiClient.post(`/households/${householdId}/items/${itemId}/consume`, { quantity, notes }),
+    
+    waste: (householdId: string, itemId: string, quantity?: number, reason?: string, notes?: string) =>
+      apiClient.post(`/households/${householdId}/items/${itemId}/waste`, { quantity, reason, notes }),
   },
 };

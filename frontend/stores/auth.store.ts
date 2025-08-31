@@ -7,6 +7,8 @@ export interface User {
   id: string;
   email: string;
   displayName: string;
+  defaultHouseholdId?: string;
+  activeHouseholdId?: string;
 }
 
 export interface Household {
@@ -63,14 +65,15 @@ const useAuthStore = create<AuthState>()(
           tokenManager.setTokens(accessToken, refreshToken, expiresIn);
           
           // Get user details (email and displayName from login response)
+          // Set default household if available
+          const defaultHousehold = households.length > 0 ? households[0].id : null;
+          
           const user: User = {
             id: userId,
             email: email,
             displayName: email.split('@')[0], // Default display name
+            activeHouseholdId: defaultHousehold || undefined,
           };
-          
-          // Set default household if available
-          const defaultHousehold = households.length > 0 ? households[0].id : null;
           
           set({
             user,
@@ -115,6 +118,7 @@ const useAuthStore = create<AuthState>()(
             id: userId,
             email,
             displayName,
+            activeHouseholdId: defaultHouseholdId || undefined,
           };
           
           // Create default household
@@ -223,4 +227,5 @@ const useAuthStore = create<AuthState>()(
   )
 );
 
+export { useAuthStore };
 export default useAuthStore;

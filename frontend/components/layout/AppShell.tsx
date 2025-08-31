@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { HouseholdSwitcher } from "@/components/households/HouseholdSwitcher";
+import { useAuthStore } from "@/stores/auth.store";
 
 // Protected routes that require authentication
 const PROTECTED_ROUTES = ["/dashboard", "/inventory", "/shopping", "/reports", "/settings"];
@@ -17,6 +19,8 @@ interface AppShellProps {
 export default function AppShell({ children }: AppShellProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const checkAuthFromStore = useAuthStore((state) => state.checkAuth);
+  const isAuthenticatedFromStore = useAuthStore((state) => state.isAuthenticated);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -24,15 +28,14 @@ export default function AppShell({ children }: AppShellProps) {
   useEffect(() => {
     // Check authentication status
     const checkAuth = () => {
-      // For now, check if there's a token in localStorage
-      // This will be replaced with proper auth state management in STORY-FE-1.2
-      const token = localStorage.getItem("accessToken");
-      setIsAuthenticated(!!token);
+      // Use auth store for checking authentication
+      const isAuth = checkAuthFromStore();
+      setIsAuthenticated(isAuth || !!localStorage.getItem("accessToken"));
       setIsLoading(false);
     };
 
     checkAuth();
-  }, [pathname]);
+  }, [pathname, checkAuthFromStore]);
 
   useEffect(() => {
     // Handle protected route access
@@ -86,6 +89,9 @@ export default function AppShell({ children }: AppShellProps) {
 
             {/* Right side navigation */}
             <div className="flex items-center space-x-4">
+              {/* Household Switcher */}
+              <HouseholdSwitcher />
+              
               {/* Quick Add Button */}
               <button className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100">
                 <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

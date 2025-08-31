@@ -13,7 +13,7 @@ interface AuthState {
   // User information
   user: User | null;                    // Current authenticated user
   households: Household[];               // User's households
-  currentHouseholdId: string | null;    // Currently selected household
+  currentHouseholdId: string | null;    // Currently selected household ID (active household for all operations)
   
   // Authentication status
   isAuthenticated: boolean;             // Whether user is logged in
@@ -22,6 +22,9 @@ interface AuthState {
 }
 ```
 
+**Active Household Management:**
+The `currentHouseholdId` property tracks which household is currently active for all household-scoped operations (inventory, shopping lists, etc.). This can be different from the user's `defaultHouseholdId` and is updated when the user switches households via the HouseholdSwitcher component.
+
 ### User Type
 
 ```typescript
@@ -29,6 +32,8 @@ interface User {
   id: string;
   email: string;
   displayName: string;
+  defaultHouseholdId?: string;    // User's default household
+  activeHouseholdId?: string;      // Currently active household ID
 }
 ```
 

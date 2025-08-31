@@ -16,9 +16,9 @@ This document maps system-level requirements to service-level requirements for t
 | SYS-FUNC-007 | Three role levels | MVP | SVC-users-FUNC-007 |
 | SYS-FUNC-008 | Invite members via email | MVP | SVC-users-FUNC-008, SVC-notifications-FUNC-002 |
 | SYS-FUNC-009 | Household activity logs | MVP | SVC-users-FUNC-009, SVC-inventory-FUNC-001 |
-| SYS-FUNC-010 | Add inventory items | MVP | SVC-inventory-FUNC-002 |
+| SYS-FUNC-010 | Add inventory items | MVP | SVC-inventory-FUNC-002 (FE Verified) |
 | SYS-FUNC-011 | Track use by and best before dates | MVP | SVC-inventory-FUNC-003 |
-| SYS-FUNC-012 | Edit item details | MVP | SVC-inventory-FUNC-004 |
+| SYS-FUNC-012 | Edit item details | MVP | SVC-inventory-FUNC-004 (FE Verified) |
 | SYS-FUNC-013 | Mark items as consumed | MVP | SVC-inventory-FUNC-005 |
 | SYS-FUNC-014 | Mark items as wasted | MVP | SVC-inventory-FUNC-006 |
 | SYS-FUNC-015 | Move items between locations | MVP | SVC-inventory-FUNC-007 |
@@ -34,7 +34,7 @@ This document maps system-level requirements to service-level requirements for t
 | SYS-FUNC-025 | Real-time shopping list sync | MVP | SVC-inventory-FUNC-012 |
 | SYS-FUNC-026 | Add inventory to shopping list | MVP | SVC-inventory-FUNC-013 |
 | SYS-FUNC-027 | Real-time updates | MVP | SVC-inventory-FUNC-014 |
-| SYS-FUNC-028 | Concurrent update handling | MVP | SVC-inventory-FUNC-015 |
+| SYS-FUNC-028 | Concurrent update handling | MVP | SVC-inventory-FUNC-015 (FE Verified) |
 | SYS-SEC-001 | Hash passwords with bcrypt | MVP | SVC-users-SEC-001 |
 | SYS-SEC-002 | HTTPS communications | MVP | All services |
 | SYS-SEC-003 | JWT token expiration | MVP | SVC-users-SEC-002 |
