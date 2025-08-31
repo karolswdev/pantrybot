@@ -1,0 +1,372 @@
+
+DevTools listening on ws://127.0.0.1:46471/devtools/browser/18c2c14e-4262-4545-9146-254ac9a909d2
+
+================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.0.0                                                                         │
+  │ Browser:        Electron 136 (headless)                                                        │
+  │ Node Version:   v22.19.0 (/home/karol/.nvm/versions/node/v22.19.0/bin/node)                    │
+  │ Specs:          1 found (Inventory.cy.ts)                                                      │
+  │ Searched:       cypress/e2e/Inventory.cy.ts                                                    │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  Inventory.cy.ts                                                                 (1 of 1)
+
+
+  Inventory E2E Tests
+    1) should display a list of items from the API
+    2) should display empty state when no items exist
+    3) should filter items based on search query
+    4) should switch between grid and list view modes
+    5) should successfully add a new item and see it in the list
+    6) should successfully edit an item and send the ETag
+    7) should display a conflict error when editing with a stale ETag
+    8) should successfully mark an item as consumed
+    9) should successfully mark an item as wasted
+    10) should successfully delete an item
+
+
+  0 passing (5s)
+  10 failing
+
+  1) Inventory E2E Tests
+       should display a list of items from the API:
+     CypressError: `cy.visit()` failed trying to load:
+
+http://localhost:3000/inventory/fridge
+
+The response we received from your web server was:
+
+  > 500: Internal Server Error
+
+This was considered a failure because the status code was not `2xx`.
+
+If you do not want status codes to cause failures pass the option: `failOnStatusCode: false`
+      at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:135067:76)
+      at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:134637:12)
+      at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:135050:13)
+      at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)
+      at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)
+      at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)
+      at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)
+      at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)
+      at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)
+      at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)
+      at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)
+      at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)
+  From Your Spec Code:
+      at Context.eval (webpack://frontend-tmp/./cypress/e2e/Inventory.cy.ts:72:7)
+
+  2) Inventory E2E Tests
+       should display empty state when no items exist:
+     CypressError: `cy.visit()` failed trying to load:
+
+http://localhost:3000/inventory/fridge
+
+The response we received from your web server was:
+
+  > 500: Internal Server Error
+
+This was considered a failure because the status code was not `2xx`.
+
+If you do not want status codes to cause failures pass the option: `failOnStatusCode: false`
+      at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:135067:76)
+      at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:134637:12)
+      at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:135050:13)
+      at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)
+      at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)
+      at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)
+      at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)
+      at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)
+      at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)
+      at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)
+      at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)
+      at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)
+  From Your Spec Code:
+      at Context.eval (webpack://frontend-tmp/./cypress/e2e/Inventory.cy.ts:108:7)
+
+  3) Inventory E2E Tests
+       should filter items based on search query:
+     CypressError: `cy.visit()` failed trying to load:
+
+http://localhost:3000/inventory/fridge
+
+The response we received from your web server was:
+
+  > 500: Internal Server Error
+
+This was considered a failure because the status code was not `2xx`.
+
+If you do not want status codes to cause failures pass the option: `failOnStatusCode: false`
+      at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:135067:76)
+      at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:134637:12)
+      at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:135050:13)
+      at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)
+      at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)
+      at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)
+      at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)
+      at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)
+      at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)
+      at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)
+      at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)
+      at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)
+  From Your Spec Code:
+      at Context.eval (webpack://frontend-tmp/./cypress/e2e/Inventory.cy.ts:169:7)
+
+  4) Inventory E2E Tests
+       should switch between grid and list view modes:
+     CypressError: `cy.visit()` failed trying to load:
+
+http://localhost:3000/inventory/fridge
+
+The response we received from your web server was:
+
+  > 500: Internal Server Error
+
+This was considered a failure because the status code was not `2xx`.
+
+If you do not want status codes to cause failures pass the option: `failOnStatusCode: false`
+      at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:135067:76)
+      at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:134637:12)
+      at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:135050:13)
+      at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)
+      at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)
+      at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)
+      at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)
+      at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)
+      at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)
+      at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)
+      at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)
+      at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)
+  From Your Spec Code:
+      at Context.eval (webpack://frontend-tmp/./cypress/e2e/Inventory.cy.ts:210:7)
+
+  5) Inventory E2E Tests
+       should successfully add a new item and see it in the list:
+     CypressError: `cy.visit()` failed trying to load:
+
+http://localhost:3000/inventory/fridge
+
+The response we received from your web server was:
+
+  > 500: Internal Server Error
+
+This was considered a failure because the status code was not `2xx`.
+
+If you do not want status codes to cause failures pass the option: `failOnStatusCode: false`
+      at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:135067:76)
+      at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:134637:12)
+      at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:135050:13)
+      at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)
+      at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)
+      at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)
+      at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)
+      at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)
+      at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)
+      at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)
+      at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)
+      at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)
+  From Your Spec Code:
+      at Context.eval (webpack://frontend-tmp/./cypress/e2e/Inventory.cy.ts:280:7)
+
+  6) Inventory E2E Tests
+       should successfully edit an item and send the ETag:
+     CypressError: `cy.visit()` failed trying to load:
+
+http://localhost:3000/inventory/fridge
+
+The response we received from your web server was:
+
+  > 500: Internal Server Error
+
+This was considered a failure because the status code was not `2xx`.
+
+If you do not want status codes to cause failures pass the option: `failOnStatusCode: false`
+      at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:135067:76)
+      at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:134637:12)
+      at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:135050:13)
+      at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)
+      at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)
+      at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)
+      at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)
+      at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)
+      at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)
+      at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)
+      at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)
+      at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)
+  From Your Spec Code:
+      at Context.eval (webpack://frontend-tmp/./cypress/e2e/Inventory.cy.ts:383:7)
+
+  7) Inventory E2E Tests
+       should display a conflict error when editing with a stale ETag:
+     CypressError: `cy.visit()` failed trying to load:
+
+http://localhost:3000/inventory/fridge
+
+The response we received from your web server was:
+
+  > 500: Internal Server Error
+
+This was considered a failure because the status code was not `2xx`.
+
+If you do not want status codes to cause failures pass the option: `failOnStatusCode: false`
+      at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:135067:76)
+      at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:134637:12)
+      at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:135050:13)
+      at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)
+      at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)
+      at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)
+      at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)
+      at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)
+      at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)
+      at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)
+      at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)
+      at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)
+  From Your Spec Code:
+      at Context.eval (webpack://frontend-tmp/./cypress/e2e/Inventory.cy.ts:461:7)
+
+  8) Inventory E2E Tests
+       should successfully mark an item as consumed:
+     CypressError: `cy.visit()` failed trying to load:
+
+http://localhost:3000/inventory/fridge
+
+The response we received from your web server was:
+
+  > 500: Internal Server Error
+
+This was considered a failure because the status code was not `2xx`.
+
+If you do not want status codes to cause failures pass the option: `failOnStatusCode: false`
+      at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:135067:76)
+      at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:134637:12)
+      at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:135050:13)
+      at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)
+      at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)
+      at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)
+      at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)
+      at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)
+      at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)
+      at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)
+      at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)
+      at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)
+  From Your Spec Code:
+      at Context.eval (webpack://frontend-tmp/./cypress/e2e/Inventory.cy.ts:541:7)
+
+  9) Inventory E2E Tests
+       should successfully mark an item as wasted:
+     CypressError: `cy.visit()` failed trying to load:
+
+http://localhost:3000/inventory/fridge
+
+The response we received from your web server was:
+
+  > 500: Internal Server Error
+
+This was considered a failure because the status code was not `2xx`.
+
+If you do not want status codes to cause failures pass the option: `failOnStatusCode: false`
+      at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:135067:76)
+      at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:134637:12)
+      at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:135050:13)
+      at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)
+      at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)
+      at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)
+      at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)
+      at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)
+      at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)
+      at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)
+      at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)
+      at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)
+  From Your Spec Code:
+      at Context.eval (webpack://frontend-tmp/./cypress/e2e/Inventory.cy.ts:614:7)
+
+  10) Inventory E2E Tests
+       should successfully delete an item:
+     CypressError: `cy.visit()` failed trying to load:
+
+http://localhost:3000/inventory/fridge
+
+The response we received from your web server was:
+
+  > 500: Internal Server Error
+
+This was considered a failure because the status code was not `2xx`.
+
+If you do not want status codes to cause failures pass the option: `failOnStatusCode: false`
+      at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:135067:76)
+      at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:134637:12)
+      at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:135050:13)
+      at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)
+      at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)
+      at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)
+      at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)
+      at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)
+      at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)
+      at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)
+      at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)
+      at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)
+  From Your Spec Code:
+      at Context.eval (webpack://frontend-tmp/./cypress/e2e/Inventory.cy.ts:694:7)
+
+
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        10                                                                               │
+  │ Passing:      0                                                                                │
+  │ Failing:      10                                                                               │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  10                                                                               │
+  │ Video:        false                                                                            │
+  │ Duration:     5 seconds                                                                        │
+  │ Spec Ran:     Inventory.cy.ts                                                                  │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+  (Screenshots)
+
+  -  /home/karol/dev/code/fridgr/frontend/cypress/screenshots/Inventory.cy.ts/Invento     (1280x720)
+     ry E2E Tests -- should display a list of items from the API (failed).png                       
+  -  /home/karol/dev/code/fridgr/frontend/cypress/screenshots/Inventory.cy.ts/Invento     (1280x720)
+     ry E2E Tests -- should display empty state when no items exist (failed).png                    
+  -  /home/karol/dev/code/fridgr/frontend/cypress/screenshots/Inventory.cy.ts/Invento     (1280x720)
+     ry E2E Tests -- should filter items based on search query (failed).png                         
+  -  /home/karol/dev/code/fridgr/frontend/cypress/screenshots/Inventory.cy.ts/Invento     (1280x720)
+     ry E2E Tests -- should switch between grid and list view modes (failed).png                    
+  -  /home/karol/dev/code/fridgr/frontend/cypress/screenshots/Inventory.cy.ts/Invento     (1280x720)
+     ry E2E Tests -- should successfully add a new item and see it in the list (faile               
+     d).png                                                                                         
+  -  /home/karol/dev/code/fridgr/frontend/cypress/screenshots/Inventory.cy.ts/Invento     (1280x720)
+     ry E2E Tests -- should successfully edit an item and send the ETag (failed).png                
+  -  /home/karol/dev/code/fridgr/frontend/cypress/screenshots/Inventory.cy.ts/Invento     (1280x720)
+     ry E2E Tests -- should display a conflict error when editing with a stale ETag (               
+     failed).png                                                                                    
+  -  /home/karol/dev/code/fridgr/frontend/cypress/screenshots/Inventory.cy.ts/Invento     (1280x720)
+     ry E2E Tests -- should successfully mark an item as consumed (failed).png                      
+  -  /home/karol/dev/code/fridgr/frontend/cypress/screenshots/Inventory.cy.ts/Invento     (1280x720)
+     ry E2E Tests -- should successfully mark an item as wasted (failed).png                        
+  -  /home/karol/dev/code/fridgr/frontend/cypress/screenshots/Inventory.cy.ts/Invento     (1280x720)
+     ry E2E Tests -- should successfully delete an item (failed).png                                
+
+
+================================================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✖  Inventory.cy.ts                          00:05       10        -       10        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✖  1 of 1 failed (100%)                     00:05       10        -       10        -        -  
+

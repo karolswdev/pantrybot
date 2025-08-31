@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { ItemCard, InventoryItem } from "@/components/inventory/ItemCard";
 import { AddEditItemModal } from "@/components/inventory/AddEditItemModal";
+import { ConsumeItemModal } from "@/components/inventory/ConsumeItemModal";
+import { WasteItemModal } from "@/components/inventory/WasteItemModal";
+import { DeleteItemConfirmDialog } from "@/components/inventory/DeleteItemConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -101,6 +104,12 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
   const [showFilters, setShowFilters] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
+  
+  // Modal states for actions
+  const [consumeModalOpen, setConsumeModalOpen] = useState(false);
+  const [wasteModalOpen, setWasteModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
   // Fetch inventory items using the query hook
   const { data, isLoading, isError, error } = useInventoryItems({
@@ -147,32 +156,44 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
   };
 
   const handleConsume = (item: InventoryItem) => {
-    // In a real app, you'd open a modal to get the quantity
-    const quantity = prompt(`How much ${item.unit} of ${item.name} did you consume?`, String(item.quantity));
-    if (quantity) {
+    setSelectedItem(item);
+    setConsumeModalOpen(true);
+  };
+
+  const handleConsumeConfirm = (quantity: number, notes?: string) => {
+    if (selectedItem) {
       consumeItemMutation.mutate({
-        itemId: item.id,
-        quantity: parseFloat(quantity),
+        itemId: selectedItem.id,
+        quantity,
+        notes,
       });
     }
   };
 
   const handleWaste = (item: InventoryItem) => {
-    // In a real app, you'd open a modal to get the quantity and reason
-    const quantity = prompt(`How much ${item.unit} of ${item.name} was wasted?`, String(item.quantity));
-    if (quantity) {
-      const reason = prompt("Reason for waste?", "expired");
+    setSelectedItem(item);
+    setWasteModalOpen(true);
+  };
+
+  const handleWasteConfirm = (quantity: number, reason: string, notes?: string) => {
+    if (selectedItem) {
       wasteItemMutation.mutate({
-        itemId: item.id,
-        quantity: parseFloat(quantity),
-        reason: reason || "expired",
+        itemId: selectedItem.id,
+        quantity,
+        reason,
+        notes,
       });
     }
   };
 
   const handleDelete = (item: InventoryItem) => {
-    if (confirm(`Are you sure you want to delete ${item.name}?`)) {
-      deleteItemMutation.mutate(item.id);
+    setSelectedItem(item);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (selectedItem) {
+      deleteItemMutation.mutate(selectedItem.id);
     }
   };
 
@@ -346,6 +367,30 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
         item={editingItem}
         location={location}
         onSubmit={handleModalSubmit}
+      />
+
+      {/* Consume Item Modal */}
+      <ConsumeItemModal
+        open={consumeModalOpen}
+        onOpenChange={setConsumeModalOpen}
+        item={selectedItem}
+        onConfirm={handleConsumeConfirm}
+      />
+
+      {/* Waste Item Modal */}
+      <WasteItemModal
+        open={wasteModalOpen}
+        onOpenChange={setWasteModalOpen}
+        item={selectedItem}
+        onConfirm={handleWasteConfirm}
+      />
+
+      {/* Delete Item Confirm Dialog */}
+      <DeleteItemConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        item={selectedItem}
+        onConfirm={handleDeleteConfirm}
       />
     </div>
   );

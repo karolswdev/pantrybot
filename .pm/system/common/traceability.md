@@ -19,8 +19,8 @@ This document maps system-level requirements to service-level requirements for t
 | SYS-FUNC-010 | Add inventory items | MVP | SVC-inventory-FUNC-002 (FE Verified) |
 | SYS-FUNC-011 | Track use by and best before dates | MVP | SVC-inventory-FUNC-003 |
 | SYS-FUNC-012 | Edit item details | MVP | SVC-inventory-FUNC-004 (FE Verified) |
-| SYS-FUNC-013 | Mark items as consumed | MVP | SVC-inventory-FUNC-005 |
-| SYS-FUNC-014 | Mark items as wasted | MVP | SVC-inventory-FUNC-006 |
+| SYS-FUNC-013 | Mark items as consumed | MVP | SVC-inventory-FUNC-005 (FE Verified) |
+| SYS-FUNC-014 | Mark items as wasted | MVP | SVC-inventory-FUNC-006 (FE Verified) |
 | SYS-FUNC-015 | Move items between locations | MVP | SVC-inventory-FUNC-007 |
 | SYS-FUNC-016 | Calculate days until expiration | MVP | SVC-inventory-FUNC-008 |
 | SYS-FUNC-017 | Categorize items | MVP | SVC-inventory-FUNC-009 |

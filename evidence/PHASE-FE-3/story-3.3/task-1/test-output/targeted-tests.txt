@@ -1,0 +1,11 @@
+    8) should successfully mark an item as consumed
+    9) should successfully mark an item as wasted
+    10) should successfully delete an item
+  0 passing (55s)
+  10 failing
+       should successfully mark an item as consumed:
+       should successfully mark an item as wasted:
+       should successfully delete an item:
+     ry E2E Tests -- should successfully mark an item as consumed (failed).png                      
+     ry E2E Tests -- should successfully mark an item as wasted (failed).png                        
+     ry E2E Tests -- should successfully delete an item (failed).png                                

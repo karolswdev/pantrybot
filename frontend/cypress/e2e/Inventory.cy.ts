@@ -231,16 +231,43 @@ describe("Inventory E2E Tests", () => {
 
   // TC-FE-3.2: Successfully add a new item and see it in the list
   it("should successfully add a new item and see it in the list", () => {
-    // Arrange: Mock the initial empty inventory
-    cy.intercept("GET", "**/api/v1/households/*/items*", {
-      statusCode: 200,
-      body: {
-        items: [],
-        totalCount: 0,
-        page: 1,
-        pageSize: 20
+    let requestCount = 0;
+    
+    // Arrange: Mock inventory with dynamic response
+    cy.intercept("GET", "**/api/v1/households/*/items*", (req) => {
+      requestCount++;
+      if (requestCount === 1) {
+        // Initial empty inventory
+        req.reply({
+          statusCode: 200,
+          body: {
+            items: [],
+            totalCount: 0,
+            page: 1,
+            pageSize: 20
+          }
+        });
+      } else {
+        // After adding item
+        req.reply({
+          statusCode: 200,
+          body: {
+            items: [{
+              id: "new-item-1",
+              name: "Test Milk",
+              quantity: 2,
+              unit: "gal",
+              location: "fridge",
+              category: "Dairy",
+              expirationDate: "2024-02-01"
+            }],
+            totalCount: 1,
+            page: 1,
+            pageSize: 20
+          }
+        });
       }
-    }).as("getInventoryEmpty");
+    }).as("getInventory");
 
     // Mock the POST request for adding an item
     cy.intercept("POST", "**/api/v1/households/*/items", {
@@ -249,7 +276,7 @@ describe("Inventory E2E Tests", () => {
         id: "new-item-1",
         name: "Test Milk",
         quantity: 2,
-        unit: "gallons",
+        unit: "gal",
         location: "fridge",
         category: "Dairy",
         expirationDate: "2024-02-01",
@@ -257,28 +284,9 @@ describe("Inventory E2E Tests", () => {
       }
     }).as("createItem");
 
-    // Mock the refreshed inventory list after adding
-    cy.intercept("GET", "**/api/v1/households/*/items*", {
-      statusCode: 200,
-      body: {
-        items: [{
-          id: "new-item-1",
-          name: "Test Milk",
-          quantity: 2,
-          unit: "gallons",
-          location: "fridge",
-          category: "Dairy",
-          expirationDate: "2024-02-01"
-        }],
-        totalCount: 1,
-        page: 1,
-        pageSize: 20
-      }
-    }).as("getInventoryAfterAdd");
-
     // Act: Navigate to the fridge inventory page
     cy.visit("/inventory/fridge");
-    cy.wait("@getInventoryEmpty");
+    cy.wait("@getInventory");
 
     // Click the "Add Item" button
     cy.contains("button", "Add Your First Item").click();
@@ -289,11 +297,11 @@ describe("Inventory E2E Tests", () => {
     
     // Select unit
     cy.contains("label", "Unit").parent().find('[role="combobox"]').click();
-    cy.contains('[role="option"]', "gallons").click();
+    cy.get('[role="option"]').contains("gal").click({ force: true });
     
     // Select category
     cy.contains("label", "Category").parent().find('[role="combobox"]').click();
-    cy.contains('[role="option"]', "Dairy").click();
+    cy.get('[role="option"]').contains("Dairy").click({ force: true });
 
     // Submit the form
     cy.contains("button", "Save Item").click();
@@ -303,19 +311,19 @@ describe("Inventory E2E Tests", () => {
       expect(interception.request.body).to.deep.include({
         name: "Test Milk",
         quantity: 2,
-        unit: "gallons",
+        unit: "gal",
         location: "fridge",
         category: "Dairy"
       });
     });
 
     // Wait for the inventory refresh
-    cy.wait("@getInventoryAfterAdd");
+    cy.wait("@getInventory");
 
     // Assert: Verify the new item is rendered in the list
     cy.get('[data-testid="item-card"]').should("have.length", 1);
     cy.contains("Test Milk").should("be.visible");
-    cy.contains("2 gallons").should("be.visible");
+    cy.contains("2 gal").should("be.visible");
     
     // Verify success notification would appear (if implemented)
     // cy.contains("Item added successfully").should("be.visible");
@@ -324,23 +332,49 @@ describe("Inventory E2E Tests", () => {
   // TC-FE-3.3: Successfully edit an item and send the ETag
   it("should successfully edit an item and send the ETag", () => {
     const mockETag = '"W/\\"123\\""';
+    let requestCount = 0;
     
-    // Arrange: Mock initial inventory with one item
-    cy.intercept("GET", "**/api/v1/households/*/items*", {
-      statusCode: 200,
-      body: {
-        items: [{
-          id: "item-1",
-          name: "Old Milk",
-          quantity: 1,
-          unit: "gallon",
-          location: "fridge",
-          category: "Dairy",
-          expirationDate: "2024-01-25"
-        }],
-        totalCount: 1,
-        page: 1,
-        pageSize: 20
+    // Arrange: Mock inventory with dynamic response
+    cy.intercept("GET", "**/api/v1/households/*/items*", (req) => {
+      requestCount++;
+      if (requestCount === 1) {
+        // Initial inventory
+        req.reply({
+          statusCode: 200,
+          body: {
+            items: [{
+              id: "item-1",
+              name: "Old Milk",
+              quantity: 1,
+              unit: "gallon",
+              location: "fridge",
+              category: "Dairy",
+              expirationDate: "2024-01-25"
+            }],
+            totalCount: 1,
+            page: 1,
+            pageSize: 20
+          }
+        });
+      } else {
+        // After update
+        req.reply({
+          statusCode: 200,
+          body: {
+            items: [{
+              id: "item-1",
+              name: "Updated Milk",
+              quantity: 2,
+              unit: "gallon",
+              location: "fridge",
+              category: "Dairy",
+              expirationDate: "2024-01-25"
+            }],
+            totalCount: 1,
+            page: 1,
+            pageSize: 20
+          }
+        });
       }
     }).as("getInventory");
 
@@ -484,62 +518,264 @@ describe("Inventory E2E Tests", () => {
     cy.contains("button", "Update Item").should("be.visible");
   });
 
-  // TC-FE-3.8: Successfully delete an item
-  it("should successfully delete an item", () => {
-    // Arrange: Mock inventory with one item
-    cy.intercept("GET", "**/api/v1/households/*/items*", {
-      statusCode: 200,
-      body: {
-        items: [{
-          id: "item-to-delete",
-          name: "Item to Delete",
-          quantity: 1,
-          unit: "piece",
-          location: "fridge",
-          category: "Test"
-        }],
-        totalCount: 1,
-        page: 1,
-        pageSize: 20
+  // TC-FE-3.5: Successfully mark an item as consumed
+  it("should successfully mark an item as consumed", () => {
+    let requestCount = 0;
+    
+    // Arrange: Mock inventory with dynamic response based on request count
+    cy.intercept("GET", "http://localhost:5000/api/v1/households/household-123/items*", (req) => {
+      requestCount++;
+      if (requestCount === 1) {
+        // Initial load
+        req.reply({
+          statusCode: 200,
+          body: {
+            items: [{
+              id: "item-to-consume",
+              name: "Fresh Milk",
+              quantity: 2,
+              unit: "liters",
+              location: "fridge",
+              category: "Dairy",
+              expirationDate: new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]
+            }],
+            totalCount: 1,
+            page: 1,
+            pageSize: 20
+          }
+        });
+      } else {
+        // After consumption
+        req.reply({
+          statusCode: 200,
+          body: {
+            items: [{
+              id: "item-to-consume",
+              name: "Fresh Milk",
+              quantity: 1, // Updated quantity
+              unit: "liters",
+              location: "fridge",
+              category: "Dairy",
+              expirationDate: new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]
+            }],
+            totalCount: 1,
+            page: 1,
+            pageSize: 20
+          }
+        });
       }
     }).as("getInventory");
 
-    // Mock DELETE request
-    cy.intercept("DELETE", "**/api/v1/households/*/items/item-to-delete", {
-      statusCode: 204
-    }).as("deleteItem");
-
-    // Mock refreshed inventory after deletion
-    cy.intercept("GET", "**/api/v1/households/*/items*", {
+    // Mock POST request for consuming
+    cy.intercept("POST", "http://localhost:5000/api/v1/households/household-123/items/item-to-consume/consume", {
       statusCode: 200,
       body: {
-        items: [],
-        totalCount: 0,
-        page: 1,
-        pageSize: 20
+        id: "item-to-consume",
+        name: "Fresh Milk",
+        quantity: 1, // Quantity reduced after consumption
+        unit: "liters",
+        location: "fridge",
+        category: "Dairy"
       }
-    }).as("getInventoryAfterDelete");
+    }).as("consumeItem");
 
-    // Act: Navigate to the page
+    // Act: Navigate to the page with auth
+    cy.mockAuth();
+    cy.visit("/inventory/fridge");
+    cy.wait("@getInventory");
+
+    // Click the "Use" button on the item
+    cy.get('[data-testid="item-card"]').first().within(() => {
+      cy.contains("button", "Use").click();
+    });
+
+    // Enter quantity in the confirmation modal
+    cy.get('input[type="number"][step="0.1"]').clear().type("1");
+    
+    // Add optional notes
+    cy.get('textarea[placeholder*="Used for dinner recipe"]').type("Used for breakfast");
+
+    // Submit the consumption
+    cy.contains("button", "Confirm Consumption").click();
+
+    // Assert: Verify the POST request was called with correct quantity
+    cy.wait("@consumeItem").then((interception) => {
+      expect(interception.request.body).to.deep.include({
+        quantity: 1,
+        notes: "Used for breakfast"
+      });
+    });
+
+    // Wait for inventory refresh
+    cy.wait("@getInventory");
+
+    // Verify the item's quantity is updated in the UI
+    cy.contains("1 liters").should("be.visible");
+  });
+
+  // TC-FE-3.6: Successfully mark an item as wasted
+  it("should successfully mark an item as wasted", () => {
+    let requestCount = 0;
+    
+    // Arrange: Mock inventory with dynamic response
+    cy.intercept("GET", "http://localhost:5000/api/v1/households/household-123/items*", (req) => {
+      requestCount++;
+      if (requestCount === 1) {
+        // Initial load
+        req.reply({
+          statusCode: 200,
+          body: {
+            items: [{
+              id: "item-to-waste",
+              name: "Old Lettuce",
+              quantity: 1,
+              unit: "head",
+              location: "fridge",
+              category: "Produce",
+              expirationDate: new Date(Date.now() - 86400000).toISOString().split('T')[0] // Expired
+            }],
+            totalCount: 1,
+            page: 1,
+            pageSize: 20
+          }
+        });
+      } else {
+        // After waste (item removed)
+        req.reply({
+          statusCode: 200,
+          body: {
+            items: [],
+            totalCount: 0,
+            page: 1,
+            pageSize: 20
+          }
+        });
+      }
+    }).as("getInventory");
+
+    // Mock POST request for waste
+    cy.intercept("POST", "http://localhost:5000/api/v1/households/household-123/items/item-to-waste/waste", {
+      statusCode: 200,
+      body: {
+        message: "Waste recorded successfully"
+      }
+    }).as("wasteItem");
+
+    // Act: Navigate to the page with auth
+    cy.mockAuth();
     cy.visit("/inventory/fridge");
     cy.wait("@getInventory");
 
     // Click the more menu on the item
     cy.get('[data-testid="item-card"]').first().within(() => {
-      cy.get('button').contains('svg', 'MoreVertical').parent().click();
+      // Click the three-dot menu button (first button in the card)
+      cy.get('button').first().click();
+    });
+
+    // Click "Mark as Wasted" in the dropdown
+    cy.contains("button", "Mark as Wasted").click();
+
+    // Fill the waste form - the quantity should be pre-filled with 1
+    // If not, enter it manually
+    cy.get('input[type="number"][step="0.1"]').clear().type('1');
+    
+    // Select reason (should default to "expired")
+    cy.get('input[type="radio"][value="expired"]').should("be.checked");
+    
+    // Change to "spoiled" reason
+    cy.get('label[for="spoiled"]').click();
+    
+    // Add notes
+    cy.get('textarea[placeholder*="Found at the back"]').type("Found moldy in the crisper drawer");
+
+    // Submit the waste record
+    cy.contains("button", "Record Waste").click();
+
+    // Assert: Verify the POST request was called with correct payload
+    cy.wait("@wasteItem").then((interception) => {
+      expect(interception.request.body).to.deep.include({
+        quantity: 1,
+        reason: "spoiled",
+        notes: "Found moldy in the crisper drawer"
+      });
+    });
+
+    // Wait for inventory refresh
+    cy.wait("@getInventory");
+
+    // Verify the item is removed from the UI
+    cy.contains("Old Lettuce").should("not.exist");
+    cy.contains("No items found").should("be.visible");
+  });
+
+  // TC-FE-3.8: Successfully delete an item
+  it("should successfully delete an item", () => {
+    let requestCount = 0;
+    
+    // Arrange: Mock inventory with dynamic response
+    cy.intercept("GET", "http://localhost:5000/api/v1/households/household-123/items*", (req) => {
+      requestCount++;
+      if (requestCount === 1) {
+        // Initial load
+        req.reply({
+          statusCode: 200,
+          body: {
+            items: [{
+              id: "item-to-delete",
+              name: "Item to Delete",
+              quantity: 1,
+              unit: "piece",
+              location: "fridge",
+              category: "Test"
+            }],
+            totalCount: 1,
+            page: 1,
+            pageSize: 20
+          }
+        });
+      } else {
+        // After deletion
+        req.reply({
+          statusCode: 200,
+          body: {
+            items: [],
+            totalCount: 0,
+            page: 1,
+            pageSize: 20
+          }
+        });
+      }
+    }).as("getInventory");
+
+    // Mock DELETE request
+    cy.intercept("DELETE", "http://localhost:5000/api/v1/households/household-123/items/item-to-delete", {
+      statusCode: 204
+    }).as("deleteItem");
+
+    // Act: Navigate to the page with auth
+    cy.mockAuth();
+    cy.visit("/inventory/fridge");
+    cy.wait("@getInventory");
+
+    // Click the more menu on the item
+    cy.get('[data-testid="item-card"]').first().within(() => {
+      // Click the three-dot menu button (first button in the card)
+      cy.get('button').first().click();
     });
 
     // Click delete in the dropdown
     cy.contains("button", "Delete").click();
 
-    // Confirm deletion in the browser confirm dialog
-    cy.on('window:confirm', () => true);
+    // Confirm deletion in the dialog
+    cy.contains("Are you sure you want to delete").should("be.visible");
+    cy.contains("Item to Delete").should("be.visible");
+    cy.contains("button", "Delete Item").click();
 
     // Assert: Verify the DELETE request was called
     cy.wait("@deleteItem");
 
     // Wait for inventory refresh
-    cy.wait("@getInventoryAfterDelete");
+    cy.wait("@getInventory");
 
     // Verify the item is removed from the UI
     cy.contains("Item to Delete").should("not.exist");

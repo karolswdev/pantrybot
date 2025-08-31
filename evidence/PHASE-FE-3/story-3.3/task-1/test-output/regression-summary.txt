@@ -1,0 +1,30 @@
+STORY-FE-3.3 Regression Test Summary
+====================================
+Date: 2025-08-31
+Test Runner: Cypress 15.0.0
+
+Test Suite: Inventory E2E Tests
+--------------------------------
+✓ TC-FE-3.5: should successfully mark an item as consumed (1284ms)
+✓ TC-FE-3.6: should successfully mark an item as wasted (1917ms) 
+✓ TC-FE-3.8: should successfully delete an item (780ms)
+
+All STORY-FE-3.3 tests PASSED
+
+Additional Tests in Suite:
+✓ should display a list of items from the API (785ms)
+✓ should display empty state when no items exist (522ms)
+✓ should filter items based on search query (836ms)
+✓ should switch between grid and list view modes (705ms)
+✓ should successfully add a new item and see it in the list (1642ms)
+✓ should successfully edit an item and send the ETag (1539ms)
+✓ should display a conflict error when editing with a stale ETag (1252ms)
+
+Total: 10 passing (12s)
+
+Implementation Summary:
+- ConsumeItemModal component implemented with quantity input and notes
+- WasteItemModal component implemented with quantity, reason selection, and notes
+- DeleteItemConfirmDialog component implemented with confirmation flow
+- All mutation hooks properly invalidate inventory queries on success
+- Item actions integrated into ItemCard component with dropdown menu

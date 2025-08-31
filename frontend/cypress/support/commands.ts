@@ -2,8 +2,42 @@
 
 // Custom commands for Cypress tests
 
-// Add custom commands here
-// Example:
-// Cypress.Commands.add('login', (email, password) => { ... })
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      /**
+       * Custom command to mock authentication state
+       * @example cy.mockAuth()
+       */
+      mockAuth(): Chainable<void>
+    }
+  }
+}
+
+// Mock authentication for tests
+Cypress.Commands.add('mockAuth', () => {
+  // Set tokens with correct keys
+  window.localStorage.setItem('access_token', 'mock-access-token')
+  window.localStorage.setItem('refresh_token', 'mock-refresh-token')
+  window.localStorage.setItem('token_expiry', (Date.now() + 900000).toString()) // 15 minutes from now
+  
+  // Set auth store data
+  const authState = {
+    state: {
+      isAuthenticated: true,
+      user: {
+        id: 'user-123',
+        email: 'test@example.com',
+        defaultHouseholdId: 'household-123'
+      },
+      tokens: {
+        accessToken: 'mock-access-token',
+        refreshToken: 'mock-refresh-token'
+      }
+    },
+    version: 0
+  }
+  window.localStorage.setItem('auth-storage', JSON.stringify(authState))
+})
 
 export {}

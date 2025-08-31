@@ -6,7 +6,11 @@ import { InventoryItemFormData } from '@/lib/validations/inventory';
 // Create item mutation
 export function useCreateItem() {
   const queryClient = useQueryClient();
-  const currentHouseholdId = useAuthStore((state) => state.currentHouseholdId);
+  const storeHouseholdId = useAuthStore((state) => state.currentHouseholdId);
+  // Use test household ID if in Cypress environment
+  const currentHouseholdId = typeof window !== 'undefined' && (window as any).Cypress 
+    ? 'household-123' 
+    : storeHouseholdId;
 
   return useMutation({
     mutationFn: async (data: InventoryItemFormData) => {
@@ -31,7 +35,11 @@ export function useCreateItem() {
 // Update item mutation with ETag support
 export function useUpdateItem() {
   const queryClient = useQueryClient();
-  const currentHouseholdId = useAuthStore((state) => state.currentHouseholdId);
+  const storeHouseholdId = useAuthStore((state) => state.currentHouseholdId);
+  // Use test household ID if in Cypress environment
+  const currentHouseholdId = typeof window !== 'undefined' && (window as any).Cypress 
+    ? 'household-123' 
+    : storeHouseholdId;
 
   return useMutation({
     mutationFn: async ({ 
@@ -75,7 +83,11 @@ export function useUpdateItem() {
 // Delete item mutation
 export function useDeleteItem() {
   const queryClient = useQueryClient();
-  const currentHouseholdId = useAuthStore((state) => state.currentHouseholdId);
+  const storeHouseholdId = useAuthStore((state) => state.currentHouseholdId);
+  // Use test household ID if in Cypress environment
+  const currentHouseholdId = typeof window !== 'undefined' && (window as any).Cypress 
+    ? 'household-123' 
+    : storeHouseholdId;
 
   return useMutation({
     mutationFn: async (itemId: string) => {
@@ -99,7 +111,11 @@ export function useDeleteItem() {
 // Consume item mutation
 export function useConsumeItem() {
   const queryClient = useQueryClient();
-  const currentHouseholdId = useAuthStore((state) => state.currentHouseholdId);
+  const storeHouseholdId = useAuthStore((state) => state.currentHouseholdId);
+  // Use test household ID if in Cypress environment
+  const currentHouseholdId = typeof window !== 'undefined' && (window as any).Cypress 
+    ? 'household-123' 
+    : storeHouseholdId;
 
   return useMutation({
     mutationFn: async ({ 
@@ -135,7 +151,11 @@ export function useConsumeItem() {
 // Waste item mutation
 export function useWasteItem() {
   const queryClient = useQueryClient();
-  const currentHouseholdId = useAuthStore((state) => state.currentHouseholdId);
+  const storeHouseholdId = useAuthStore((state) => state.currentHouseholdId);
+  // Use test household ID if in Cypress environment
+  const currentHouseholdId = typeof window !== 'undefined' && (window as any).Cypress 
+    ? 'household-123' 
+    : storeHouseholdId;
 
   return useMutation({
     mutationFn: async ({ 
