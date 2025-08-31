@@ -2,6 +2,74 @@
 
 This directory contains React Query mutation hooks for modifying data via the API.
 
+## Shopping List Mutation Hooks
+
+### useCreateShoppingList
+
+**Location:** `useCreateShoppingList.ts`
+
+**Description:** Creates a new shopping list for a household.
+
+**Parameters:**
+- `householdId: string` - The household ID (passed to hook)
+- `data: CreateShoppingListInput` - The list data (passed to mutate)
+
+```typescript
+interface CreateShoppingListInput {
+  name: string;
+  notes?: string;
+}
+```
+
+**Returns:**
+```typescript
+{
+  mutate: (data: CreateShoppingListInput) => void;
+  mutateAsync: (data: CreateShoppingListInput) => Promise<CreateShoppingListResponse>;
+  isPending: boolean;
+  isError: boolean;
+  error?: Error;
+  // ... other React Query mutation properties
+}
+```
+
+**Usage Example:**
+```tsx
+import { useCreateShoppingList } from "@/hooks/mutations/useCreateShoppingList";
+
+function CreateListModal({ householdId }) {
+  const createList = useCreateShoppingList(householdId);
+  
+  const handleSubmit = async (formData) => {
+    try {
+      const list = await createList.mutateAsync({
+        name: formData.name,
+        notes: formData.notes
+      });
+      toast.success(`Created list: ${list.name}`);
+      onClose();
+    } catch (error) {
+      toast.error("Failed to create shopping list");
+    }
+  };
+  
+  return (
+    <form onSubmit={handleSubmit}>
+      {/* form fields */}
+      <button disabled={createList.isPending}>
+        {createList.isPending ? "Creating..." : "Create"}
+      </button>
+    </form>
+  );
+}
+```
+
+**Features:**
+- Automatically invalidates shopping lists query on success
+- Updates cache optimistically for instant UI feedback
+- Falls back to mock response when API is unavailable
+- Integrates with household context
+
 ## Household Mutation Hooks
 
 ### useCreateHousehold

@@ -2,6 +2,7 @@ import * as signalR from '@microsoft/signalr';
 
 export type InventoryEventType = 'item.updated' | 'item.added' | 'item.deleted';
 export type NotificationEventType = 'notification.new';
+export type ShoppingListEventType = 'shoppinglist.item.added' | 'shoppinglist.item.updated' | 'shoppinglist.item.deleted';
 
 export interface InventoryEvent {
   type: InventoryEventType;
@@ -21,6 +22,16 @@ export interface NotificationEvent {
     message: string;
     items?: string[];
     timestamp: string;
+  };
+}
+
+export interface ShoppingListEvent {
+  type: ShoppingListEventType;
+  householdId: string;
+  shoppingListId: string;
+  payload: {
+    itemId: string;
+    item?: any; // Full item data for add/update
   };
 }
 
@@ -107,6 +118,19 @@ class SignalRService {
       // Register event handlers for notification events
       this.connection.on('NotificationNew', (data: any) => {
         this.emit('notification.new', data);
+      });
+
+      // Register event handlers for shopping list events
+      this.connection.on('ShoppingListItemAdded', (data: any) => {
+        this.emit('shoppinglist.item.added', data);
+      });
+
+      this.connection.on('ShoppingListItemUpdated', (data: any) => {
+        this.emit('shoppinglist.item.updated', data);
+      });
+
+      this.connection.on('ShoppingListItemDeleted', (data: any) => {
+        this.emit('shoppinglist.item.deleted', data);
       });
 
       // Start the connection

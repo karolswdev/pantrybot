@@ -30,8 +30,8 @@ This document maps system-level requirements to service-level requirements for t
 | SYS-FUNC-021 | In-app notifications | MVP | SVC-notifications-FUNC-006 (FE Verified) |
 | SYS-FUNC-022 | Telegram bot notifications | MVP | SVC-notifications-FUNC-007 |
 | SYS-FUNC-023 | Link Telegram accounts | MVP | SVC-notifications-FUNC-008 (FE Verified) |
-| SYS-FUNC-024 | Shared shopping lists | MVP | SVC-inventory-FUNC-011 |
-| SYS-FUNC-025 | Real-time shopping list sync | MVP | SVC-inventory-FUNC-012 |
+| SYS-FUNC-024 | Shared shopping lists | MVP | SVC-inventory-FUNC-011 (FE Verified) |
+| SYS-FUNC-025 | Real-time shopping list sync | MVP | SVC-inventory-FUNC-012 (FE Verified) |
 | SYS-FUNC-026 | Add inventory to shopping list | MVP | SVC-inventory-FUNC-013 |
 | SYS-FUNC-027 | Real-time updates | MVP | SVC-inventory-FUNC-014 (FE Verified) |
 | SYS-FUNC-028 | Concurrent update handling | MVP | SVC-inventory-FUNC-015 (FE Verified) |

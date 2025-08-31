@@ -1,0 +1,76 @@
+
+DevTools listening on ws://127.0.0.1:34029/devtools/browser/4b081584-35cb-4470-b6ad-7401a315bd35
+
+================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.0.0                                                                         │
+  │ Browser:        Electron 136 (headless)                                                        │
+  │ Node Version:   v22.19.0 (/home/karol/.nvm/versions/node/v22.19.0/bin/node)                    │
+  │ Specs:          1 found (ShoppingLists.cy.ts)                                                  │
+  │ Searched:       cypress/e2e/ShoppingLists.cy.ts                                                │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  ShoppingLists.cy.ts                                                             (1 of 1)
+
+
+  Shopping Lists
+    1) should display shopping lists for the active household
+    ✓ should successfully create a new shopping list (1420ms)
+
+
+  1 passing (6s)
+  1 failing
+
+  1) Shopping Lists
+       should display shopping lists for the active household:
+
+      AssertionError: Timed out retrying after 4000ms: Too many elements found. Found '3', expected '2'.
+      + expected - actual
+
+      -3
+      +2
+      
+      at Context.eval (webpack://frontend-tmp/./cypress/e2e/ShoppingLists.cy.ts:58:46)
+
+
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        2                                                                                │
+  │ Passing:      1                                                                                │
+  │ Failing:      1                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  1                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     6 seconds                                                                        │
+  │ Spec Ran:     ShoppingLists.cy.ts                                                              │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+  (Screenshots)
+
+  -  /home/karol/dev/code/fridgr/frontend/cypress/screenshots/ShoppingLists.cy.ts/Sho     (1280x720)
+     pping Lists -- should display shopping lists for the active household (failed).p               
+     ng                                                                                             
+
+
+================================================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✖  ShoppingLists.cy.ts                      00:06        2        1        1        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✖  1 of 1 failed (100%)                     00:06        2        1        1        -        -  
+

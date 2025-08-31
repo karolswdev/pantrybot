@@ -484,3 +484,134 @@ The NotificationSettingsForm is rendered at `/settings/notifications`. It automa
 - Expiration warning days: min 1, max 30
 - Verification code: required for Telegram linking
 - Time format: 24-hour format (HH:MM)
+
+## Shopping List Components
+
+### ShoppingListPage Component (`/app/shopping/page.tsx`)
+
+The main shopping list page that displays all shopping lists for the active household.
+
+**Features:**
+- Grid layout for multiple shopping lists
+- "New List" button to create new shopping lists
+- Empty state when no lists exist
+- Loading and error states
+- Responsive design (2 columns on md, 3 columns on lg)
+- Integration with household context
+
+**States:**
+- **No Household**: Prompts user to select a household
+- **Loading**: Shows loading message
+- **Error**: Displays error message with retry option
+- **Empty**: Shows call-to-action to create first list
+- **Normal**: Grid of shopping list cards
+
+### ShoppingListCard Component (`/components/shopping/ShoppingListCard.tsx`)
+
+A card component for displaying individual shopping list information with progress tracking and actions.
+
+**Props:**
+- `list: ShoppingList` - The shopping list data
+  - `id: string` - Unique identifier
+  - `name: string` - List name
+  - `itemCount: number` - Total items in list
+  - `completedCount: number` - Number of completed items
+  - `createdAt: string` - Creation timestamp
+  - `createdBy: string` - Creator's name
+  - `lastUpdated: string` - Last modification timestamp
+
+**Features:**
+- Visual progress bar showing completion percentage
+- Estimated cost calculation based on item count
+- Action buttons for Share, Edit, and Delete
+- Clickable card to navigate to detail view
+- Created by information
+- Hover effect for better interactivity
+
+**Visual Elements:**
+- Progress bar with green fill for completed items
+- Icon buttons in card header for actions
+- Muted text for metadata (items count, creator, etc.)
+
+### CreateListModal Component (`/components/shopping/CreateListModal.tsx`)
+
+A modal dialog for creating new shopping lists with validation and error handling.
+
+**Props:**
+- `isOpen: boolean` - Controls modal visibility
+- `onClose: () => void` - Callback when modal closes
+- `householdId: string` - Current household ID for list creation
+
+**Features:**
+- Form with list name (required) and notes (optional)
+- Client-side validation for empty names
+- Loading state during creation
+- Toast notifications for success/error feedback
+- Form reset on successful submission
+- Cancel button to close without saving
+
+**Form Fields:**
+- **List Name*** - Required text input
+- **Notes** - Optional textarea for additional details
+
+**Integration:**
+- Uses `useCreateShoppingList` mutation hook
+- Invalidates shopping lists query on success
+- Updates cache optimistically for instant UI feedback
+
+### ShoppingListDetail Component (`/app/shopping/[listId]/page.tsx`)
+
+A detailed view page for managing individual shopping lists with real-time item synchronization.
+
+**Features:**
+- Separate "To Buy" and "Bought" sections for item organization
+- Add item form with instant addition
+- Check/uncheck items to move between sections
+- Visual count indicators for each section
+- Back navigation to shopping lists overview
+- Share, Edit, and Delete list actions
+- Loading and error states
+
+**State Management:**
+- Fetches list details using `useShoppingListDetails` query
+- Fetches list items using `useShoppingListItems` query
+- Creates items via `useAddShoppingListItem` mutation
+- Updates item status via `useUpdateShoppingListItem` mutation
+
+**Item States:**
+- **To Buy**: Items not yet purchased (isCompleted: false)
+- **Bought**: Items marked as purchased (isCompleted: true)
+
+**Real-Time Features:**
+- Optimistic updates for instant UI feedback
+- Cache invalidation for consistency
+- Prepared for SignalR event integration
+
+### ShoppingListItem Component (`/components/shopping/ShoppingListItem.tsx`)
+
+A reusable component for displaying individual shopping list items with interactive checkbox controls.
+
+**Props:**
+- `item: ShoppingListItemType` - The item data
+  - `id: string` - Unique identifier
+  - `name: string` - Item name
+  - `quantity?: number` - Optional quantity
+  - `unit?: string` - Optional unit of measurement
+  - `category?: string` - Optional category badge
+  - `isCompleted: boolean` - Purchase status
+- `onToggle: () => void` - Callback for checkbox interaction
+- `data-testid?: string` - Optional test identifier
+
+**Features:**
+- Interactive checkbox for marking items as bought/unbought
+- Visual distinction between completed and pending items
+  - Completed: Muted background, line-through text, reduced opacity
+  - Pending: Normal background, hover effect
+- Category badges for item organization
+- Quantity and unit display when available
+- Accessible ARIA labels for checkbox interactions
+
+**Visual States:**
+- **Pending**: White background with hover effect
+- **Completed**: Gray background with strikethrough text
+- **Hover**: Subtle background color change for better UX

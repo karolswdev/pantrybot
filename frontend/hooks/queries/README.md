@@ -2,6 +2,70 @@
 
 This directory contains React Query hooks for fetching data from the API.
 
+## Shopping List Hooks
+
+### useShoppingLists
+
+**Location:** `useShoppingLists.ts`
+
+**Description:** Hook to fetch all shopping lists for a household.
+
+**Parameters:**
+- `householdId: string` - The household ID to fetch shopping lists for
+
+**Returns:**
+```typescript
+{
+  data?: {
+    lists: ShoppingList[];
+    total: number;
+  };
+  isLoading: boolean;
+  isError: boolean;
+  error?: Error;
+  // ... other React Query properties
+}
+```
+
+**ShoppingList Interface:**
+```typescript
+interface ShoppingList {
+  id: string;
+  name: string;
+  itemCount: number;
+  completedCount: number;
+  createdAt: string;
+  createdBy: string;
+  lastUpdated: string;
+}
+```
+
+**Usage Example:**
+```tsx
+import { useShoppingLists } from "@/hooks/queries/useShoppingLists";
+
+function ShoppingListsPage() {
+  const { data, isLoading, error } = useShoppingLists(householdId);
+  
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error loading lists</div>;
+  
+  return (
+    <div>
+      {data?.lists.map(list => (
+        <ShoppingListCard key={list.id} list={list} />
+      ))}
+    </div>
+  );
+}
+```
+
+**Features:**
+- Automatic fallback to mock data when API is unavailable
+- 5-minute stale time for caching
+- Disabled retry on failure
+- Query key: `['shopping-lists', householdId]`
+
 ## Inventory Hooks
 
 ### useInventoryItems

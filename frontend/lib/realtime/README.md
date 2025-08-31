@@ -36,6 +36,11 @@ signalRService.off('item.updated', handler);
 - `item.added` - A new item was added to inventory
 - `item.deleted` - An item was removed from inventory
 
+#### Shopping List Events
+- `shoppinglist.item.added` - A new item was added to a shopping list
+- `shoppinglist.item.updated` - A shopping list item was modified (e.g., marked as bought)
+- `shoppinglist.item.deleted` - An item was removed from a shopping list
+
 #### Notification Events
 - `notification.new` - A new notification was created
 
