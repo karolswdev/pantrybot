@@ -7,8 +7,8 @@ This document maps system-level requirements to service-level requirements for t
 
 | System Requirement ID | Title | Tier | Linked Services (SVC IDs) |
 |----------------------|-------|------|---------------------------|
-| SYS-FUNC-001 | User registration with email/password | MVP | SVC-users-FUNC-001 |
-| SYS-FUNC-002 | JWT authentication | MVP | SVC-users-FUNC-002 (FE Verified: TC-FE-1.5, TC-FE-7.2) |
+| SYS-FUNC-001 | User registration with email/password | MVP | SVC-users-FUNC-001 (MBE Verified: TC-MBE-1.2, TC-MBE-1.3) |
+| SYS-FUNC-002 | JWT authentication | MVP | SVC-users-FUNC-002 (FE Verified: TC-FE-1.5, TC-FE-7.2) (MBE Verified: TC-MBE-1.4, TC-MBE-1.5) |
 | SYS-FUNC-003 | Password reset via email | MVP | SVC-users-FUNC-003, SVC-notifications-FUNC-001 |
 | SYS-FUNC-004 | User profiles with display names | MVP | SVC-users-FUNC-004 |
 | SYS-FUNC-005 | Create multiple households | MVP | SVC-users-FUNC-005 |
