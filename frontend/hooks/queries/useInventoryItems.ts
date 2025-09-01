@@ -14,6 +14,7 @@ export interface UseInventoryItemsParams {
   location?: "fridge" | "freezer" | "pantry" | "all";
   category?: string;
   search?: string;
+  status?: "expiring-soon" | "expired";
   sortBy?: "expiry" | "name" | "category" | "created";
   sortOrder?: "asc" | "desc";
 }
@@ -56,6 +57,9 @@ export function useInventoryItems(params: UseInventoryItemsParams = {}) {
       }
       if (params.search) {
         queryParams.append("search", params.search);
+      }
+      if (params.status) {
+        queryParams.append("status", params.status);
       }
       if (params.sortBy) {
         queryParams.append("sortBy", params.sortBy);

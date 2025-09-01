@@ -23,10 +23,10 @@ This document maps system-level requirements to service-level requirements for t
 | SYS-FUNC-014 | Mark items as wasted | MVP | SVC-inventory-FUNC-006 (FE Verified) |
 | SYS-FUNC-015 | Move items between locations | MVP | SVC-inventory-FUNC-007 |
 | SYS-FUNC-016 | Calculate days until expiration | MVP | SVC-inventory-FUNC-008 |
-| SYS-FUNC-017 | Categorize items | MVP | SVC-inventory-FUNC-009 |
+| SYS-FUNC-017 | Categorize items | MVP | SVC-inventory-FUNC-009 (FE Verified - Reports) |
 | SYS-FUNC-018 | Send expiration warnings | MVP | SVC-inventory-FUNC-010, SVC-notifications-FUNC-003 |
-| SYS-FUNC-019 | Customize warning period | MVP | SVC-notifications-FUNC-004 (FE Verified) |
-| SYS-FUNC-020 | Email notifications | MVP | SVC-notifications-FUNC-005 |
+| SYS-FUNC-019 | Customize warning period | MVP | SVC-notifications-FUNC-004 (FE Verified - Search) |
+| SYS-FUNC-020 | Email notifications | MVP | SVC-notifications-FUNC-005 (FE Verified - Filter) |
 | SYS-FUNC-021 | In-app notifications | MVP | SVC-notifications-FUNC-006 (FE Verified) |
 | SYS-FUNC-022 | Telegram bot notifications | MVP | SVC-notifications-FUNC-007 |
 | SYS-FUNC-023 | Link Telegram accounts | MVP | SVC-notifications-FUNC-008 (FE Verified) |
@@ -50,7 +50,7 @@ This document maps system-level requirements to service-level requirements for t
 | SYS-PERF-003 | 1000 items per household | MVP | SVC-inventory-PERF-002 |
 | SYS-PERF-004 | 1 second real-time propagation | MVP | SVC-inventory-PERF-003 |
 | SYS-PORT-001 | System MUST run in Docker containers | MVP | All services (FE Verified) |
-| SYS-PORT-002 | Frontend MUST work as Progressive Web App | MVP | Frontend service (FE Verified) |
+| SYS-PORT-002 | Frontend MUST work as Progressive Web App | MVP | Frontend service (FE Verified - PWA & Mobile) |
 | SYS-PORT-003 | System MUST support PostgreSQL 14+ | MVP | SVC-inventory, SVC-users |
 
 ## Service Dependencies

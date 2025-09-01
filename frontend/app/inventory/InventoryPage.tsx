@@ -1,15 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ItemCard, InventoryItem } from "@/components/inventory/ItemCard";
 import { AddEditItemModal } from "@/components/inventory/AddEditItemModal";
 import { ConsumeItemModal } from "@/components/inventory/ConsumeItemModal";
 import { WasteItemModal } from "@/components/inventory/WasteItemModal";
 import { DeleteItemConfirmDialog } from "@/components/inventory/DeleteItemConfirmDialog";
+import { InventoryToolbar } from "@/components/inventory/InventoryToolbar";
+import { Package, Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, ArrowUpDown, Plus, Grid3X3, List, Package, Loader2 } from "lucide-react";
 import { useInventoryItems } from "@/hooks/queries/useInventoryItems";
 import { useCreateItem, useUpdateItem, useDeleteItem, useConsumeItem, useWasteItem } from "@/hooks/mutations/useInventoryMutations";
 import { InventoryItemFormData } from "@/lib/validations/inventory";
@@ -102,9 +101,10 @@ const getPlaceholderItems = (location: "fridge" | "freezer" | "pantry"): Invento
 export default function InventoryPage({ location, categories }: InventoryPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedLocation, setSelectedLocation] = useState<"all" | "fridge" | "freezer" | "pantry">("all");
+  const [selectedStatus, setSelectedStatus] = useState<"all" | "expiring-soon" | "expired">("all");
   const [sortBy, setSortBy] = useState("expiry");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [showFilters, setShowFilters] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   
@@ -121,18 +121,45 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
     ? 'household-123' 
     : user?.defaultHouseholdId;
 
-  // Fetch inventory items using the query hook
+  // Determine the effective location for API query
+  const effectiveLocation = selectedLocation === "all" ? location : selectedLocation;
+  
+  // Fetch inventory items using the query hook with all filter parameters
   const { data, isLoading, isError, error } = useInventoryItems({
     householdId,
-    location,
+    location: effectiveLocation,
     category: selectedCategory === "All" ? undefined : selectedCategory,
     search: searchQuery,
     sortBy: sortBy as "expiry" | "name" | "category",
     sortOrder: "asc",
+    status: selectedStatus === "all" ? undefined : selectedStatus,
   });
 
   // Use placeholder data if API fails or is not available
-  const items = data?.items || (isError ? getPlaceholderItems(location) : []);
+  const items = data?.items || (isError ? getPlaceholderItems(effectiveLocation) : []);
+  
+  // Filter items client-side for status if API doesn't support it
+  const filteredItems = useMemo(() => {
+    if (selectedStatus === "all") return items;
+    
+    const now = new Date();
+    const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+    
+    return items.filter(item => {
+      const expDate = item.expirationDate ? new Date(item.expirationDate) : 
+                      item.bestBeforeDate ? new Date(item.bestBeforeDate) : null;
+      
+      if (!expDate) return false;
+      
+      if (selectedStatus === "expired") {
+        return expDate < now;
+      } else if (selectedStatus === "expiring-soon") {
+        return expDate >= now && expDate <= threeDaysFromNow;
+      }
+      
+      return true;
+    });
+  }, [items, selectedStatus]);
 
   // Set up real-time updates via SignalR
   useEffect(() => {
@@ -154,7 +181,7 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
       
       // Update the query cache with the new item data
       queryClient.setQueryData(
-        ["inventory", "items", householdId, { location, category: selectedCategory === "All" ? undefined : selectedCategory, search: searchQuery, sortBy, sortOrder: "asc" }],
+        ["inventory", "items", householdId, { location: effectiveLocation, category: selectedCategory === "All" ? undefined : selectedCategory, search: searchQuery, sortBy, sortOrder: "asc", status: selectedStatus === "all" ? undefined : selectedStatus }],
         (oldData: any) => {
           if (!oldData) return oldData;
           
@@ -186,7 +213,7 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
       
       // Update the query cache to remove the deleted item
       queryClient.setQueryData(
-        ["inventory", "items", householdId, { location, category: selectedCategory === "All" ? undefined : selectedCategory, search: searchQuery, sortBy, sortOrder: "asc" }],
+        ["inventory", "items", householdId, { location: effectiveLocation, category: selectedCategory === "All" ? undefined : selectedCategory, search: searchQuery, sortBy, sortOrder: "asc", status: selectedStatus === "all" ? undefined : selectedStatus }],
         (oldData: any) => {
           if (!oldData) return oldData;
           
@@ -217,7 +244,7 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
       signalRService.off('item.added', handleItemAdded);
       signalRService.off('item.deleted', handleItemDeleted);
     };
-  }, [householdId, token, queryClient, location, selectedCategory, searchQuery, sortBy]);
+  }, [householdId, token, queryClient, effectiveLocation, selectedCategory, searchQuery, sortBy, selectedStatus]);
 
   // Mutation hooks
   const createItemMutation = useCreateItem();
@@ -300,7 +327,7 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">
-          {locationTitle} Inventory ({items.length} items)
+          {locationTitle} Inventory ({filteredItems.length} items)
         </h1>
         {isError && (
           <p className="text-sm text-warning-600 mt-1">
@@ -309,91 +336,26 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
         )}
       </div>
 
-      {/* Controls */}
-      <div className="mb-6 space-y-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          {/* Search */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setShowFilters(!showFilters)}
-              className="sm:hidden"
-            >
-              <Filter className="h-4 w-4" />
-            </Button>
-
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[140px] hidden sm:flex">
-                <ArrowUpDown className="h-4 w-4 mr-2" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="expiry">Sort by Expiry</SelectItem>
-                <SelectItem value="name">Sort by Name</SelectItem>
-                <SelectItem value="category">Sort by Category</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <div className="flex border rounded-md">
-              <Button
-                variant={viewMode === "grid" ? "secondary" : "ghost"}
-                size="icon"
-                onClick={() => setViewMode("grid")}
-                className="rounded-r-none"
-                aria-label="Grid view"
-              >
-                <Grid3X3 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === "list" ? "secondary" : "ghost"}
-                size="icon"
-                onClick={() => setViewMode("list")}
-                className="rounded-l-none"
-                aria-label="List view"
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <Button className="gap-2" onClick={handleAddItem}>
-              <Plus className="h-4 w-4" />
-              Add Item
-            </Button>
-          </div>
-        </div>
-
-        {/* Desktop filters */}
-        <div className="hidden sm:flex gap-2 flex-wrap">
-          <span className="text-sm text-gray-600 self-center">Categories:</span>
-          {["All", ...categories].map((category) => (
-            <Button
-              key={category}
-              variant={selectedCategory === category ? "secondary" : "outline"}
-              size="sm"
-              onClick={() => setSelectedCategory(category)}
-            >
-              {category}
-              {category !== "All" && (
-                <span className="ml-1 text-xs text-gray-500">
-                  ({items.filter(item => item.category === category).length})
-                </span>
-              )}
-            </Button>
-          ))}
-        </div>
+      {/* Inventory Toolbar */}
+      <div className="mb-6">
+        <InventoryToolbar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          selectedLocation={selectedLocation}
+          onLocationChange={setSelectedLocation}
+          selectedStatus={selectedStatus}
+          onStatusChange={setSelectedStatus}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+          categories={categories}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          onAddItem={handleAddItem}
+          itemCount={filteredItems.length}
+          currentLocation={location}
+        />
       </div>
 
       {/* Loading State */}
@@ -405,7 +367,7 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
       )}
 
       {/* Empty State */}
-      {!isLoading && items.length === 0 && (
+      {!isLoading && filteredItems.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-400 mb-4">
             <Package className="h-16 w-16 mx-auto" />
@@ -424,10 +386,10 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
       )}
 
       {/* Items Grid/List */}
-      {!isLoading && items.length > 0 && (
+      {!isLoading && filteredItems.length > 0 && (
         viewMode === "grid" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {items.map((item) => (
+            {filteredItems.map((item) => (
               <ItemCard
                 key={item.id}
                 item={item}
@@ -441,7 +403,7 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
           </div>
         ) : (
           <div className="space-y-2">
-            {items.map((item) => (
+            {filteredItems.map((item) => (
               <ItemCard
                 key={item.id}
                 item={item}

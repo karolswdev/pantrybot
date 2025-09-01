@@ -1,0 +1,89 @@
+
+DevTools listening on ws://127.0.0.1:36235/devtools/browser/d3251a8a-5236-4bea-a0ac-4f7ff2a549c2
+
+================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.0.0                                                                         │
+  │ Browser:        Electron 136 (headless)                                                        │
+  │ Node Version:   v22.19.0 (/home/karol/.nvm/versions/node/v22.19.0/bin/node)                    │
+  │ Specs:          2 found (MobileLayout.cy.ts, PWA.cy.ts)                                        │
+  │ Searched:       cypress/e2e/MobileLayout.cy.ts, cypress/e2e/PWA.cy.ts                          │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  MobileLayout.cy.ts                                                              (1 of 2)
+
+
+  Mobile Layout
+    ✓ should display the bottom tab bar on a mobile viewport and hide the sidebar (626ms)
+    ✓ should hide the bottom tab bar on desktop viewport (454ms)
+    ✓ should navigate between pages using mobile tab bar (449ms)
+    ✓ should have proper spacing for content with bottom tab bar (410ms)
+
+
+  4 passing (2s)
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        4                                                                                │
+  │ Passing:      4                                                                                │
+  │ Failing:      0                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  0                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     2 seconds                                                                        │
+  │ Spec Ran:     MobileLayout.cy.ts                                                               │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  PWA.cy.ts                                                                       (2 of 2)
+
+
+  PWA
+    ✓ should be installable with a service worker (459ms)
+    ✓ should have a valid web app manifest (24ms)
+    ✓ should have proper PWA meta tags (456ms)
+    ✓ should have correct PWA display properties (386ms)
+
+
+  4 passing (1s)
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        4                                                                                │
+  │ Passing:      4                                                                                │
+  │ Failing:      0                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  0                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     1 second                                                                         │
+  │ Spec Ran:     PWA.cy.ts                                                                        │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✔  MobileLayout.cy.ts                       00:02        4        4        -        -        - │
+  ├────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ ✔  PWA.cy.ts                                00:01        4        4        -        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✔  All specs passed!                        00:03        8        8        -        -        -  
+

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { HouseholdSwitcher } from "@/components/households/HouseholdSwitcher";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { Toast } from "@/components/notifications/Toast";
+import { MobileTabBar } from "@/components/layout/MobileTabBar";
 import { useAuthStore } from "@/stores/auth.store";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 
@@ -87,16 +88,8 @@ export default function AppShell({ children }: AppShellProps) {
       <header className="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* Logo and Mobile Menu Toggle */}
+            {/* Logo - No mobile menu toggle needed with bottom tab bar */}
             <div className="flex items-center">
-              <button
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 lg:hidden"
-              >
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
               <Link href="/dashboard" className="flex items-center">
                 <span className="text-2xl ml-2 lg:ml-0">🥦</span>
                 <span className="ml-2 text-xl font-bold text-gray-900">Fridgr</span>
@@ -137,12 +130,13 @@ export default function AppShell({ children }: AppShellProps) {
         />
       )}
 
-      {/* Sidebar Navigation */}
+      {/* Sidebar Navigation - Hidden on mobile (< 768px) */}
       <aside className={`
         fixed top-16 left-0 z-40 h-[calc(100vh-4rem)] w-64 bg-white border-r border-gray-200
         transform transition-transform duration-300 ease-in-out
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0
+        hidden md:block
       `}>
         <nav className="h-full px-3 py-4 overflow-y-auto">
           <ul className="space-y-1">
@@ -237,18 +231,20 @@ export default function AppShell({ children }: AppShellProps) {
       {/* Main Content Area */}
       <main className={`
         pt-16 transition-all duration-300 ease-in-out
-        lg:pl-64
+        md:pl-64 lg:pl-64
+        pb-16 md:pb-0
       `}>
         <div className="px-4 sm:px-6 lg:px-8 py-8">
           {children}
         </div>
       </main>
 
-      {/* Footer */}
+      {/* Footer - Hidden on mobile */}
       <footer className={`
         bg-white border-t border-gray-200 mt-auto
         transition-all duration-300 ease-in-out
-        lg:ml-64
+        md:ml-64 lg:ml-64
+        hidden md:block
       `}>
         <div className="px-4 sm:px-6 lg:px-8 py-4">
           <div className="text-center text-sm text-gray-500">
@@ -256,6 +252,9 @@ export default function AppShell({ children }: AppShellProps) {
           </div>
         </div>
       </footer>
+
+      {/* Mobile Tab Bar - Only visible on mobile */}
+      <MobileTabBar />
     </div>
   );
 }

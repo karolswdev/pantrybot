@@ -81,6 +81,7 @@ interface UseInventoryItemsParams {
   location?: "fridge" | "freezer" | "pantry" | "all";
   category?: string;          // Filter by category
   search?: string;            // Search query
+  status?: "expiring-soon" | "expired";  // Filter by expiration status
   sortBy?: "expiry" | "name" | "category" | "created";
   sortOrder?: "asc" | "desc";
 }
@@ -111,7 +112,9 @@ function FridgeInventory() {
   const { data, isLoading, error } = useInventoryItems({
     location: "fridge",
     sortBy: "expiry",
-    sortOrder: "asc"
+    sortOrder: "asc",
+    status: "expiring-soon",  // Only show items expiring soon
+    search: "milk"            // Search for milk items
   });
 
   if (isLoading) return <LoadingSkeleton />;
@@ -126,6 +129,17 @@ function FridgeInventory() {
   );
 }
 ```
+
+**Filter Parameters:**
+- **location**: Filter items by storage location (fridge, freezer, pantry, or all)
+- **category**: Filter by item category (e.g., "Dairy", "Produce")
+- **search**: Search items by name (uses query parameter with debouncing in UI)
+- **status**: Filter by expiration status:
+  - `expiring-soon`: Items expiring within 3 days
+  - `expired`: Items past their expiration date
+  - Note: Status filtering may be performed client-side if not supported by the API
+- **sortBy**: Sort results by expiry date, name, category, or creation date
+- **sortOrder**: Sort in ascending or descending order
 
 ### useInventoryItem
 
@@ -348,3 +362,90 @@ useEffect(() => {
 - **Bandwidth Efficient**: Only the changed data is transmitted
 - **Cache Consistency**: React Query cache stays in sync with server state
 - **Optimistic Updates**: Combined with mutations for immediate feedback
+
+## Reports & Analytics Hooks
+
+### useReportsData
+
+**Location:** `useReportsData.ts`
+
+**Description:** Fetches comprehensive reporting and analytics data for household waste tracking and consumption patterns.
+
+**Parameters:**
+- `dateRange?: number` - Number of days to include in the report (default: 30). Options: 7, 30, 90
+
+**Returns:**
+```typescript
+{
+  data?: {
+    wasteTracking: {
+      currentMonth: number;        // Dollar amount wasted this month
+      previousMonth: number;        // Dollar amount wasted last month
+      percentageChange: number;     // % change from previous month
+      weeklyData: Array<{
+        week: string;
+        value: number;
+      }>;
+    };
+    categoryBreakdown: Array<{
+      category: string;             // Food category (Produce, Dairy, etc.)
+      percentage: number;           // Percentage of total waste
+      value: number;                // Dollar value wasted
+    }>;
+    expiryPatterns: Array<{
+      dayOfWeek: string;           // Day of week (Mon, Tue, etc.)
+      count: number;                // Number of items expired on this day
+    }>;
+    inventoryValue: number;         // Total value of current inventory
+    totalItemsWasted: number;       // Count of wasted items
+    totalItemsConsumed: number;     // Count of consumed items
+    savingsFromConsumed: number;    // Dollar value saved by consuming
+  };
+  isLoading: boolean;
+  isError: boolean;
+  error?: Error;
+}
+```
+
+**Usage Example:**
+```tsx
+import { useReportsData } from "@/hooks/queries/useReportsData";
+
+function ReportsPage() {
+  const [dateRange, setDateRange] = useState(30);
+  const { data: reportsData, isLoading, error } = useReportsData(dateRange);
+  
+  if (isLoading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage />;
+  
+  return (
+    <div>
+      <h2>Waste Tracking</h2>
+      <p>${reportsData?.wasteTracking.currentMonth} wasted this month</p>
+      <p>{reportsData?.wasteTracking.percentageChange}% change from last month</p>
+      
+      <h3>Category Breakdown</h3>
+      {reportsData?.categoryBreakdown.map(cat => (
+        <div key={cat.category}>
+          {cat.category}: {cat.percentage}% (${cat.value})
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+**Features:**
+- Automatic fallback to mock data when API is unavailable
+- Supports date range filtering (7, 30, 90 days)
+- 5-minute stale time for caching
+- Query key: `['reports', householdId, dateRange]`
+
+**API Integration:**
+Currently uses the household statistics endpoint as a fallback pattern:
+- `GET /households/{householdId}/statistics?days={dateRange}`
+
+When the dedicated reports endpoint becomes available, the hook will seamlessly transition to use it.
+
+**Mock Data:**
+The hook includes comprehensive mock data for development and testing purposes, ensuring the UI can be fully developed even before the backend reports API is available.

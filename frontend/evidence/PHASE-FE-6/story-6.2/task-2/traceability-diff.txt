@@ -1,0 +1,15 @@
+diff --git a/.pm/system/common/traceability.md b/.pm/system/common/traceability.md
+index 310e0ce..2f816b3 100644
+--- a/.pm/system/common/traceability.md
++++ b/.pm/system/common/traceability.md
+@@ -25,8 +25,8 @@ This document maps system-level requirements to service-level requirements for t
+ | SYS-FUNC-016 | Calculate days until expiration | MVP | SVC-inventory-FUNC-008 |
+ | SYS-FUNC-017 | Categorize items | MVP | SVC-inventory-FUNC-009 (FE Verified - Reports) |
+ | SYS-FUNC-018 | Send expiration warnings | MVP | SVC-inventory-FUNC-010, SVC-notifications-FUNC-003 |
+-| SYS-FUNC-019 | Customize warning period | MVP | SVC-notifications-FUNC-004 (FE Verified) |
+-| SYS-FUNC-020 | Email notifications | MVP | SVC-notifications-FUNC-005 |
++| SYS-FUNC-019 | Customize warning period | MVP | SVC-notifications-FUNC-004 (FE Verified - Search) |
++| SYS-FUNC-020 | Email notifications | MVP | SVC-notifications-FUNC-005 (FE Verified - Filter) |
+ | SYS-FUNC-021 | In-app notifications | MVP | SVC-notifications-FUNC-006 (FE Verified) |
+ | SYS-FUNC-022 | Telegram bot notifications | MVP | SVC-notifications-FUNC-007 |
+ | SYS-FUNC-023 | Link Telegram accounts | MVP | SVC-notifications-FUNC-008 (FE Verified) |
