@@ -1,0 +1,126 @@
+diff --git a/mock-backend/README.md b/mock-backend/README.md
+index 726841b..eb15de6 100644
+--- a/mock-backend/README.md
++++ b/mock-backend/README.md
+@@ -105,6 +105,121 @@ curl http://localhost:8080/health
+   - **Error Responses:**
+     - `401 Unauthorized` - Invalid or expired refresh token
+ 
++### Household Management Endpoints
++
++All household endpoints require authentication via Bearer token in the Authorization header.
++
++#### List User's Households
++- **GET** `/api/v1/households` - Get all households the user belongs to
++  - **Headers:** `Authorization: Bearer <token>`
++  - **Response:** `200 OK`
++    ```json
++    {
++      "households": [
++        {
++          "id": "550e8400-e29b-41d4-a716-446655440002",
++          "name": "Home",
++          "description": "Family household",
++          "role": "admin",
++          "memberCount": 3,
++          "itemCount": 127,
++          "expiringItemCount": 5,
++          "createdAt": "2024-01-01T00:00:00.000Z"
++        }
++      ],
++      "total": 1
++    }
++    ```
++  - **Error Responses:**
++    - `401 Unauthorized` - Missing or invalid token
++
++#### Create Household
++- **POST** `/api/v1/households` - Create a new household
++  - **Headers:** `Authorization: Bearer <token>`
++  - **Request Body:**
++    ```json
++    {
++      "name": "Beach House",
++      "description": "Vacation home inventory",
++      "timezone": "America/Los_Angeles"
++    }
++    ```
++  - **Response:** `201 Created`
++    ```json
++    {
++      "id": "550e8400-e29b-41d4-a716-446655440003",
++      "name": "Beach House",
++      "description": "Vacation home inventory",
++      "timezone": "America/Los_Angeles",
++      "createdAt": "2024-01-15T00:00:00.000Z",
++      "createdBy": "550e8400-e29b-41d4-a716-446655440001"
++    }
++    ```
++  - **Error Responses:**
++    - `400 Bad Request` - Missing required fields
++    - `401 Unauthorized` - Missing or invalid token
++
++#### Get Household Details
++- **GET** `/api/v1/households/{householdId}` - Get detailed household information
++  - **Headers:** `Authorization: Bearer <token>`
++  - **Response:** `200 OK`
++    ```json
++    {
++      "id": "550e8400-e29b-41d4-a716-446655440002",
++      "name": "Home",
++      "description": "Family household",
++      "timezone": "America/New_York",
++      "members": [
++        {
++          "userId": "550e8400-e29b-41d4-a716-446655440001",
++          "email": "user@example.com",
++          "displayName": "John Doe",
++          "role": "admin",
++          "joinedAt": "2024-01-01T00:00:00.000Z"
++        }
++      ],
++      "statistics": {
++        "totalItems": 127,
++        "expiringItems": 3,
++        "expiredItems": 1,
++        "consumedThisMonth": 45,
++        "wastedThisMonth": 5
++      },
++      "createdAt": "2024-01-01T00:00:00.000Z"
++    }
++    ```
++  - **Error Responses:**
++    - `401 Unauthorized` - Missing or invalid token
++    - `403 Forbidden` - User is not a member of the household
++    - `404 Not Found` - Household does not exist
++
++#### Invite Member to Household
++- **POST** `/api/v1/households/{householdId}/members` - Invite a new member to the household
++  - **Headers:** `Authorization: Bearer <token>`
++  - **Request Body:**
++    ```json
++    {
++      "email": "newmember@example.com",
++      "role": "member"
++    }
++    ```
++  - **Response:** `201 Created`
++    ```json
++    {
++      "invitationId": "550e8400-e29b-41d4-a716-446655440004",
++      "email": "newmember@example.com",
++      "role": "member",
++      "status": "pending",
++      "expiresAt": "2024-01-22T00:00:00.000Z"
++    }
++    ```
++  - **Error Responses:**
++    - `400 Bad Request` - Missing required fields or invalid role
++    - `401 Unauthorized` - Missing or invalid token
++    - `403 Forbidden` - User is not an admin of the household
++    - `404 Not Found` - Household does not exist
++    - `409 Conflict` - User is already a member or has a pending invitation
++
+ ## Environment Variables
+ 
+ - `PORT` - Server port (default: 8080)

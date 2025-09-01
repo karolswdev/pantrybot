@@ -17,9 +17,14 @@ const household_members = [];
 // Used to validate refresh token requests and enable token rotation
 const validRefreshTokens = new Set();
 
+// Invitations array stores pending member invitations
+// Schema: { invitationId: uuid, householdId: uuid, email: string, role: string, status: string, createdBy: uuid, createdAt: Date, expiresAt: Date }
+const invitations = [];
+
 module.exports = {
   users,
   households,
   household_members,
-  validRefreshTokens
+  validRefreshTokens,
+  invitations
 };

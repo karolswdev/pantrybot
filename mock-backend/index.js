@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./authRoutes');
+const householdRoutes = require('./householdRoutes');
 
 // Create Express app
 const app = express();
@@ -22,6 +23,9 @@ app.get('/health', (req, res) => {
 
 // Authentication routes
 app.use('/api/v1/auth', authRoutes);
+
+// Household routes (protected by auth middleware)
+app.use('/api/v1/households', householdRoutes);
 
 // Start server
 const PORT = process.env.PORT || 8080;

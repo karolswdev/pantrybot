@@ -1,0 +1,87 @@
+{
+  "storyId": "STORY-MBE-2.2",
+  "phaseId": "PHASE-MBE-2",
+  "verdict": "GREEN",
+  "timestampUtc": "2025-09-01T20:28:00Z",
+  "env": {
+    "mode": "dev",
+    "baseUrl": "http://localhost:8080",
+    "backend": "mock-backend"
+  },
+  "versions": {
+    "node": "18.20.5",
+    "npm": "10.8.2"
+  },
+  "tests": {
+    "storyTests": {
+      "TC-MBE-2.5": {
+        "name": "InviteMember_WithValidData_Returns201AndInvitation",
+        "status": "PASS",
+        "httpStatus": 201,
+        "evidence": "./evidence/PHASE-MBE-2/STORY-MBE-2.2/task-1/test-output/TC-MBE-2.5.log"
+      },
+      "TC-MBE-2.6": {
+        "name": "InviteMember_AsNonAdmin_Returns403Forbidden",
+        "status": "PASS",
+        "httpStatus": 403,
+        "evidence": "./evidence/PHASE-MBE-2/STORY-MBE-2.2/task-1/test-output/TC-MBE-2.6.log"
+      }
+    },
+    "regressionTests": {
+      "total": 13,
+      "passed": 13,
+      "failed": 0,
+      "evidence": "./evidence/PHASE-MBE-2/STORY-MBE-2.2/regression-test.log"
+    }
+  },
+  "traceability": [
+    {
+      "requirementId": "MBE-REQ-2.4",
+      "testCases": ["TC-MBE-2.5", "TC-MBE-2.6"],
+      "evidence": ["./evidence/PHASE-MBE-2/STORY-MBE-2.2/task-1/test-output/"],
+      "status": "PASS"
+    },
+    {
+      "requirementId": "SYS-FUNC-008",
+      "testCases": ["TC-MBE-2.5", "TC-MBE-2.6"],
+      "evidence": ["./evidence/PHASE-MBE-2/STORY-MBE-2.2/task-1/test-output/"],
+      "status": "PASS"
+    }
+  ],
+  "documentation": {
+    "readmeUpdated": true,
+    "readmeDiff": "./evidence/PHASE-MBE-2/STORY-MBE-2.2/task-2/documentation/readme-update.diff",
+    "traceabilityUpdated": true,
+    "traceabilityDiff": "./evidence/PHASE-MBE-2/STORY-MBE-2.2/task-2/traceability/traceability-update.diff"
+  },
+  "implementation": {
+    "filesModified": [
+      "mock-backend/householdRoutes.js",
+      "mock-backend/db.js",
+      "mock-backend/README.md",
+      ".pm/system/common/traceability.md"
+    ],
+    "endpointImplemented": "/api/v1/households/{id}/members",
+    "accessControl": "admin-only",
+    "commitHash": "acf9b0d06347f00c46b9cf26499e74ce8b06ea06"
+  },
+  "checkboxes": {
+    "task1": {
+      "completed": true,
+      "TC-MBE-2.5": true,
+      "TC-MBE-2.6": true
+    },
+    "task2": {
+      "documentationUpdated": true,
+      "traceabilityUpdated": true
+    },
+    "storyCompletion": {
+      "regressionTestPassed": true,
+      "workCommitted": true,
+      "storyCheckbox": true
+    }
+  },
+  "blockers": [],
+  "ambers": [],
+  "notes": "All test cases pass successfully. Admin-only access control is properly enforced. Documentation and traceability matrix have been updated correctly."
+}

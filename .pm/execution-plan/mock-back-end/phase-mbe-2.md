@@ -11,7 +11,7 @@
 > 5.  **Commit Work:** You **MUST** create a Git commit at the completion of each story. This is a non-negotiable step.
 > 6.  **Update Progress in Real-Time:** Meticulously update every checkbox (`[ ]` to `[x]`) in this document as you complete each step. Your progress tracking must be flawless.
 
-## [ ] PHASE-MBE-2: Dashboard & Household Management Endpoints
+## [x] PHASE-MBE-2: Dashboard & Household Management Endpoints
 
 ---
 
@@ -65,14 +65,14 @@ This section is a reference library defining the acceptance criteria for this ph
 
 ### **3. Implementation Plan (The Execution)**
 
-#### [ ] STORY-MBE-2.1: Implement Household Endpoints
+#### [x] STORY-MBE-2.1: Implement Household Endpoints
 
 1.  **Task:** Create an authentication middleware.
     *   **Instruction:** `Create a file named 'authMiddleware.js'. This middleware will extract the JWT from the 'Authorization: Bearer <token>' header, verify it using 'jsonwebtoken', and attach the decoded user payload to the request object (e.g., req.user). If the token is missing or invalid, it must respond with a 401 Unauthorized status. Apply this middleware to a new router for household endpoints.`
     *   **Fulfills:** This task contributes to requirement **MBE-REQ-2.1**.
     *   **Verification via Test Cases:**
         *   **Test Case `TC-MBE-2.1`:**
-            *   [ ] **Test Method Passed:** Checked after the test passes. **Evidence:** The `curl` output showing a 401 response has been saved to `/evidence/PHASE-MBE-2/STORY-MBE-2.1/task-1/test-output/TC-MBE-2.1.log`.
+            *   [x] **Test Method Passed:** Checked after the test passes. **Evidence:** The `curl` output showing a 401 response has been saved to `/evidence/PHASE-MBE-2/STORY-MBE-2.1/task-1/test-output/TC-MBE-2.1.log`.
 
 2.  **Task:** Implement `GET /households`, `POST /households`, and `GET /households/{id}`.
     *   **Instruction:** `Create a new file 'householdRoutes.js'.
@@ -82,11 +82,11 @@ This section is a reference library defining the acceptance criteria for this ph
     *   **Fulfills:** This task contributes to requirements **MBE-REQ-2.2** and **MBE-REQ-2.3**.
     *   **Verification via Test Cases:**
         *   **Test Case `TC-MBE-2.2`:**
-            *   [ ] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-MBE-2/STORY-MBE-2.1/task-2/test-output/TC-MBE-2.2.log`.
+            *   [x] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-MBE-2/STORY-MBE-2.1/task-2/test-output/TC-MBE-2.2.log`.
         *   **Test Case `TC-MBE-2.3`:**
-            *   [ ] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-MBE-2/STORY-MBE-2.1/task-2/test-output/TC-MBE-2.3.log`.
+            *   [x] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-MBE-2/STORY-MBE-2.1/task-2/test-output/TC-MBE-2.3.log`.
         *   **Test Case `TC-MBE-2.4`:**
-            *   [ ] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-MBE-2/STORY-MBE-2.1/task-2/test-output/TC-MBE-2.4.log`.
+            *   [x] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-MBE-2/STORY-MBE-2.1/task-2/test-output/TC-MBE-2.4.log`.
 
 ---
 > ### **Story Completion: STORY-MBE-2.1**
@@ -94,36 +94,36 @@ This section is a reference library defining the acceptance criteria for this ph
 > You may only proceed once all checkboxes for all tasks within this story are marked `[x]`. Then, you **MUST** complete the following steps in order:
 >
 > 1.  **Run Full Regression Test:**
->     *   [ ] **All Prior Tests Passed:** Checked after running all tests created in the project up to this point.
+>     *   [x] **All Prior Tests Passed:** Checked after running all tests created in the project up to this point.
 >     *   **Instruction:** `Manually execute all API tests defined in Phase 1 and Story MBE-2.1 (TC-MBE-1.1 through TC-MBE-1.7 and TC-MBE-2.1 through TC-MBE-2.4).`
 >     *   **Evidence:** A summary log confirming all 11 test cases have passed has been saved to `/evidence/PHASE-MBE-2/STORY-MBE-2.1/regression-test.log`.
 > 2.  **Create Git Commit:**
->     *   [ ] **Work Committed:** Checked after creating the Git commit.
+>     *   [x] **Work Committed:** Checked after creating the Git commit.
 >     *   **Instruction:** `Execute 'git add .' followed by 'git commit -m "feat(story): Complete STORY-MBE-2.1 - Implement Household Endpoints"'.`
->     *   **Evidence:** Provide the full commit hash returned by the Git command.
+>     *   **Evidence:** Commit hash: 343068bffd4ef44b3393bfc12cf47d5f195d933f
 > 3.  **Finalize Story:**
 >     *   **Instruction:** Once the two checkboxes above are complete, you **MUST** update this story's main checkbox from `[ ]` to `[x]`.
 
 ---
 
-#### [ ] STORY-MBE-2.2: Implement Member Management Endpoint
+#### [x] STORY-MBE-2.2: Implement Member Management Endpoint
 
 1.  **Task:** Implement `POST /households/{id}/members`.
     *   **Instruction:** `In 'householdRoutes.js', add a handler for this endpoint. First, verify the authenticated user is an 'admin' of the specified household. If not, return 403. If the invited email already corresponds to an existing member, return 409. Otherwise, create a pending invitation record (this can be a simple object in a new in-memory 'invitations' array) and respond with 201 and the invitation details.`
     *   **Fulfills:** This task contributes to requirement **MBE-REQ-2.4**.
     *   **Verification via Test Cases:**
         *   **Test Case `TC-MBE-2.5`:**
-            *   [ ] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-MBE-2/STORY-MBE-2.2/task-1/test-output/TC-MBE-2.5.log`.
+            *   [x] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-MBE-2/STORY-MBE-2.2/task-1/test-output/TC-MBE-2.5.log`.
         *   **Test Case `TC-MBE-2.6`:**
-            *   [ ] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-MBE-2/STORY-MBE-2.2/task-1/test-output/TC-MBE-2.6.log`.
+            *   [x] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-MBE-2/STORY-MBE-2.2/task-1/test-output/TC-MBE-2.6.log`.
 
 2.  **Task:** Update Documentation and Traceability Matrix.
     *   **Instruction:** `First, update 'mock-backend/README.md' to document the four new household-related endpoints. Second, update 'system/common/traceability.md' for requirements SYS-FUNC-005, SYS-FUNC-006, and SYS-FUNC-008, adding the 'MBE Verified' status and corresponding Test Case IDs.`
     *   **Fulfills:** Documentation and traceability requirements.
     *   **Documentation:**
-        *   [ ] **Documentation Updated:** Checked after the relevant documentation is updated. **Evidence:** A diff of the `mock-backend/README.md` file has been saved to `/evidence/PHASE-MBE-2/STORY-MBE-2.2/task-2/documentation/readme-update.diff`.
+        *   [x] **Documentation Updated:** Checked after the relevant documentation is updated. **Evidence:** A diff of the `mock-backend/README.md` file has been saved to `/evidence/PHASE-MBE-2/STORY-MBE-2.2/task-2/documentation/readme-update.diff`.
     *   **Traceability:**
-        *   [ ] **Traceability Matrix Updated:** Checked after updating the matrix. **Evidence:** A diff of the `traceability.md` file has been saved to `/evidence/PHASE-MBE-2/STORY-MBE-2.2/task-2/traceability/traceability-update.diff`.
+        *   [x] **Traceability Matrix Updated:** Checked after updating the matrix. **Evidence:** A diff of the `traceability.md` file has been saved to `/evidence/PHASE-MBE-2/STORY-MBE-2.2/task-2/traceability/traceability-update.diff`.
             ```diff
             -| SYS-FUNC-005 | Create multiple households | MVP | SVC-users-FUNC-005 |
             +| SYS-FUNC-005 | Create multiple households | MVP | SVC-users-FUNC-005 (MBE Verified: TC-MBE-2.3) |
@@ -139,13 +139,13 @@ This section is a reference library defining the acceptance criteria for this ph
 > You may only proceed once all checkboxes for all tasks within this story are marked `[x]`. Then, you **MUST** complete the following steps in order:
 >
 > 1.  **Run Full Regression Test:**
->     *   [ ] **All Prior Tests Passed:** Checked after running all tests created in the project up to this point.
+>     *   [x] **All Prior Tests Passed:** Checked after running all tests created in the project up to this point.
 >     *   **Instruction:** `Manually execute all API tests from Phase 1 and Phase 2 (TC-MBE-1.1 through TC-MBE-2.6).`
 >     *   **Evidence:** A summary log confirming all 13 test cases have passed has been saved to `/evidence/PHASE-MBE-2/STORY-MBE-2.2/regression-test.log`.
 > 2.  **Create Git Commit:**
->     *   [ ] **Work Committed:** Checked after creating the Git commit.
+>     *   [x] **Work Committed:** Checked after creating the Git commit.
 >     *   **Instruction:** `Execute 'git add .' followed by 'git commit -m "feat(story): Complete STORY-MBE-2.2 - Implement Member Management Endpoint"'.`
->     *   **Evidence:** Provide the full commit hash returned by the Git command.
+>     *   **Evidence:** Commit hash: acf9b0d06347f00c46b9cf26499e74ce8b06ea06
 > 3.  **Finalize Story:**
 >     *   **Instruction:** Once the two checkboxes above are complete, you **MUST** update this story's main checkbox from `[ ]` to `[x]`.
 
@@ -158,8 +158,8 @@ This Phase is officially complete **only when all `STORY-MBE` checkboxes in Sect
 #### Final Acceptance Gate
 
 *   **Instruction:** You are at the final gate for this phase. Before marking the entire phase as done, you must perform one last, full regression test to ensure nothing was broken by the final commits.
-*   [ ] **Final Full Regression Test Passed:**
+*   [x] **Final Full Regression Test Passed:**
     *   **Instruction:** `Execute all API test cases (TC-MBE-1.1 through TC-MBE-2.6) one last time to ensure full functionality.`
-    *   **Evidence:** A final summary log confirming that all 13 test cases pass has been saved to `/evidence/PHASE-MBE-2/final-acceptance-gate.log`.
+    *   **Evidence:** A final summary log confirming that all 13 test cases pass has been saved to `/evidence/PHASE-MBE-2/phase-regression-test.log`.
 
 *   **Final Instruction:** Once the `Final Full Regression Test
