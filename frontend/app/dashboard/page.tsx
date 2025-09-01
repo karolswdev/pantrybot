@@ -7,7 +7,7 @@ import { QuickActions } from '@/components/dashboard/QuickActions';
 import { RecentActivity, ActivityItem } from '@/components/dashboard/RecentActivity';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { EmptyDashboard } from '@/components/dashboard/EmptyDashboard';
-import { useHouseholdData, useExpiringItems, formatExpirationText, formatActivityTime } from '@/hooks/queries/useHouseholdData';
+import { useHouseholdData, useExpiringItems, formatExpirationText } from '@/hooks/queries/useHouseholdData';
 import { useAuthStore } from '@/stores/auth.store';
 
 // Food emojis mapping for items
@@ -39,13 +39,13 @@ function getItemEmoji(itemName: string): string {
 }
 
 // Mock recent activities since the backend doesn't have this endpoint yet
-function generateMockActivities(householdData: any): ActivityItem[] {
+function generateMockActivities(householdData: { statistics?: { expiredItems?: number } }): ActivityItem[] {
   const activities: ActivityItem[] = [
     { id: '1', type: 'add', message: 'added 6 items from Walmart', timestamp: '2h ago', user: 'Jane' },
     { id: '2', type: 'consume', message: 'consumed Almond Milk', timestamp: '5h ago', user: 'You' },
   ];
   
-  if (householdData?.statistics?.expiredItems > 0) {
+  if (householdData?.statistics?.expiredItems && householdData.statistics.expiredItems > 0) {
     activities.push({
       id: '3',
       type: 'expire',

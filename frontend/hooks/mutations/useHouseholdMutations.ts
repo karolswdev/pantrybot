@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/lib/api-client';
+import { api, apiClient } from '@/lib/api-client';
 import { useAuthStore } from '@/stores/auth.store';
 
 // Types
@@ -40,7 +40,7 @@ export function useCreateHousehold() {
 
   return useMutation<CreateHouseholdResponse, Error, CreateHouseholdData>({
     mutationFn: async (data) => {
-      const response = await api.post('/api/v1/households', data);
+      const response = await api.households.create(data);
       return response.data;
     },
     onSuccess: (data) => {
@@ -65,7 +65,7 @@ export function useInviteMember() {
 
   return useMutation<InviteMemberResponse, Error, InviteMemberData>({
     mutationFn: async ({ householdId, email, role }) => {
-      const response = await api.post(`/api/v1/households/${householdId}/members`, {
+      const response = await apiClient.post(`/api/v1/households/${householdId}/members`, {
         email,
         role,
       });
@@ -93,7 +93,7 @@ export function useRemoveMember() {
 
   return useMutation<void, Error, { householdId: string; memberId: string }>({
     mutationFn: async ({ householdId, memberId }) => {
-      await api.delete(`/api/v1/households/${householdId}/members/${memberId}`);
+      await apiClient.delete(`/api/v1/households/${householdId}/members/${memberId}`);
     },
     onSuccess: (_, variables) => {
       // Invalidate household members query
@@ -114,7 +114,7 @@ export function useUpdateMemberRole() {
 
   return useMutation<void, Error, { householdId: string; memberId: string; role: 'admin' | 'member' | 'viewer' }>({
     mutationFn: async ({ householdId, memberId, role }) => {
-      await api.patch(`/api/v1/households/${householdId}/members/${memberId}`, { role });
+      await apiClient.patch(`/api/v1/households/${householdId}/members/${memberId}`, { role });
     },
     onSuccess: (_, variables) => {
       // Invalidate household members query
@@ -135,7 +135,7 @@ export function useLeaveHousehold() {
 
   return useMutation<void, Error, string>({
     mutationFn: async (householdId) => {
-      await api.delete(`/api/v1/households/${householdId}/leave`);
+      await apiClient.delete(`/api/v1/households/${householdId}/leave`);
     },
     onSuccess: (_, householdId) => {
       // Invalidate households query
@@ -164,7 +164,7 @@ export function useDeleteHousehold() {
 
   return useMutation<void, Error, string>({
     mutationFn: async (householdId) => {
-      await api.delete(`/api/v1/households/${householdId}`);
+      await apiClient.delete(`/api/v1/households/${householdId}`);
     },
     onSuccess: (_, householdId) => {
       // Invalidate households query

@@ -5,10 +5,11 @@ import { useAuthStore } from "@/stores/auth.store";
 
 export function useRealtimeNotifications() {
   const { handleRealtimeNotification } = useNotificationStore();
-  const { token, activeHouseholdId } = useAuthStore();
+  const { user, currentHouseholdId } = useAuthStore();
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
 
   useEffect(() => {
-    if (!token || !activeHouseholdId) {
+    if (!token || !currentHouseholdId) {
       return;
     }
 
@@ -35,7 +36,7 @@ export function useRealtimeNotifications() {
 
     // Connect to SignalR if not already connected
     if (!signalRService.isConnected()) {
-      signalRService.connect(token, activeHouseholdId).catch((error) => {
+      signalRService.connect(token, currentHouseholdId).catch((error) => {
         console.error("Failed to connect to SignalR for notifications:", error);
       });
     }
@@ -44,5 +45,5 @@ export function useRealtimeNotifications() {
     return () => {
       signalRService.off("notification.new", handleNotificationNew);
     };
-  }, [token, activeHouseholdId, handleRealtimeNotification]);
+  }, [token, currentHouseholdId, handleRealtimeNotification]);
 }

@@ -116,10 +116,16 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
 
   // Get auth state and query client for real-time updates
   const queryClient = useQueryClient();
-  const { user, token } = useAuthStore();
-  const householdId = typeof window !== 'undefined' && (window as any).Cypress 
+  const { user } = useAuthStore();
+  const isCypressEnv = process.env.NODE_ENV !== 'production' && 
+    typeof window !== 'undefined' && 
+    (window as Window & { Cypress?: unknown }).Cypress;
+  const householdId = isCypressEnv
     ? 'household-123' 
     : user?.defaultHouseholdId;
+  
+  // Get access token for SignalR connection
+  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
   // Determine the effective location for API query
   const effectiveLocation = selectedLocation === "all" ? location : selectedLocation;
@@ -176,16 +182,16 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
     };
 
     // Handle item update events
-    const handleItemUpdated = (data: any) => {
+    const handleItemUpdated = (data: { payload: { itemId: string; item: Partial<InventoryItem> } }) => {
       console.log('Real-time update received: item.updated', data);
       
       // Update the query cache with the new item data
       queryClient.setQueryData(
         ["inventory", "items", householdId, { location: effectiveLocation, category: selectedCategory === "All" ? undefined : selectedCategory, search: searchQuery, sortBy, sortOrder: "asc", status: selectedStatus === "all" ? undefined : selectedStatus }],
-        (oldData: any) => {
+        (oldData: unknown) => {
           if (!oldData) return oldData;
           
-          const updatedItems = oldData.items.map((item: InventoryItem) => 
+          const updatedItems = (oldData as { items: InventoryItem[] }).items.map((item: InventoryItem) => 
             item.id === data.payload.itemId ? { ...item, ...data.payload.item } : item
           );
           
@@ -198,7 +204,7 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
     };
 
     // Handle item added events
-    const handleItemAdded = (data: any) => {
+    const handleItemAdded = (data: { payload: { item: InventoryItem } }) => {
       console.log('Real-time update received: item.added', data);
       
       // Refetch the query to get the new item
@@ -208,23 +214,24 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
     };
 
     // Handle item deleted events
-    const handleItemDeleted = (data: any) => {
+    const handleItemDeleted = (data: { payload: { itemId: string } }) => {
       console.log('Real-time update received: item.deleted', data);
       
       // Update the query cache to remove the deleted item
       queryClient.setQueryData(
         ["inventory", "items", householdId, { location: effectiveLocation, category: selectedCategory === "All" ? undefined : selectedCategory, search: searchQuery, sortBy, sortOrder: "asc", status: selectedStatus === "all" ? undefined : selectedStatus }],
-        (oldData: any) => {
+        (oldData: unknown) => {
           if (!oldData) return oldData;
           
-          const filteredItems = oldData.items.filter((item: InventoryItem) => 
+          const typedData = oldData as { items: InventoryItem[], totalCount: number };
+          const filteredItems = typedData.items.filter((item: InventoryItem) => 
             item.id !== data.payload.itemId
           );
           
           return {
-            ...oldData,
+            ...typedData,
             items: filteredItems,
-            totalCount: oldData.totalCount - 1
+            totalCount: typedData.totalCount - 1
           };
         }
       );

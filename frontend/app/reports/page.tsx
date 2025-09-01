@@ -7,6 +7,32 @@ import { Button } from '@/components/ui/button';
 import { Download, Loader2 } from 'lucide-react';
 import { useReportsData } from '@/hooks/queries/useReportsData';
 import { useAuthStore } from '@/stores/auth.store';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from 'chart.js';
+import { Line, Bar } from 'react-chartjs-2';
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+);
 
 const ReportsPage = () => {
   const [dateRange, setDateRange] = useState(30);
@@ -97,20 +123,44 @@ const ReportsPage = () => {
               </p>
             </div>
 
-            {/* Weekly Chart Placeholder */}
-            <div className="h-48 bg-gray-100 rounded-lg p-4">
-              <div className="h-full flex items-end justify-around gap-2">
-                {wasteData.weeklyData.map((week, index) => (
-                  <div key={index} className="flex-1 flex flex-col items-center gap-2">
-                    <div 
-                      className="w-full bg-blue-500 rounded-t"
-                      style={{ height: `${(week.value / 40) * 100}%` }}
-                      data-testid={`week-${index + 1}-bar`}
-                    />
-                    <span className="text-xs text-gray-600">{week.week}</span>
-                  </div>
-                ))}
-              </div>
+            {/* Weekly Waste Tracking Chart */}
+            <div className="h-64">
+              <Line
+                data={{
+                  labels: wasteData.weeklyData.map((w: { week: string }) => w.week),
+                  datasets: [
+                    {
+                      label: 'Food Waste ($)',
+                      data: wasteData.weeklyData.map((w: { value: number }) => w.value),
+                      borderColor: 'rgb(59, 130, 246)',
+                      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                      tension: 0.3,
+                    },
+                  ],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      display: false,
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: (context) => `$${context.parsed.y.toFixed(2)}`,
+                      },
+                    },
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      ticks: {
+                        callback: (value) => `$${value}`,
+                      },
+                    },
+                  },
+                }}
+              />
             </div>
           </div>
         </CardContent>
@@ -124,20 +174,56 @@ const ReportsPage = () => {
             <CardTitle>Top Categories</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {categoryData.map((item, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  <span className="w-24 text-sm">{item.category}</span>
-                  <div className="flex-1 bg-gray-200 rounded-full h-6 relative overflow-hidden">
-                    <div 
-                      className="absolute left-0 top-0 h-full bg-blue-500 flex items-center justify-end pr-2"
-                      style={{ width: `${item.percentage}%` }}
-                    >
-                      <span className="text-xs text-white font-semibold">{item.percentage}%</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="h-64">
+              <Bar
+                data={{
+                  labels: categoryData.map((item: { category: string }) => item.category),
+                  datasets: [
+                    {
+                      label: 'Percentage',
+                      data: categoryData.map((item: { percentage: number }) => item.percentage),
+                      backgroundColor: [
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(34, 197, 94, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(147, 51, 234, 0.8)',
+                      ],
+                      borderColor: [
+                        'rgb(59, 130, 246)',
+                        'rgb(34, 197, 94)',
+                        'rgb(245, 158, 11)',
+                        'rgb(239, 68, 68)',
+                        'rgb(147, 51, 234)',
+                      ],
+                      borderWidth: 1,
+                    },
+                  ],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      display: false,
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: (context) => `${context.parsed.y}%`,
+                      },
+                    },
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      max: 100,
+                      ticks: {
+                        callback: (value) => `${value}%`,
+                      },
+                    },
+                  },
+                }}
+              />
             </div>
           </CardContent>
         </Card>
@@ -148,19 +234,44 @@ const ReportsPage = () => {
             <CardTitle>Expiry Patterns</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              {expiryPatterns.map((item, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  <span className="w-12 text-sm font-medium">{item.day}</span>
-                  <div className="flex-1 bg-gray-200 rounded h-5 relative overflow-hidden">
-                    <div 
-                      className="absolute left-0 top-0 h-full bg-green-500"
-                      style={{ width: `${(item.count / 12) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-xs text-gray-600 w-8 text-right">{item.count}</span>
-                </div>
-              ))}
+            <div className="h-64">
+              <Bar
+                data={{
+                  labels: expiryPatterns.map((item: { day: string }) => item.day),
+                  datasets: [
+                    {
+                      label: 'Items Expiring',
+                      data: expiryPatterns.map((item: { count: number }) => item.count),
+                      backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                      borderColor: 'rgb(34, 197, 94)',
+                      borderWidth: 1,
+                    },
+                  ],
+                }}
+                options={{
+                  indexAxis: 'y' as const,
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      display: false,
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: (context) => `${context.parsed.x} items`,
+                      },
+                    },
+                  },
+                  scales: {
+                    x: {
+                      beginAtZero: true,
+                      ticks: {
+                        stepSize: 1,
+                      },
+                    },
+                  },
+                }}
+              />
             </div>
           </CardContent>
         </Card>

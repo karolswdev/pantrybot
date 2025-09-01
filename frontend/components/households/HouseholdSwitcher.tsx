@@ -83,7 +83,7 @@ export function HouseholdSwitcher() {
             <div className="flex flex-col">
               <span className="font-medium">{household.name}</span>
               <span className="text-xs text-gray-500">
-                {household.role}{household.memberCount ? ` · ${household.memberCount} members` : ''}
+                {household.role}
               </span>
             </div>
             {currentHouseholdId === household.id && (

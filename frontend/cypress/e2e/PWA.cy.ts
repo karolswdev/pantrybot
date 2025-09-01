@@ -2,7 +2,7 @@ describe('PWA', () => {
   beforeEach(() => {
     // Skip auth for testing
     cy.window().then((win) => {
-      (win as any).Cypress = true;
+      (win as unknown as Window & { Cypress?: boolean }).Cypress = true;
     });
   });
 

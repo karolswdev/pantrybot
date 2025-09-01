@@ -27,7 +27,7 @@ export default function Providers({ children }: ProvidersProps) {
   // Expose queryClient to window for Cypress testing
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      (window as any).__queryClient = queryClient;
+      (window as Window & { __queryClient?: QueryClient }).__queryClient = queryClient;
     }
   }, [queryClient]);
 

@@ -46,29 +46,28 @@ describe('Shopping List Detail', () => {
     cy.get('[data-testid="to-buy-section"]').should('contain', 'Milk');
     cy.get('[data-testid="bought-section"]').should('contain', 'Apples');
     
-    // Click the checkbox for the first item in "To Buy" (Milk)
-    cy.get('[data-testid="checkbox-1"]').first().click();
-    
-    // Give time for optimistic update
-    cy.wait(1000);
-    
-    // Verify Milk moved to "Bought" section
-    cy.get('[data-testid="bought-section"]').should('contain', 'Milk');
-    cy.get('[data-testid="to-buy-section"]').should('not.contain', 'Milk');
-    
-    // Click the checkbox for Milk in the "Bought" section to uncheck it
-    // Since Milk is now in bought section, find its checkbox there
-    cy.get('[data-testid="bought-section"]')
-      .contains('Milk')
-      .closest('[data-testid^="item-"]')
+    // Click the checkbox for Milk (id=1) in "To Buy" section
+    cy.get('[data-testid="to-buy-section"]')
       .find('[data-testid="checkbox-1"]')
       .click();
     
-    // Give time for optimistic update
-    cy.wait(1000);
+    // Wait for the optimistic update to complete
+    cy.wait(500);
+    
+    // Verify Milk moved to "Bought" section using flexible assertion
+    cy.get('[data-testid="bought-section"]', { timeout: 5000 }).should('contain', 'Milk');
+    cy.get('[data-testid="to-buy-section"]').should('not.contain', 'Milk');
+    
+    // Click the checkbox for Milk in the "Bought" section to uncheck it
+    cy.get('[data-testid="bought-section"]')
+      .find('[data-testid="checkbox-1"]')
+      .click();
+    
+    // Wait for the optimistic update to complete
+    cy.wait(500);
     
     // Verify Milk moved back to "To Buy"
-    cy.get('[data-testid="to-buy-section"]').should('contain', 'Milk');
+    cy.get('[data-testid="to-buy-section"]', { timeout: 5000 }).should('contain', 'Milk');
     cy.get('[data-testid="bought-section"]').should('not.contain', 'Milk');
   });
 

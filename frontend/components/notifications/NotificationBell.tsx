@@ -50,8 +50,9 @@ export function NotificationBell() {
         <button 
           className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 relative"
           data-testid="notification-bell"
+          style={{ pointerEvents: 'auto' }}
         >
-          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-6 w-6 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path 
               strokeLinecap="round" 
               strokeLinejoin="round" 
@@ -61,7 +62,7 @@ export function NotificationBell() {
           </svg>
           {unreadCount > 0 && (
             <span 
-              className="absolute top-1 right-1 flex items-center justify-center h-5 w-5 text-xs font-bold text-white bg-red-500 rounded-full ring-2 ring-white"
+              className="absolute top-1 right-1 flex items-center justify-center h-5 w-5 text-xs font-bold text-white bg-red-500 rounded-full ring-2 ring-white pointer-events-none"
               data-testid="notification-badge"
             >
               {unreadCount > 9 ? "9+" : unreadCount}

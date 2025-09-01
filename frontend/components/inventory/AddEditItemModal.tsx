@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import {
-  inventoryItemSchema,
+  inventoryItemFormSchema,
   type InventoryItemFormData,
   ITEM_CATEGORIES,
   ITEM_UNITS,
@@ -66,7 +66,7 @@ export function AddEditItemModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<InventoryItemFormData>({
-    resolver: zodResolver(inventoryItemSchema),
+    resolver: zodResolver(inventoryItemFormSchema),
     defaultValues: {
       name: "",
       quantity: 1,
@@ -409,6 +409,8 @@ export function AddEditItemModal({
                           placeholder="5.99"
                           className="pl-7"
                           {...field}
+                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                          value={field.value ?? ""}
                         />
                       </div>
                     </FormControl>

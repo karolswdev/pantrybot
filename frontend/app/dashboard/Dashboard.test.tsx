@@ -2,10 +2,11 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import DashboardPage from './page';
+import type { AuthState } from '@/stores/auth.store';
 
 // Mock the dashboard components
 jest.mock('@/components/dashboard/StatCard', () => ({
-  StatCard: ({ title, value }: any) => (
+  StatCard: ({ title, value }: { title: string; value: number | string }) => (
     <div data-testid="stat-card">
       <span>{title}</span>
       <span>{value}</span>
@@ -14,13 +15,13 @@ jest.mock('@/components/dashboard/StatCard', () => ({
 }));
 
 jest.mock('@/components/dashboard/ExpiringItemsList', () => ({
-  ExpiringItemsList: ({ items, loading }: any) => {
+  ExpiringItemsList: ({ items, loading }: { items: Array<{ id: string; name: string }>; loading: boolean }) => {
     if (loading) {
       return <div data-testid="expiring-items-loading">Loading expiring items...</div>;
     }
     return (
       <div data-testid="expiring-items-list">
-        {items.map((item: any) => (
+        {items.map((item) => (
           <div key={item.id}>{item.name}</div>
         ))}
       </div>
@@ -33,13 +34,13 @@ jest.mock('@/components/dashboard/QuickActions', () => ({
 }));
 
 jest.mock('@/components/dashboard/RecentActivity', () => ({
-  RecentActivity: ({ activities, loading }: any) => {
+  RecentActivity: ({ activities, loading }: { activities: Array<{ id: string; message: string }>; loading: boolean }) => {
     if (loading) {
       return <div data-testid="recent-activity-loading">Loading recent activity...</div>;
     }
     return (
       <div data-testid="recent-activity">
-        {activities.map((activity: any) => (
+        {activities.map((activity) => (
           <div key={activity.id}>{activity.message}</div>
         ))}
       </div>
@@ -62,14 +63,21 @@ jest.mock('@/components/dashboard/EmptyDashboard', () => ({
 
 // Mock the auth store
 jest.mock('@/stores/auth.store', () => ({
-  useAuthStore: (selector: any) => {
-    const state = {
+  useAuthStore: (selector?: (state: AuthState) => unknown) => {
+    const state: Partial<AuthState> = {
       user: {
+        id: 'user-1',
+        email: 'john@example.com',
         displayName: 'John',
         activeHouseholdId: 'household-1',
       },
+      households: [],
+      currentHouseholdId: 'household-1',
+      isAuthenticated: true,
+      isLoading: false,
+      error: null,
     };
-    return selector ? selector(state) : state;
+    return selector ? selector(state as AuthState) : state;
   },
 }));
 

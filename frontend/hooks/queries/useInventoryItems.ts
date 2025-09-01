@@ -33,8 +33,11 @@ export interface InventoryItemsResponse {
  */
 export function useInventoryItems(params: UseInventoryItemsParams = {}) {
   const { user } = useAuthStore();
-  // Use test household ID if in Cypress environment
-  const defaultHouseholdId = typeof window !== 'undefined' && (window as any).Cypress 
+  // Use test household ID if in Cypress environment (with production guard)
+  const isCypressEnv = process.env.NODE_ENV !== 'production' && 
+    typeof window !== 'undefined' && 
+    (window as any).Cypress;
+  const defaultHouseholdId = isCypressEnv
     ? 'household-123' 
     : user?.defaultHouseholdId;
   const householdId = params.householdId || defaultHouseholdId;

@@ -2,7 +2,7 @@ describe('Mobile Layout', () => {
   beforeEach(() => {
     // Skip auth for testing
     cy.window().then((win) => {
-      (win as any).Cypress = true;
+      (win as Window & { Cypress?: boolean }).Cypress = true;
     });
   });
 

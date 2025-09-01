@@ -2,7 +2,7 @@ describe('Inventory Filtering and Search', () => {
   beforeEach(() => {
     // Mock auth state for testing
     cy.window().then((win) => {
-      (win as any).Cypress = true;
+      (win as Window & { Cypress?: boolean }).Cypress = true;
     });
     
     // Visit an inventory page

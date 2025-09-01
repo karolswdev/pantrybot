@@ -68,8 +68,87 @@ frontend/
 ├── public/            # Static files
 │   ├── icons/        # PWA icons
 │   └── manifest.json # PWA manifest
+├── stores/            # Zustand state stores
+├── hooks/             # Custom React hooks
+│   ├── queries/      # React Query hooks for data fetching
+│   └── mutations/    # React Query hooks for data mutations
+├── cypress/           # E2E test files
+│   ├── e2e/         # Test specifications
+│   └── support/     # Test utilities and commands
 └── types/            # TypeScript type definitions
 ```
+
+## State Management Architecture
+
+### Overview
+The application uses a hybrid state management approach combining Zustand for client-side state and TanStack Query for server state management.
+
+### Client State (Zustand)
+
+#### Auth Store (`stores/auth.store.ts`)
+- **Purpose**: Manages authentication state and user session
+- **State**:
+  - `user`: Current user information
+  - `isAuthenticated`: Authentication status
+  - `tokens`: Access and refresh tokens
+- **Actions**:
+  - `login()`: Authenticate user
+  - `logout()`: Clear session
+  - `refreshTokens()`: Refresh authentication tokens
+
+#### Notifications Store (`stores/notifications.store.ts`)
+- **Purpose**: Manages in-app notifications and alerts
+- **State**:
+  - `notifications`: Array of notification objects
+  - `unreadCount`: Number of unread notifications
+- **Actions**:
+  - `addNotification()`: Add new notification
+  - `markAsRead()`: Mark notification as read
+  - `clearAll()`: Clear all notifications
+
+### Server State (TanStack Query)
+
+#### Query Hooks (`hooks/queries/`)
+- **useInventoryItems**: Fetches inventory items with filtering and pagination
+- **useShoppingLists**: Fetches shopping lists for a household
+- **useHouseholds**: Fetches user's households
+- **useNotificationSettings**: Fetches notification preferences
+
+#### Mutation Hooks (`hooks/mutations/`)
+- **useInventoryMutations**: Add, update, delete inventory items
+- **useCreateShoppingList**: Create new shopping lists
+- **useUpdateNotificationSettings**: Update notification preferences
+- **useLinkTelegram**: Link Telegram account for notifications
+
+### State Management Patterns
+
+#### 1. Optimistic Updates
+- Inventory operations update UI immediately
+- Shopping list changes are reflected instantly
+- Rollback on server errors
+
+#### 2. Cache Invalidation
+- Automatic invalidation after mutations
+- Manual invalidation for cross-feature updates
+- Background refetching for real-time sync
+
+#### 3. Persistent State
+- Auth tokens stored in secure storage
+- User preferences persisted locally
+- Offline queue for pending operations
+
+#### 4. Real-time Updates
+- SignalR integration for live updates
+- Automatic cache updates from WebSocket events
+- Conflict resolution for concurrent edits
+
+### Best Practices
+
+1. **Separation of Concerns**: Client state for UI, server state for data
+2. **Single Source of Truth**: Server state is authoritative
+3. **Optimistic UI**: Immediate feedback for user actions
+4. **Error Boundaries**: Graceful error handling and recovery
+5. **Type Safety**: Full TypeScript coverage for state and actions
 
 ## Available Scripts
 
@@ -81,16 +160,72 @@ frontend/
 - `npm test` - Run Jest tests
 - `npm run test:e2e` - Run Cypress E2E tests
 
-## Testing
+## Testing Strategy
 
-### Unit/Component Tests
+### Overview
+Our testing strategy follows a comprehensive pyramid approach with multiple layers of testing to ensure application reliability and maintainability.
+
+### Testing Layers
+
+#### 1. Unit Tests
+- **Location**: `*.test.ts`, `*.test.tsx` files co-located with components
+- **Framework**: Jest + React Testing Library
+- **Coverage**: Business logic, utility functions, custom hooks
+- **Run**: `npm test`
+
+#### 2. Component Tests
+- **Location**: Component test files (e.g., `SignUp.test.tsx`, `Dashboard.test.tsx`)
+- **Framework**: Jest + React Testing Library
+- **Coverage**: Component rendering, user interactions, form validation
+- **Approach**: Test components in isolation with mocked dependencies
+
+#### 3. Integration Tests
+- **Location**: `lib/__tests__/` directory
+- **Coverage**: API client, authentication flow, data transformations
+- **Focus**: Testing interactions between multiple modules
+
+#### 4. E2E Tests
+- **Location**: `cypress/e2e/` directory
+- **Framework**: Cypress
+- **Coverage**: Critical user journeys, cross-feature workflows
+- **Run**: `npm run test:e2e`
+- **Test Files**:
+  - `Auth.cy.ts` - Authentication flows
+  - `Inventory.cy.ts` - Inventory management
+  - `ShoppingLists.cy.ts` - Shopping list features
+  - `Notifications.cy.ts` - Real-time notifications
+  - `PWA.cy.ts` - Progressive Web App features
+
+### Test Naming Conventions
+- Test files: `*.test.ts(x)` for unit/component tests, `*.cy.ts` for E2E tests
+- Test descriptions: Use descriptive names that explain the behavior being tested
+- Test IDs: Follow `TC-FE-X.Y` format for traceability
+
+### Mocking Strategy
+- API calls are mocked using Cypress intercepts for E2E tests
+- Component tests use mocked hooks and providers
+- Mock data is centralized in test fixtures
+- Production guards ensure test code doesn't run in production
+
+### Running Tests
 ```bash
+# Unit and component tests
 npm test
-```
 
-### E2E Tests
-```bash
+# Unit tests with coverage
+npm test -- --coverage
+
+# E2E tests (headless)
 npm run test:e2e
+
+# E2E tests (interactive)
+npm run cypress:open
+
+# Type checking
+npm run type-check
+
+# Linting
+npm run lint
 ```
 
 ## Building for Production

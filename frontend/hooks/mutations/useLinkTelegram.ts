@@ -19,7 +19,7 @@ export function useLinkTelegram() {
       try {
         const response = await apiClient.post('/api/v1/notifications/telegram/link', payload);
         return response.data as LinkTelegramResponse;
-      } catch (error: any) {
+      } catch (error: unknown) {
         // In development, simulate error for invalid codes
         if (payload.verificationCode === 'ABC123') {
           console.warn('API unavailable, simulating successful Telegram link');
@@ -34,12 +34,13 @@ export function useLinkTelegram() {
     },
     onSuccess: (data) => {
       // Update the cached notification settings with the new Telegram link status
-      queryClient.setQueryData(['notifications', 'settings'], (old: any) => {
+      queryClient.setQueryData(['notifications', 'settings'], (old: unknown) => {
         if (!old) return old;
+        const typedOld = old as any;
         return {
-          ...old,
+          ...typedOld,
           telegram: {
-            ...old.telegram,
+            ...typedOld.telegram,
             linked: true,
             username: data.telegramUsername,
           },

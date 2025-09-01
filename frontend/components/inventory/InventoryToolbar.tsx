@@ -225,7 +225,7 @@ export function InventoryToolbar({
             All Status
           </Button>
           <Button
-            variant={selectedStatus === "expiring-soon" ? "warning" : "ghost"}
+            variant={selectedStatus === "expiring-soon" ? "secondary" : "ghost"}
             size="sm"
             onClick={() => onStatusChange("expiring-soon")}
             data-testid="status-filter-expiring"
@@ -335,7 +335,7 @@ export function InventoryToolbar({
                 All
               </Button>
               <Button
-                variant={selectedStatus === "expiring-soon" ? "warning" : "ghost"}
+                variant={selectedStatus === "expiring-soon" ? "secondary" : "ghost"}
                 size="sm"
                 onClick={() => onStatusChange("expiring-soon")}
               >

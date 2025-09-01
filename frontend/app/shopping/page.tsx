@@ -11,7 +11,7 @@ import { useAuthStore } from '@/stores/auth.store';
 
 export default function ShoppingListPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const activeHouseholdId = useAuthStore((state) => state.activeHouseholdId);
+  const activeHouseholdId = useAuthStore((state) => state.currentHouseholdId || state.user?.defaultHouseholdId);
   
   const { data: shoppingLists, isLoading, error } = useShoppingLists(
     activeHouseholdId || ''
