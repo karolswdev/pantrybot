@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Modules\Identity\Fridgr.Identity.Application\Fridgr.Identity.Application.csproj" />
+    <ProjectReference Include="..\Modules\Households\Fridgr.Households.Application\Fridgr.Households.Application.csproj" />
+    <ProjectReference Include="..\Modules\Inventory\Fridgr.Inventory.Application\Fridgr.Inventory.Application.csproj" />
+    <ProjectReference Include="..\Modules\ShoppingLists\Fridgr.ShoppingLists.Application\Fridgr.ShoppingLists.Application.csproj" />
+    <ProjectReference Include="..\Modules\Notifications\Fridgr.Notifications.Application\Fridgr.Notifications.Application.csproj" />
+    <ProjectReference Include="..\Fridgr.Infrastructure\Fridgr.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
