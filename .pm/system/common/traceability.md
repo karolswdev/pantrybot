@@ -16,13 +16,13 @@ This document maps system-level requirements to service-level requirements for t
 | SYS-FUNC-007 | Three role levels | MVP | SVC-users-FUNC-007 |
 | SYS-FUNC-008 | Invite members via email | MVP | SVC-users-FUNC-008, SVC-notifications-FUNC-002 (MBE Verified: TC-MBE-2.5, TC-MBE-2.6) |
 | SYS-FUNC-009 | Household activity logs | MVP | SVC-users-FUNC-009, SVC-inventory-FUNC-001 |
-| SYS-FUNC-010 | Add inventory items | MVP | SVC-inventory-FUNC-002 (FE Verified: TC-FE-3.1, TC-FE-3.2) |
+| SYS-FUNC-010 | Add inventory items | MVP | SVC-inventory-FUNC-002 (FE Verified: TC-FE-3.1, TC-FE-3.2) (MBE Verified: TC-MBE-3.3) |
 | SYS-FUNC-011 | Track use by and best before dates | MVP | SVC-inventory-FUNC-003 |
 | SYS-FUNC-012 | Edit item details | MVP | SVC-inventory-FUNC-004 (FE Verified: TC-FE-3.3, TC-FE-3.4) |
-| SYS-FUNC-013 | Mark items as consumed | MVP | SVC-inventory-FUNC-005 (FE Verified: TC-FE-3.5, TC-FE-7.3) |
-| SYS-FUNC-014 | Mark items as wasted | MVP | SVC-inventory-FUNC-006 (FE Verified: TC-FE-3.6, TC-FE-7.3) |
+| SYS-FUNC-013 | Mark items as consumed | MVP | SVC-inventory-FUNC-005 (FE Verified: TC-FE-3.5, TC-FE-7.3) (MBE Verified: TC-MBE-3.6) |
+| SYS-FUNC-014 | Mark items as wasted | MVP | SVC-inventory-FUNC-006 (FE Verified: TC-FE-3.6, TC-FE-7.3) (MBE Verified: TC-MBE-3.7) |
 | SYS-FUNC-015 | Move items between locations | MVP | SVC-inventory-FUNC-007 |
-| SYS-FUNC-016 | Calculate days until expiration | MVP | SVC-inventory-FUNC-008 |
+| SYS-FUNC-016 | Calculate days until expiration | MVP | SVC-inventory-FUNC-008 (MBE Verified: TC-MBE-3.2) |
 | SYS-FUNC-017 | Categorize items | MVP | SVC-inventory-FUNC-009 (FE Verified - Reports: TC-FE-6.1, TC-FE-7.8) |
 | SYS-FUNC-018 | Send expiration warnings | MVP | SVC-inventory-FUNC-010, SVC-notifications-FUNC-003 |
 | SYS-FUNC-019 | Customize warning period | MVP | SVC-notifications-FUNC-004 (FE Verified - Search: TC-FE-6.4) |

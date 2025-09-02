@@ -128,3 +128,7 @@ FOR each STORY_FE in STORIES_FE:
     "mbePhases": [{"id":"PHASE-MBE-1","verdict":"GREEN"}],
     "fePhase":{"id": FE_PHASE_ID, "storyVerdicts":{"STORY-FE-7.1":"GREEN", ...}, "finalVerdict":"GREEN|AMBER|RED"}
   }
+
+  -----
+
+  Please begin with the mock back-end phase 1

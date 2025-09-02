@@ -1,238 +1,94 @@
-# Mock Backend for Fridgr
+# Fridgr Mock Backend
 
-This is a mock backend server for the Fridgr application, providing authentication and API endpoints for frontend development and testing.
+A comprehensive mock backend server for the Fridgr application, providing all necessary endpoints for frontend development and testing.
 
-## Getting Started
+## Quick Start
 
-### Prerequisites
-- Node.js (v18 or higher)
-- npm
-
-### Installation
 ```bash
+# Navigate to mock-backend directory
+cd mock-backend
+
+# Install dependencies
 npm install
-```
 
-### Running the Server
-```bash
+# Start the server
 npm start
 ```
 
-The server will start on port 8080 by default. You can verify it's running by accessing the health endpoint:
-```bash
-curl http://localhost:8080/health
-```
+The server will start on http://localhost:8080
 
-## API Endpoints
+## Available Endpoints
 
 ### Health Check
-- **GET** `/health` - Returns server status
-  - Response: `200 OK` with `{"status": "ok"}`
+- `GET /health` - Server health check
 
-### Authentication Endpoints
+### Authentication
+- `POST /api/v1/auth/register` - Register new user
+- `POST /api/v1/auth/login` - User login
+- `POST /api/v1/auth/refresh` - Refresh access token
 
-#### Register User
-- **POST** `/api/v1/auth/register` - Create a new user account
-  - **Request Body:**
-    ```json
-    {
-      "email": "user@example.com",
-      "password": "SecurePass123!",
-      "displayName": "John Doe",
-      "timezone": "America/New_York"
-    }
-    ```
-  - **Response:** `201 Created`
-    ```json
-    {
-      "userId": "550e8400-e29b-41d4-a716-446655440001",
-      "email": "user@example.com",
-      "displayName": "John Doe",
-      "accessToken": "eyJhbGciOiJIUzI1NiIs...",
-      "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
-      "expiresIn": 900,
-      "defaultHouseholdId": "550e8400-e29b-41d4-a716-446655440002"
-    }
-    ```
-  - **Error Responses:**
-    - `400 Bad Request` - Invalid email format or weak password
-    - `409 Conflict` - Email already registered
+### Dashboard
+- `GET /api/v1/dashboard/stats` - Get dashboard statistics
 
-#### Login User
-- **POST** `/api/v1/auth/login` - Authenticate existing user
-  - **Request Body:**
-    ```json
-    {
-      "email": "user@example.com",
-      "password": "SecurePass123!"
-    }
-    ```
-  - **Response:** `200 OK`
-    ```json
-    {
-      "userId": "550e8400-e29b-41d4-a716-446655440001",
-      "accessToken": "eyJhbGciOiJIUzI1NiIs...",
-      "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
-      "expiresIn": 900,
-      "households": [
-        {
-          "id": "550e8400-e29b-41d4-a716-446655440002",
-          "name": "Home",
-          "role": "admin"
-        }
-      ]
-    }
-    ```
-  - **Error Responses:**
-    - `401 Unauthorized` - Invalid credentials
+### Household Management
+- `GET /api/v1/households` - List user's households
+- `POST /api/v1/households` - Create new household
+- `GET /api/v1/households/:id` - Get household details
+- `PUT /api/v1/households/:id` - Update household
+- `POST /api/v1/households/:id/members` - Invite member
 
-#### Refresh Token
-- **POST** `/api/v1/auth/refresh` - Get new access token using refresh token
-  - **Request Body:**
-    ```json
-    {
-      "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
-    }
-    ```
-  - **Response:** `200 OK`
-    ```json
-    {
-      "accessToken": "eyJhbGciOiJIUzI1NiIs...",
-      "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
-      "expiresIn": 900
-    }
-    ```
-  - **Error Responses:**
-    - `401 Unauthorized` - Invalid or expired refresh token
+### Inventory Management
+- `GET /api/v1/households/:householdId/items` - List items
+- `POST /api/v1/households/:householdId/items` - Add item
+- `GET /api/v1/households/:householdId/items/:itemId` - Get item details
+- `PATCH /api/v1/households/:householdId/items/:itemId` - Update item (with ETag)
+- `DELETE /api/v1/households/:householdId/items/:itemId` - Delete item
+- `POST /api/v1/households/:householdId/items/:itemId/consume` - Mark as consumed
+- `POST /api/v1/households/:householdId/items/:itemId/waste` - Mark as wasted
 
-### Household Management Endpoints
+## Testing
 
-All household endpoints require authentication via Bearer token in the Authorization header.
+### Run Regression Tests
+```bash
+node runRegressionTests.js
+```
 
-#### List User's Households
-- **GET** `/api/v1/households` - Get all households the user belongs to
-  - **Headers:** `Authorization: Bearer <token>`
-  - **Response:** `200 OK`
-    ```json
-    {
-      "households": [
-        {
-          "id": "550e8400-e29b-41d4-a716-446655440002",
-          "name": "Home",
-          "description": "Family household",
-          "role": "admin",
-          "memberCount": 3,
-          "itemCount": 127,
-          "expiringItemCount": 5,
-          "createdAt": "2024-01-01T00:00:00.000Z"
-        }
-      ],
-      "total": 1
-    }
-    ```
-  - **Error Responses:**
-    - `401 Unauthorized` - Missing or invalid token
+### Test Utilities
+The `testUtils.js` file provides utilities for:
+- Database reset
+- Test user creation
+- Test household setup
+- Test inventory items
 
-#### Create Household
-- **POST** `/api/v1/households` - Create a new household
-  - **Headers:** `Authorization: Bearer <token>`
-  - **Request Body:**
-    ```json
-    {
-      "name": "Beach House",
-      "description": "Vacation home inventory",
-      "timezone": "America/Los_Angeles"
-    }
-    ```
-  - **Response:** `201 Created`
-    ```json
-    {
-      "id": "550e8400-e29b-41d4-a716-446655440003",
-      "name": "Beach House",
-      "description": "Vacation home inventory",
-      "timezone": "America/Los_Angeles",
-      "createdAt": "2024-01-15T00:00:00.000Z",
-      "createdBy": "550e8400-e29b-41d4-a716-446655440001"
-    }
-    ```
-  - **Error Responses:**
-    - `400 Bad Request` - Missing required fields
-    - `401 Unauthorized` - Missing or invalid token
+## Project Structure
 
-#### Get Household Details
-- **GET** `/api/v1/households/{householdId}` - Get detailed household information
-  - **Headers:** `Authorization: Bearer <token>`
-  - **Response:** `200 OK`
-    ```json
-    {
-      "id": "550e8400-e29b-41d4-a716-446655440002",
-      "name": "Home",
-      "description": "Family household",
-      "timezone": "America/New_York",
-      "members": [
-        {
-          "userId": "550e8400-e29b-41d4-a716-446655440001",
-          "email": "user@example.com",
-          "displayName": "John Doe",
-          "role": "admin",
-          "joinedAt": "2024-01-01T00:00:00.000Z"
-        }
-      ],
-      "statistics": {
-        "totalItems": 127,
-        "expiringItems": 3,
-        "expiredItems": 1,
-        "consumedThisMonth": 45,
-        "wastedThisMonth": 5
-      },
-      "createdAt": "2024-01-01T00:00:00.000Z"
-    }
-    ```
-  - **Error Responses:**
-    - `401 Unauthorized` - Missing or invalid token
-    - `403 Forbidden` - User is not a member of the household
-    - `404 Not Found` - Household does not exist
+```
+mock-backend/
+├── index.js                 # Main server file
+├── authRoutes.js           # Authentication endpoints
+├── authMiddleware.js       # JWT verification middleware
+├── dashboardRoutes.js      # Dashboard endpoints
+├── householdRoutes.js      # Household management endpoints
+├── inventoryRoutes.js      # Inventory management endpoints
+├── db.js                   # In-memory database
+├── testUtils.js            # Test utility functions
+├── runRegressionTests.js   # Regression test suite
+├── package.json            # Dependencies
+└── README.md               # This file
+```
 
-#### Invite Member to Household
-- **POST** `/api/v1/households/{householdId}/members` - Invite a new member to the household
-  - **Headers:** `Authorization: Bearer <token>`
-  - **Request Body:**
-    ```json
-    {
-      "email": "newmember@example.com",
-      "role": "member"
-    }
-    ```
-  - **Response:** `201 Created`
-    ```json
-    {
-      "invitationId": "550e8400-e29b-41d4-a716-446655440004",
-      "email": "newmember@example.com",
-      "role": "member",
-      "status": "pending",
-      "expiresAt": "2024-01-22T00:00:00.000Z"
-    }
-    ```
-  - **Error Responses:**
-    - `400 Bad Request` - Missing required fields or invalid role
-    - `401 Unauthorized` - Missing or invalid token
-    - `403 Forbidden` - User is not an admin of the household
-    - `404 Not Found` - Household does not exist
-    - `409 Conflict` - User is already a member or has a pending invitation
+## Features
 
-## Environment Variables
+- JWT-based authentication with refresh token rotation
+- Role-based access control (admin, member, viewer)
+- ETag support for optimistic concurrency control
+- Complete inventory tracking with history
+- Multi-household support
+- In-memory database for development
 
-- `PORT` - Server port (default: 8080)
+## Development Notes
 
-## Development
-
-This mock backend uses:
-- Express.js for the server framework
-- CORS for cross-origin requests
-- JWT for authentication tokens
-- Bcrypt for password hashing
-- In-memory data storage for development
-
-## Notes
-
-This is a mock backend intended for development and testing purposes only. It uses in-memory storage and should not be used in production environments.
+- The server uses an in-memory database that resets on restart
+- JWT secret is hardcoded for development (change in production)
+- CORS is enabled for all origins (restrict in production)
+- Tokens expire in 15 minutes (access) and 7 days (refresh)

@@ -1,0 +1,78 @@
+{
+  "storyId": "STORY-MBE-3.2",
+  "phaseId": "PHASE-MBE-3",
+  "verdict": "RED",
+  "timestampUtc": "2025-09-01T22:22:00Z",
+  "env": {
+    "mode": "mock-backend",
+    "baseUrl": "http://localhost:8080",
+    "runtime": "Node.js/Express"
+  },
+  "versions": {
+    "node": "18.x",
+    "npm": "9.x",
+    "express": "4.x"
+  },
+  "tests": {
+    "total": 3,
+    "passed": 3,
+    "failed": 0,
+    "details": [
+      {
+        "id": "TC-MBE-3.4",
+        "name": "UpdateItem_WithValidDataAndCorrectETag_Returns200",
+        "status": "PASS",
+        "evidence": "./evidence/PHASE-MBE-3/STORY-MBE-3.2/task-1/test-output/TC-MBE-3.4.log"
+      },
+      {
+        "id": "TC-MBE-3.5",
+        "name": "UpdateItem_WithStaleETag_Returns409Conflict",
+        "status": "PASS",
+        "evidence": "./evidence/PHASE-MBE-3/STORY-MBE-3.2/task-1/test-output/TC-MBE-3.5.log"
+      },
+      {
+        "id": "TC-MBE-3.8",
+        "name": "DeleteItem_WithValidId_Returns204",
+        "status": "PASS",
+        "evidence": "./evidence/PHASE-MBE-3/STORY-MBE-3.2/task-2/test-output/TC-MBE-3.8.log"
+      }
+    ]
+  },
+  "implementation": {
+    "patchEndpoint": {
+      "etagSupport": true,
+      "optimisticConcurrency": true,
+      "validationPresent": true,
+      "authorizationChecks": true
+    },
+    "deleteEndpoint": {
+      "returnsCorrectStatus": true,
+      "removesFromInventory": true,
+      "tracksHistory": true,
+      "authorizationChecks": true
+    }
+  },
+  "blockers": [
+    {
+      "id": "QA-BLK-001",
+      "title": "Missing Evidence Files",
+      "detail": "Required evidence files were not created during original story execution",
+      "paths": [
+        "./evidence/PHASE-MBE-3/STORY-MBE-3.2/task-1/test-output/TC-MBE-3.4.log",
+        "./evidence/PHASE-MBE-3/STORY-MBE-3.2/task-1/test-output/TC-MBE-3.5.log",
+        "./evidence/PHASE-MBE-3/STORY-MBE-3.2/task-2/test-output/TC-MBE-3.8.log",
+        "./evidence/PHASE-MBE-3/STORY-MBE-3.2/regression-test.log"
+      ],
+      "resolution": "Files were recreated during QA verification"
+    }
+  ],
+  "ambers": [],
+  "commitHash": "e4413417da3a921349800738a47f94e4f7b339d9",
+  "checkboxStatus": {
+    "story": true,
+    "task1": true,
+    "task2": true,
+    "regressionTest": true,
+    "gitCommit": true
+  }
+}

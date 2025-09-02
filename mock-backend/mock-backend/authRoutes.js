@@ -53,6 +53,14 @@ function generateRefreshToken(userId) {
 // POST /api/v1/auth/register
 router.post('/register', async (req, res) => {
   try {
+    // Check if body exists
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Request body is required'
+      });
+    }
+
     const { email, password, displayName, timezone } = req.body;
 
     // Basic validation

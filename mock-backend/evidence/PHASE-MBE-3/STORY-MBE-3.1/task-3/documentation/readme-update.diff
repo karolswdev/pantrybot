@@ -1,0 +1,133 @@
+diff --git a/mock-backend/README.md b/mock-backend/README.md
+index eb15de6..f8e86b1 100644
+--- a/mock-backend/README.md
++++ b/mock-backend/README.md
+@@ -220,6 +220,128 @@ All household endpoints require authentication via Bearer token in the Authoriza
+     - `404 Not Found` - Household does not exist
+     - `409 Conflict` - User is already a member or has a pending invitation
+ 
++### Inventory Management Endpoints
++
++All inventory endpoints require authentication via Bearer token in the Authorization header.
++
++#### List Household Items
++- **GET** `/api/v1/households/{householdId}/items` - Get all items in a household
++  - **Headers:** `Authorization: Bearer <token>`
++  - **Response:** `200 OK`
++    ```json
++    {
++      "items": [
++        {
++          "id": "550e8400-e29b-41d4-a716-446655440005",
++          "name": "Organic Milk",
++          "quantity": 2,
++          "unit": "liters",
++          "location": "fridge",
++          "category": "dairy",
++          "expirationDate": "2025-09-05T00:00:00Z",
++          "daysUntilExpiration": 4,
++          "expirationStatus": "fresh",
++          "createdAt": "2025-09-01T00:00:00.000Z",
++          "createdBy": "550e8400-e29b-41d4-a716-446655440001"
++        }
++      ],
++      "pagination": {
++        "page": 1,
++        "pageSize": 10,
++        "total": 1,
++        "totalPages": 1
++      },
++      "summary": {
++        "totalItems": 1,
++        "byLocation": {
++          "fridge": 1
++        },
++        "byStatus": {
++          "fresh": 1,
++          "expiringSoon": 0,
++          "expired": 0,
++          "no_expiry": 0
++        }
++      }
++    }
++    ```
++  - **Error Responses:**
++    - `401 Unauthorized` - Missing or invalid token
++    - `403 Forbidden` - User is not a member of the household
++
++#### Add Item to Household
++- **POST** `/api/v1/households/{householdId}/items` - Add a new item to the household
++  - **Headers:** `Authorization: Bearer <token>`
++  - **Request Body:**
++    ```json
++    {
++      "name": "Organic Milk",
++      "quantity": 2,
++      "unit": "liters",
++      "location": "fridge",
++      "category": "dairy",
++      "expirationDate": "2025-09-05T00:00:00Z",
++      "bestBeforeDate": null,
++      "purchaseDate": "2025-09-01T00:00:00Z",
++      "price": 5.99,
++      "notes": "Whole milk"
++    }
++    ```
++  - **Response:** `201 Created`
++    ```json
++    {
++      "id": "550e8400-e29b-41d4-a716-446655440005",
++      "name": "Organic Milk",
++      "quantity": 2,
++      "unit": "liters",
++      "location": "fridge",
++      "category": "dairy",
++      "expirationDate": "2025-09-05T00:00:00Z",
++      "daysUntilExpiration": 4,
++      "expirationStatus": "fresh",
++      "createdAt": "2025-09-01T00:00:00.000Z",
++      "createdBy": "550e8400-e29b-41d4-a716-446655440001"
++    }
++    ```
++  - **Error Responses:**
++    - `400 Bad Request` - Invalid data (missing name, quantity, or unit)
++    - `401 Unauthorized` - Missing or invalid token
++    - `403 Forbidden` - User is not a member or has viewer role
++
++#### Get Item Details
++- **GET** `/api/v1/households/{householdId}/items/{itemId}` - Get detailed information about an item
++  - **Headers:** `Authorization: Bearer <token>`
++  - **Response:** `200 OK` (includes ETag header for optimistic concurrency)
++    ```json
++    {
++      "id": "550e8400-e29b-41d4-a716-446655440005",
++      "name": "Organic Milk",
++      "quantity": 2,
++      "unit": "liters",
++      "location": "fridge",
++      "category": "dairy",
++      "expirationDate": "2025-09-05T00:00:00Z",
++      "daysUntilExpiration": 4,
++      "expirationStatus": "fresh",
++      "history": [
++        {
++          "action": "created",
++          "timestamp": "2025-09-01T00:00:00.000Z",
++          "user": "John Doe"
++        }
++      ],
++      "createdAt": "2025-09-01T00:00:00.000Z",
++      "createdBy": {
++        "userId": "550e8400-e29b-41d4-a716-446655440001",
++        "displayName": "John Doe"
++      }
++    }
++    ```
++  - **Error Responses:**
++    - `401 Unauthorized` - Missing or invalid token
++    - `403 Forbidden` - User is not a member of the household
++    - `404 Not Found` - Item not found
++
+ ## Environment Variables
+ 
+ - `PORT` - Server port (default: 8080)

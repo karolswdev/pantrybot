@@ -1,0 +1,35 @@
+=== PHASE MBE-3 TEST EXECUTION ===
+Timestamp: 2025-09-02T00:50:40Z
+
+Setting up test user...
+User ID: ff951bf0-a741-45bb-8ccb-8fbec89031c1
+Household ID: efc1d017-b089-45c3-8242-0bd5f79e0398
+
+=== TC-MBE-3.1: Testing auth middleware ===
+✓ TC-MBE-3.1 PASSED: Returned 401 as expected
+
+=== TC-MBE-3.2: Testing list items with valid token ===
+✓ TC-MBE-3.2 PASSED: Returned 200 with items list
+
+=== TC-MBE-3.3: Testing add item ===
+✓ TC-MBE-3.3 PASSED: Returned 201 with new item
+Created Item ID: 7e67676d-e5b6-49a2-a5bd-119b9d0e6bec
+
+=== TC-MBE-3.4: Testing update item with correct ETag ===
+✓ TC-MBE-3.4 PASSED: Update with correct ETag returned 200
+
+=== TC-MBE-3.5: Testing update item with stale ETag ===
+✓ TC-MBE-3.5 PASSED: Update with stale ETag returned 409
+
+=== TC-MBE-3.6: Testing consume item ===
+✓ TC-MBE-3.6 PASSED: Consume item returned 200
+
+=== TC-MBE-3.7: Testing waste item ===
+✓ TC-MBE-3.7 PASSED: Waste item returned 200
+
+Creating new item for deletion test...
+Created item for deletion: 004a85f2-0261-4172-ace4-8b01e8ebdbc8
+=== TC-MBE-3.8: Testing delete item ===
+✓ TC-MBE-3.8 PASSED: Delete item returned 204
+
+=== PHASE MBE-3 TEST EXECUTION COMPLETE ===

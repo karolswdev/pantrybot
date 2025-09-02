@@ -21,10 +21,49 @@ const validRefreshTokens = new Set();
 // Schema: { invitationId: uuid, householdId: uuid, email: string, role: string, status: string, createdBy: uuid, createdAt: Date, expiresAt: Date }
 const invitations = [];
 
+// Inventory items array stores household inventory items
+// Schema: { 
+//   id: uuid, 
+//   householdId: uuid, 
+//   name: string, 
+//   quantity: number, 
+//   unit: string, 
+//   location: string,
+//   category: string,
+//   expirationDate: Date|null,
+//   bestBeforeDate: Date|null,
+//   purchaseDate: Date|null,
+//   price: number|null,
+//   notes: string|null,
+//   createdBy: uuid (userId),
+//   createdAt: Date,
+//   updatedAt: Date,
+//   rowVersion: number (for ETag support)
+// }
+const inventoryItems = [];
+
+// Item history array stores consumption and waste history
+// Schema: {
+//   id: uuid,
+//   itemId: uuid,
+//   householdId: uuid,
+//   action: string ('created'|'updated'|'consumed'|'wasted'|'moved'),
+//   quantity: number|null,
+//   reason: string|null,
+//   notes: string|null,
+//   previousLocation: string|null,
+//   newLocation: string|null,
+//   userId: uuid,
+//   timestamp: Date
+// }
+const itemHistory = [];
+
 module.exports = {
   users,
   households,
   household_members,
   validRefreshTokens,
-  invitations
+  invitations,
+  inventoryItems,
+  itemHistory
 };
