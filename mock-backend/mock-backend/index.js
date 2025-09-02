@@ -6,6 +6,7 @@ const householdRoutes = require('./householdRoutes');
 const inventoryRoutes = require('./inventoryRoutes');
 const dashboardRoutes = require('./dashboardRoutes');
 const notificationRoutes = require('./notificationRoutes');
+const shoppingListRoutes = require('./shoppingListRoutes');
 const { initializeSocket } = require('./socket');
 
 // Create Express app and HTTP server
@@ -48,6 +49,13 @@ app.use('/api/v1/dashboard', dashboardRoutes);
 
 // Notification routes (protected by auth middleware)
 app.use('/api/v1/notifications', notificationRoutes);
+
+// Shopping list routes (protected by auth middleware)
+// Pass io instance to shopping list routes for broadcasting
+app.use('/api/v1/households', (req, res, next) => {
+  req.io = io;
+  next();
+}, shoppingListRoutes);
 
 // Test utilities (only in non-production)
 if (process.env.NODE_ENV !== 'production') {

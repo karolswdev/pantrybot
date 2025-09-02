@@ -9,7 +9,8 @@ This is a mock backend server for the Fridgr application, providing test endpoin
 - **Inventory Management**: Full CRUD operations for inventory items with ETag support
 - **Dashboard**: Statistics and expiring items endpoints
 - **Notifications**: Manage notification settings and Telegram linking
-- **WebSocket Support**: Real-time updates using Socket.IO for inventory changes
+- **Shopping Lists**: Create and manage collaborative shopping lists with items
+- **WebSocket Support**: Real-time updates using Socket.IO for inventory and shopping list changes
 
 ## Installation
 
@@ -64,6 +65,12 @@ The server will start on port 8080 by default.
 - `PUT /api/v1/notifications/settings` - Update notification settings
 - `POST /api/v1/notifications/telegram/link` - Link Telegram account
 
+### Shopping Lists
+- `GET /api/v1/households/:householdId/shopping-lists` - List shopping lists
+- `POST /api/v1/households/:householdId/shopping-lists` - Create shopping list
+- `POST /api/v1/households/:householdId/shopping-lists/:listId/items` - Add item to shopping list
+- `PATCH /api/v1/households/:householdId/shopping-lists/:listId/items/:itemId` - Update shopping list item (toggle completed status)
+
 ### WebSocket Events
 
 The server uses Socket.IO for real-time updates. Connect with a valid JWT token in the auth handshake.
@@ -72,6 +79,8 @@ The server uses Socket.IO for real-time updates. Connect with a valid JWT token 
 - `item.added` - When a new item is added to inventory
 - `item.updated` - When an item is updated
 - `item.deleted` - When an item is deleted
+- `shoppinglist.item.added` - When a new item is added to a shopping list
+- `shoppinglist.item.updated` - When a shopping list item is updated (e.g., marked as completed)
 
 All events are scoped to household rooms, so only members of the same household receive updates.
 

@@ -1,0 +1,11 @@
+--- /home/karol/dev/code/fridgr/.pm/system/common/traceability.md.bak	2025-09-01 22:01:17.659034119 -0600
++++ /home/karol/dev/code/fridgr/.pm/system/common/traceability.md	2025-09-01 22:01:25.093636481 -0600
+@@ -31,7 +31,7 @@
+ | SYS-FUNC-022 | Telegram bot notifications | MVP | SVC-notifications-FUNC-007 |
+ | SYS-FUNC-023 | Link Telegram accounts | MVP | SVC-notifications-FUNC-008 (FE Verified: TC-FE-4.4, TC-FE-7.4) (MBE Verified: TC-MBE-4.6) |
+ | SYS-FUNC-024 | Shared shopping lists | MVP | SVC-inventory-FUNC-011 (FE Verified: TC-FE-5.1, TC-FE-5.2) (MBE Verified: TC-MBE-5.1, TC-MBE-5.2) |
+-| SYS-FUNC-025 | Real-time shopping list sync | MVP | SVC-inventory-FUNC-012 (FE Verified: TC-FE-5.3, TC-FE-5.5, TC-FE-7.5) |
++| SYS-FUNC-025 | Real-time shopping list sync | MVP | SVC-inventory-FUNC-012 (FE Verified: TC-FE-5.3, TC-FE-5.5, TC-FE-7.5) (MBE Verified: TC-MBE-5.5, TC-MBE-5.6) |
+ | SYS-FUNC-026 | Add inventory to shopping list | MVP | SVC-inventory-FUNC-013 |
+ | SYS-FUNC-027 | Real-time updates | MVP | SVC-inventory-FUNC-014 (FE Verified: TC-FE-3.7, TC-FE-4.3) (MBE Verified: TC-MBE-4.3) |
+ | SYS-FUNC-028 | Concurrent update handling | MVP | SVC-inventory-FUNC-015 (FE Verified: TC-FE-3.9) |
