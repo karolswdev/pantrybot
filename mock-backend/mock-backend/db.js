@@ -58,6 +58,22 @@ const inventoryItems = [];
 // }
 const itemHistory = [];
 
+// Notification preferences array stores user notification settings
+// Schema: {
+//   userId: uuid,
+//   email: { enabled: boolean, address: string },
+//   inApp: { enabled: boolean },
+//   telegram: { enabled: boolean, linked: boolean, username: string|null },
+//   preferences: {
+//     expirationWarningDays: number,
+//     notificationTypes: string[] ('expiration'|'lowStock'|'shoppingReminder'),
+//     preferredTime: string (HH:MM format),
+//     timezone: string
+//   },
+//   updatedAt: Date
+// }
+const notification_preferences = [];
+
 module.exports = {
   users,
   households,
@@ -65,5 +81,6 @@ module.exports = {
   validRefreshTokens,
   invitations,
   inventoryItems,
-  itemHistory
+  itemHistory,
+  notification_preferences
 };

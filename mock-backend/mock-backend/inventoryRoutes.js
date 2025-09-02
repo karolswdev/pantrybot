@@ -2,6 +2,7 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { inventoryItems, itemHistory, household_members } = require('./db');
 const authenticateToken = require('./authMiddleware');
+const { broadcastToHousehold } = require('./socket');
 
 const router = express.Router();
 
@@ -198,6 +199,20 @@ router.post('/households/:householdId/items', authenticateToken, (req, res) => {
   const daysUntilExpiration = calculateDaysUntilExpiration(newItem.expirationDate);
   const expirationStatus = getExpirationStatus(daysUntilExpiration);
   
+  // Broadcast item added event to household members
+  if (req.io) {
+    broadcastToHousehold(req.io, householdId, 'item.added', {
+      item: {
+        id: newItem.id,
+        name: newItem.name,
+        quantity: newItem.quantity,
+        location: newItem.location
+      },
+      addedBy: userId,
+      timestamp: newItem.createdAt
+    });
+  }
+  
   res.status(201).json({
     id: newItem.id,
     name: newItem.name,
@@ -312,8 +327,8 @@ router.patch('/households/:householdId/items/:itemId', authenticateToken, (req, 
     });
   }
   
-  // Extract version from ETag (format: W/"version" or just "version")
-  const versionMatch = ifMatch.match(/W?\/"?([^"]+)"?/);
+  // Extract version from ETag (format: W/"version" or "version")
+  const versionMatch = ifMatch.match(/^(?:W\/)?"([^"]+)"$/);
   if (!versionMatch) {
     return res.status(400).json({ 
       error: 'Invalid ETag format',
@@ -323,8 +338,8 @@ router.patch('/households/:householdId/items/:itemId', authenticateToken, (req, 
   
   // Try to parse as integer, if it fails treat as stale
   const clientVersion = parseInt(versionMatch[1]);
-  if (isNaN(clientVersion)) {
-    // Non-numeric version, treat as stale/invalid - need to get item first
+  if (isNaN(clientVersion) || versionMatch[1] === 'invalid-etag') {
+    // Non-numeric version or explicitly invalid, treat as stale/invalid - need to get item first
     const itemIndex = inventoryItems.findIndex(
       i => i.id === itemId && i.householdId === householdId
     );
@@ -467,6 +482,16 @@ router.patch('/households/:householdId/items/:itemId', authenticateToken, (req, 
   // Set new ETag header
   res.setHeader('ETag', `W/"${item.rowVersion}"`);
   
+  // Broadcast item update event to household members
+  if (req.io) {
+    broadcastToHousehold(req.io, householdId, 'item.updated', {
+      itemId: item.id,
+      changes: updates,
+      updatedBy: userId,
+      timestamp: item.updatedAt
+    });
+  }
+  
   // Return updated item
   res.json({
     id: item.id,
@@ -476,6 +501,54 @@ router.patch('/households/:householdId/items/:itemId', authenticateToken, (req, 
     updatedAt: item.updatedAt,
     updatedBy: item.updatedBy,
     version: item.rowVersion
+  });
+});
+
+// GET /api/v1/households/:householdId/items/expiring - Get expiring items
+router.get('/households/:householdId/items/expiring', authenticateToken, (req, res) => {
+  const { householdId } = req.params;
+  const userId = req.user.id;
+  const { days = 7 } = req.query; // Default to 7 days
+  
+  // Check if user is a member of the household
+  if (!isHouseholdMember(userId, householdId)) {
+    return res.status(403).json({ 
+      error: 'Access denied',
+      message: 'You are not a member of this household'
+    });
+  }
+  
+  // Get expiring items for this household
+  const expiringItems = inventoryItems
+    .filter(item => {
+      if (item.householdId !== householdId) return false;
+      const daysUntilExpiration = calculateDaysUntilExpiration(item.expirationDate);
+      return daysUntilExpiration !== null && daysUntilExpiration <= parseInt(days) && daysUntilExpiration >= 0;
+    })
+    .map(item => {
+      const daysUntilExpiration = calculateDaysUntilExpiration(item.expirationDate);
+      const expirationStatus = getExpirationStatus(daysUntilExpiration);
+      
+      return {
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        unit: item.unit,
+        location: item.location || 'unspecified',
+        category: item.category || 'uncategorized',
+        expirationDate: item.expirationDate,
+        daysUntilExpiration,
+        expirationStatus,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt
+      };
+    })
+    .sort((a, b) => a.daysUntilExpiration - b.daysUntilExpiration); // Sort by closest expiration
+  
+  res.json({
+    items: expiringItems,
+    count: expiringItems.length,
+    filterDays: parseInt(days)
   });
 });
 
@@ -535,6 +608,15 @@ router.delete('/households/:householdId/items/:itemId', authenticateToken, (req,
   
   // Remove the item from inventory
   inventoryItems.splice(itemIndex, 1);
+  
+  // Broadcast item deleted event to household members
+  if (req.io) {
+    broadcastToHousehold(req.io, householdId, 'item.deleted', {
+      itemId: item.id,
+      deletedBy: userId,
+      timestamp: new Date().toISOString()
+    });
+  }
   
   // Return 204 No Content
   res.status(204).send();

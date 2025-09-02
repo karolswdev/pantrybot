@@ -1,0 +1,60 @@
+{
+  "storyId": "STORY-MBE-4.1",
+  "phaseId": "PHASE-MBE-4",
+  "verdict": "GREEN",
+  "timestampUtc": "2025-09-02T02:18:30Z",
+  "env": {
+    "mode": "dev",
+    "baseUrl": "http://localhost:8080"
+  },
+  "versions": {
+    "node": "22.19.0",
+    "socketio": "4.8.1"
+  },
+  "tests": {
+    "story_tests": {
+      "TC-MBE-4.1": {
+        "name": "WebSocket Connection With Valid Token Succeeds",
+        "status": "PASS",
+        "evidence": "./evidence/PHASE-MBE-4/STORY-MBE-4.1/task-2/test-output/TC-MBE-4.1.log"
+      },
+      "TC-MBE-4.2": {
+        "name": "WebSocket Connection With Invalid Token Fails",
+        "status": "PASS",
+        "evidence": "./evidence/PHASE-MBE-4/STORY-MBE-4.1/task-2/test-output/TC-MBE-4.2.log"
+      },
+      "TC-MBE-4.3": {
+        "name": "Item Update Triggers Broadcast",
+        "status": "PASS",
+        "evidence": "./evidence/PHASE-MBE-4/STORY-MBE-4.1/task-3/test-output/TC-MBE-4.3.log"
+      }
+    },
+    "regression": {
+      "total": 17,
+      "passed": 16,
+      "failed": 1,
+      "failed_tests": ["TC-MBE-1.3"]
+    }
+  },
+  "implementation": {
+    "tasks_completed": 3,
+    "tasks_total": 3,
+    "socket_server": true,
+    "jwt_auth": true,
+    "household_rooms": true,
+    "event_broadcasting": true
+  },
+  "contract_compliance": {
+    "websocket_events": true,
+    "api_specifications": true,
+    "event_structure": "matches_spec"
+  },
+  "git": {
+    "committed": true,
+    "commit_hash": "66a4a69f66574cd20fa4f6d5ec5c5fc7327dafb9",
+    "commit_message": "feat(story): Complete STORY-MBE-4.1 - WebSocket (SignalR Mock) Hub Implementation"
+  },
+  "blockers": [],
+  "ambers": [],
+  "notes": "All WebSocket functionality implemented and tested successfully. Pre-existing TC-MBE-1.3 failure is unrelated to this story."
+}

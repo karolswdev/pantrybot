@@ -1,0 +1,65 @@
+{
+  "storyId": "STORY-MBE-4.2",
+  "verdict": "GREEN",
+  "timestampUtc": "2025-09-02T02:36:45Z",
+  "env": {
+    "mode": "dev",
+    "baseUrl": "http://localhost:8080"
+  },
+  "versions": {
+    "node": "v22.19.0",
+    "npm": "10.9.3",
+    "express": "4.21.2",
+    "socketio": "4.8.1"
+  },
+  "tests": {
+    "api": {
+      "pass": 3,
+      "total": 3
+    },
+    "typeCheckErrors": 0,
+    "lintErrors": 0
+  },
+  "traceability": [
+    {
+      "requirementId": "SYS-FUNC-019",
+      "testCases": ["TC-MBE-4.5"],
+      "evidence": ["./evidence/PHASE-MBE-4/STORY-MBE-4.2/task-1/test-output/TC-MBE-4.5.log"],
+      "status": "PASS"
+    },
+    {
+      "requirementId": "SYS-FUNC-023",
+      "testCases": ["TC-MBE-4.6"],
+      "evidence": ["./evidence/PHASE-MBE-4/STORY-MBE-4.2/task-2/test-output/TC-MBE-4.6.log"],
+      "status": "PASS"
+    }
+  ],
+  "mocks": {
+    "mockBackendProject": true,
+    "prodGuarded": "N/A - Development-only tool"
+  },
+  "blockers": [],
+  "ambers": [],
+  "tasksCompleted": [
+    "Implement GET /notifications/settings and PUT /notifications/settings",
+    "Implement POST /notifications/telegram/link",
+    "Update Documentation and Traceability Matrix"
+  ],
+  "testResults": {
+    "TC-MBE-4.4": {
+      "name": "GET notification settings returns user settings",
+      "status": "PASS",
+      "evidence": "200 OK with correct response structure"
+    },
+    "TC-MBE-4.5": {
+      "name": "PUT notification settings saves new preferences",
+      "status": "PASS",
+      "evidence": "200 OK with persistence verified"
+    },
+    "TC-MBE-4.6": {
+      "name": "POST telegram link with valid code returns 200",
+      "status": "PASS",
+      "evidence": "200 OK with linked status returned"
+    }
+  }
+}
