@@ -37,6 +37,7 @@ function isHouseholdMember(userId, householdId) {
 router.get('/households/:householdId/items', authenticateToken, (req, res) => {
   const { householdId } = req.params;
   const userId = req.user.id;
+  const { search, location, status } = req.query;
   
   // Check if user is a member of the household
   if (!isHouseholdMember(userId, householdId)) {
@@ -47,7 +48,7 @@ router.get('/households/:householdId/items', authenticateToken, (req, res) => {
   }
   
   // Get items for this household
-  const items = inventoryItems
+  let items = inventoryItems
     .filter(item => item.householdId === householdId)
     .map(item => {
       const daysUntilExpiration = calculateDaysUntilExpiration(item.expirationDate);
@@ -71,8 +72,36 @@ router.get('/households/:householdId/items', authenticateToken, (req, res) => {
         createdBy: item.createdBy,
         updatedAt: item.updatedAt
       };
-    })
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    });
+  
+  // Apply search filter
+  if (search) {
+    const searchLower = search.toLowerCase();
+    items = items.filter(item => 
+      item.name.toLowerCase().includes(searchLower) ||
+      (item.category && item.category.toLowerCase().includes(searchLower))
+    );
+  }
+  
+  // Apply location filter
+  if (location) {
+    items = items.filter(item => item.location === location);
+  }
+  
+  // Apply status filter
+  if (status) {
+    const statusMap = {
+      'expiring': 'expiring_soon',
+      'expired': 'expired',
+      'fresh': 'fresh',
+      'no_expiry': 'no_expiry'
+    };
+    const mappedStatus = statusMap[status] || status;
+    items = items.filter(item => item.expirationStatus === mappedStatus);
+  }
+  
+  // Sort items
+  items = items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   
   // Calculate summary statistics
   const summary = {
