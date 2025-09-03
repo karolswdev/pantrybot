@@ -16,7 +16,7 @@ export function useHouseholds() {
   return useQuery<HouseholdsResponse>({
     queryKey: ['households'],
     queryFn: async () => {
-      const response = await apiClient.get('/api/v1/households');
+      const response = await apiClient.get('/households');
       return response.data;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes

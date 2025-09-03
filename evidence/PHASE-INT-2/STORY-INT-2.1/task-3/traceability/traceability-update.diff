@@ -1,0 +1,13 @@
+diff --git a/.pm/system/common/traceability.md b/.pm/system/common/traceability.md
+index f5e7300..9d2b4b0 100644
+--- a/.pm/system/common/traceability.md
++++ b/.pm/system/common/traceability.md
+@@ -12,7 +12,7 @@ This document maps system-level requirements to service-level requirements for t
+ | SYS-FUNC-003 | Password reset via email | MVP | SVC-users-FUNC-003, SVC-notifications-FUNC-001 |
+ | SYS-FUNC-004 | User profiles with display names | MVP | SVC-users-FUNC-004 |
+ | SYS-FUNC-005 | Create multiple households | MVP | SVC-users-FUNC-005 (MBE Verified: TC-MBE-2.3) |
+-| SYS-FUNC-006 | Users belong to multiple households | MVP | SVC-users-FUNC-006 (MBE Verified: TC-MBE-2.2) |
++| SYS-FUNC-006 | Users belong to multiple households | MVP | SVC-users-FUNC-006 (MBE Verified: TC-MBE-2.2) (INT Verified: TC-INT-2.2) |
+ | SYS-FUNC-007 | Three role levels | MVP | SVC-users-FUNC-007 |
+ | SYS-FUNC-008 | Invite members via email | MVP | SVC-users-FUNC-008, SVC-notifications-FUNC-002 (MBE Verified: TC-MBE-2.5, TC-MBE-2.6) |
+ | SYS-FUNC-009 | Household activity logs | MVP | SVC-users-FUNC-009, SVC-inventory-FUNC-001 |

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -22,8 +22,15 @@ import useAuthStore from '@/stores/auth.store';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isLoading, error, clearError } = useAuthStore();
+  const { login, isLoading, error, clearError, isAuthenticated } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, router]);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -38,7 +45,9 @@ export default function LoginPage() {
     try {
       clearError();
       await login(data.email, data.password);
-      router.push('/dashboard');
+      // Login successful - navigate to dashboard
+      // Using replace to prevent going back to login
+      router.replace('/dashboard');
     } catch (error) {
       // Error is handled in the store
       console.error('Login error:', error);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -48,8 +48,15 @@ const TIMEZONES = [
 
 export default function SignupPage() {
   const router = useRouter();
-  const { register, isLoading, error, clearError } = useAuthStore();
+  const { register, isLoading, error, clearError, isAuthenticated } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, router]);
 
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
@@ -80,10 +87,11 @@ export default function SignupPage() {
         password: data.password,
         displayName: data.displayName,
         timezone: data.timezone,
+        householdName: data.householdName,
       });
-      // Note: In a real app, we might want to create the household separately
-      // For now, the backend creates a default household
-      router.push('/dashboard');
+      // Registration successful - navigate to dashboard
+      // Using replace to prevent going back to signup
+      router.replace('/dashboard');
     } catch (error) {
       // Error is handled in the store
       console.error('Registration error:', error);

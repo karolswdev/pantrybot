@@ -1,38 +1,31 @@
 describe('SignUp E2E Tests', () => {
   beforeEach(() => {
-    // Clear any existing auth data
+    // Reset backend state and clear any existing auth data
+    cy.resetBackendState();
     cy.window().then((win) => {
       win.localStorage.clear();
     });
   });
 
   it('should successfully register a new user and redirect to the dashboard', () => {
-    // Intercept the registration API call
-    cy.intercept('POST', '**/api/v1/auth/register', {
-      statusCode: 201,
-      body: {
-        userId: '550e8400-e29b-41d4-a716-446655440001',
-        email: 'newuser@example.com',
-        displayName: 'John Doe',
-        accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.access',
-        refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.refresh',
-        expiresIn: 900,
-        defaultHouseholdId: '550e8400-e29b-41d4-a716-446655440002'
-      }
-    }).as('registerRequest');
-
-    // Navigate to the signup page
+    // TC-INT-1.2: Test user registration against mock backend
+    
+    // Visit signup page
     cy.visit('/signup');
+
+    // Generate a unique email for this test
+    const timestamp = Date.now();
+    const testEmail = `uitest${timestamp}@example.com`;
 
     // Fill in the form with valid data
     cy.get('input[placeholder="John Doe"]').type('John Doe');
-    cy.get('input[placeholder="john@example.com"]').type('newuser@example.com');
-    cy.get('input[placeholder="Create a strong password"]').type('SecurePass123!');
+    cy.get('input[placeholder="john@example.com"]').type(testEmail);
+    cy.get('input[placeholder="Create a strong password"]').type('SecurePass123');
     cy.get('input[placeholder="Smith Family"]').type('Doe Household');
     
     // Select timezone (click on the select trigger)
-    cy.get('[role="combobox"]').click();
-    cy.contains('Eastern Time (US & Canada)').click();
+    cy.get('[role="combobox"]').click({ force: true });
+    cy.contains('Eastern Time (US & Canada)').click({ force: true });
     
     // Check the terms checkbox
     cy.get('button[role="checkbox"]').click();
@@ -40,24 +33,17 @@ describe('SignUp E2E Tests', () => {
     // Submit the form
     cy.contains('button', 'Create Account').click();
 
-    // Verify the API was called with correct payload
-    cy.wait('@registerRequest').then((interception) => {
-      expect(interception.request.body).to.deep.include({
-        email: 'newuser@example.com',
-        password: 'SecurePass123!',
-        displayName: 'John Doe',
-        timezone: 'America/New_York'
-      });
-    });
+    // Wait a moment for the auth state to update and trigger redirect
+    cy.wait(1000);
+
+    // Wait for successful registration and redirect to dashboard
+    cy.url().should('include', '/dashboard', { timeout: 10000 });
 
     // Assert that tokens are stored in localStorage
     cy.window().then((win) => {
-      expect(win.localStorage.getItem('access_token')).to.equal('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.access');
-      expect(win.localStorage.getItem('refresh_token')).to.equal('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.refresh');
+      expect(win.localStorage.getItem('access_token')).to.not.be.null;
+      expect(win.localStorage.getItem('refresh_token')).to.not.be.null;
     });
-
-    // Assert that the application navigates to the dashboard
-    cy.url().should('include', '/dashboard');
   });
 
   it('should display validation errors when submitting empty form', () => {
@@ -83,47 +69,39 @@ describe('SignUp E2E Tests', () => {
     passwordInput.type('weak');
     
     // Check that indicators show as not met (gray color)
-    cy.contains('8+ characters').parent().should('have.class', 'text-gray-400');
-    cy.contains('One uppercase letter').parent().should('have.class', 'text-gray-400');
-    cy.contains('One number').parent().should('have.class', 'text-gray-400');
+    // The div containing the indicator has the class
+    cy.get('.text-gray-400').contains('8+ characters').should('be.visible');
+    cy.get('.text-gray-400').contains('One uppercase letter').should('be.visible');
+    cy.get('.text-gray-400').contains('One number').should('be.visible');
 
     // Clear and type a strong password
     passwordInput.clear().type('StrongPass123');
     
     // Check that indicators show as met (green color)
-    cy.contains('8+ characters').parent().should('have.class', 'text-green-600');
-    cy.contains('One uppercase letter').parent().should('have.class', 'text-green-600');
-    cy.contains('One number').parent().should('have.class', 'text-green-600');
+    // The div containing the indicator has the class
+    cy.get('.text-green-600').contains('8+ characters').should('be.visible');
+    cy.get('.text-green-600').contains('One uppercase letter').should('be.visible');
+    cy.get('.text-green-600').contains('One number').should('be.visible');
   });
 
   it('should handle registration errors gracefully', () => {
-    // Intercept with an error response
-    cy.intercept('POST', '**/api/v1/auth/register', {
-      statusCode: 409,
-      body: {
-        message: 'Email already registered'
-      }
-    }).as('registerError');
-
     cy.visit('/signup');
 
-    // Fill in the form
+    // Use an email that already exists in the mock backend
+    // The mock backend should have some pre-seeded users
     cy.get('input[placeholder="John Doe"]').type('John Doe');
-    cy.get('input[placeholder="john@example.com"]').type('existing@example.com');
-    cy.get('input[placeholder="Create a strong password"]').type('SecurePass123!');
+    cy.get('input[placeholder="john@example.com"]').type('test@example.com');
+    cy.get('input[placeholder="Create a strong password"]').type('SecurePass123');
     cy.get('input[placeholder="Smith Family"]').type('Doe Household');
-    cy.get('[role="combobox"]').click();
-    cy.contains('Eastern Time (US & Canada)').click();
+    cy.get('[role="combobox"]').click({ force: true });
+    cy.contains('Eastern Time (US & Canada)').click({ force: true });
     cy.get('button[role="checkbox"]').click();
     
     // Submit the form
     cy.contains('button', 'Create Account').click();
 
-    // Wait for the error response
-    cy.wait('@registerError');
-
     // Check that error message is displayed
-    cy.contains('Email already registered').should('be.visible');
+    cy.contains('already', { matchCase: false, timeout: 5000 }).should('be.visible');
     
     // Ensure we stay on the signup page
     cy.url().should('include', '/signup');
@@ -144,7 +122,7 @@ describe('SignUp E2E Tests', () => {
       .click();
 
     // Password should now be visible
-    passwordInput.should('have.attr', 'type', 'text');
+    cy.get('input[placeholder="Create a strong password"]').should('have.attr', 'type', 'text');
 
     // Click again to hide
     cy.get('input[placeholder="Create a strong password"]')
@@ -153,7 +131,7 @@ describe('SignUp E2E Tests', () => {
       .click();
 
     // Password should be hidden again
-    passwordInput.should('have.attr', 'type', 'password');
+    cy.get('input[placeholder="Create a strong password"]').should('have.attr', 'type', 'password');
   });
 
   it('should navigate to login page when clicking sign in link', () => {

@@ -10,6 +10,12 @@ declare global {
        * @example cy.mockAuth()
        */
       mockAuth(): Chainable<void>
+      
+      /**
+       * Custom command to reset mock backend state
+       * @example cy.resetBackendState()
+       */
+      resetBackendState(): Chainable<void>
     }
   }
 }
@@ -38,6 +44,13 @@ Cypress.Commands.add('mockAuth', () => {
     version: 0
   }
   window.localStorage.setItem('auth-storage', JSON.stringify(authState))
+})
+
+// Reset mock backend state
+Cypress.Commands.add('resetBackendState', () => {
+  cy.request('POST', 'http://localhost:8080/debug/reset-state').then((response) => {
+    expect(response.status).to.eq(200)
+  })
 })
 
 export {}

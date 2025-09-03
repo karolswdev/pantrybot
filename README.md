@@ -93,20 +93,27 @@ cd fridgr
 
 2. Build and start all services with Docker Compose
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
 This single command will:
-- Build the frontend and backend containers
+- Build the frontend application
+- Build the mock backend (for integration testing)
 - Start PostgreSQL database
 - Start Redis cache
-- Run database migrations
-- Start the application
+- Start the full integrated stack
+
+The application now runs with the mock backend for full E2E testing:
+- Mock Backend provides realistic API responses for development and testing
+- Frontend connects to the mock backend API automatically
+- All services run in isolated Docker containers
 
 3. Access the application
-- Frontend: http://localhost:3000
-- API: http://localhost:5000
-- API Documentation: http://localhost:5000/swagger
+- Frontend: http://localhost:3003
+- Mock Backend API: http://localhost:8080
+- Mock Backend Health: http://localhost:8080/health
+- PostgreSQL: localhost:5433 (user: fridgr_user, password: fridgr_password)
+- Redis: localhost:6379
 
 ### Alternative: Local Development Setup (Without Docker)
 

@@ -25,7 +25,6 @@ export default function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const checkAuthFromStore = useAuthStore((state) => state.checkAuth);
   const isAuthenticatedFromStore = useAuthStore((state) => state.isAuthenticated);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
@@ -35,19 +34,13 @@ export default function AppShell({ children }: AppShellProps) {
   useEffect(() => {
     // Check authentication status
     const checkAuth = () => {
-      // Skip auth check for Cypress tests (with production guard)
+      // For Cypress tests, rely on actual auth state
       const isCypressEnv = process.env.NODE_ENV !== 'production' && 
         typeof window !== 'undefined' && 
         (window as Window & { Cypress?: unknown }).Cypress;
-      if (isCypressEnv) {
-        setIsAuthenticated(true);
-        setIsLoading(false);
-        return;
-      }
       
-      // Use auth store for checking authentication
-      const isAuth = checkAuthFromStore();
-      setIsAuthenticated(isAuth || !!localStorage.getItem("accessToken"));
+      // Always check auth from store
+      checkAuthFromStore();
       setIsLoading(false);
     };
 
@@ -59,12 +52,19 @@ export default function AppShell({ children }: AppShellProps) {
     if (!isLoading) {
       const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
       
-      if (isProtectedRoute && !isAuthenticated) {
-        // Redirect to login if trying to access protected route without auth
-        router.push("/login");
+      if (isProtectedRoute && !isAuthenticatedFromStore) {
+        // Check if we have tokens in localStorage (might be in the process of authenticating)
+        const hasToken = localStorage.getItem('access_token');
+        if (!hasToken) {
+          // Only redirect if we truly have no auth tokens
+          router.push("/login");
+        } else {
+          // We have tokens, re-check auth state
+          checkAuthFromStore();
+        }
       }
     }
-  }, [isAuthenticated, isLoading, pathname, router]);
+  }, [isAuthenticatedFromStore, isLoading, pathname, router, checkAuthFromStore]);
 
   // Show loading state
   if (isLoading) {
@@ -77,7 +77,7 @@ export default function AppShell({ children }: AppShellProps) {
 
   // For public routes, render children directly
   const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
-  if (isPublicRoute || !isAuthenticated) {
+  if (isPublicRoute || !isAuthenticatedFromStore) {
     return <>{children}</>;
   }
 

@@ -1,109 +1,121 @@
-describe('CreateHousehold - TC-FE-2.2', () => {
+describe('CreateHousehold - TC-INT-2.3', () => {
+  let authData: any;
+  let householdId: string;
+
   beforeEach(() => {
-    // Mock POST /api/v1/households endpoint
-    cy.intercept('POST', '/api/v1/households', {
-      statusCode: 201,
-      body: {
-        household: {
-          id: 'new-household-123',
-          name: 'New Test Household',
-          description: 'A test household created via Cypress',
-          createdAt: new Date().toISOString()
-        }
-      }
-    }).as('createHousehold');
+    // Clear any existing auth data
+    cy.clearLocalStorage();
     
-    // Mock GET /api/v1/households to return updated list after creation
-    cy.intercept('GET', '/api/v1/households', {
-      statusCode: 200,
-      body: {
-        households: [
-          {
-            id: 'household-1',
-            name: 'Original Household',
-            role: 'admin',
-            memberCount: 3
-          },
-          {
-            id: 'new-household-123',
-            name: 'New Test Household',
-            role: 'admin',
-            memberCount: 1
-          }
-        ]
-      }
-    }).as('getHouseholds');
+    // Register and login a test user
+    const uniqueEmail = `test-${Date.now()}@example.com`;
     
-    // Set up authentication
-    cy.window().then((win) => {
-      win.localStorage.setItem('accessToken', 'mock-token');
+    cy.request('POST', 'http://localhost:8080/api/v1/auth/register', {
+      email: uniqueEmail,
+      password: 'password123',
+      displayName: 'Test User'
+    }).then((response) => {
+      authData = response.body;
+      const { accessToken, refreshToken, userId, email, displayName, defaultHouseholdId } = authData;
+      householdId = defaultHouseholdId;
       
-      const authData = {
-        user: {
-          id: 'user-1',
-          email: 'test@example.com',
-          displayName: 'Test User',
-          activeHouseholdId: 'household-1'
-        },
-        households: [{
-          id: 'household-1',
-          name: 'Original Household',
-          role: 'admin'
-        }],
-        currentHouseholdId: 'household-1'
-      };
-      win.localStorage.setItem('auth-storage', JSON.stringify({ state: authData }));
+      // Set up authentication in localStorage
+      cy.window().then((win) => {
+        // Store tokens for API client
+        win.localStorage.setItem('access_token', accessToken);
+        win.localStorage.setItem('refresh_token', refreshToken);
+        win.localStorage.setItem('token_expiry', (Date.now() + 900000).toString()); // 15 minutes
+        
+        // Store auth state for the app
+        const authState = {
+          state: {
+            user: {
+              id: userId,
+              email: uniqueEmail,
+              displayName: 'Test User',
+              activeHouseholdId: householdId,
+              defaultHouseholdId: householdId
+            },
+            households: [{
+              id: householdId,
+              name: "Test User's Home",
+              role: 'admin'
+            }],
+            currentHouseholdId: householdId,
+            isAuthenticated: true,
+            isLoading: false,
+            error: null
+          },
+          version: 0
+        };
+        win.localStorage.setItem('auth-storage', JSON.stringify(authState));
+      });
     });
   });
 
-  it('should create a new household and update the household list', () => {
-    // Note: Since we don't have a dedicated Create Household UI yet,
-    // we'll test the mutation hook directly through the console
-    // In a real implementation, this would be triggered by a UI component
-    
-    cy.visit('/dashboard');
+  it('should create a new household via the mock backend', () => {
+    // Navigate to dashboard
+    cy.visit('http://localhost:3003/dashboard');
     
     // Wait for page to load
-    cy.contains('Welcome back').should('be.visible');
+    cy.contains('Welcome back', { timeout: 10000 }).should('be.visible');
     
-    // Simulate household creation through console
-    // (In production, this would be triggered by a button click in a modal)
+    // Create a new household via direct API call
+    // In a real implementation, this would be triggered by a UI component
     cy.window().then((win) => {
-      // Mock the API call directly since we don't have UI yet
-      const mockCreateHousehold = () => {
-        return fetch('/api/v1/households', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer mock-token'
-          },
-          body: JSON.stringify({
-            name: 'New Test Household',
-            description: 'A test household created via Cypress'
-          })
-        });
-      };
+      const accessToken = win.localStorage.getItem('access_token');
       
-      // Execute the mock creation
-      win.eval(`(${mockCreateHousehold.toString()})()`);
-    });
-    
-    // Wait for the create household API call
-    cy.wait('@createHousehold');
-    
-    // Verify that the households list would be invalidated
-    // In a real app with UI, we'd verify the new household appears in the switcher
-    cy.get('@createHousehold').should((interception) => {
-      expect(interception.request.body).to.deep.include({
-        name: 'New Test Household'
+      // Make the actual API call to create a household
+      cy.request({
+        method: 'POST',
+        url: 'http://localhost:8080/api/v1/households',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: {
+          name: 'New Test Household',
+          description: 'A test household created via Cypress'
+        }
+      }).then((createResponse) => {
+        // Verify the response
+        expect(createResponse.status).to.equal(201);
+        expect(createResponse.body).to.exist;
+        
+        // The response might have the household at root level or in a household property
+        const household = createResponse.body.household || createResponse.body;
+        expect(household).to.exist;
+        expect(household.name).to.equal('New Test Household');
+        
+        const newHouseholdId = household.id;
+        
+        // Verify the new household appears in the households list
+        cy.request({
+          method: 'GET',
+          url: 'http://localhost:8080/api/v1/households',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        }).then((listResponse) => {
+          expect(listResponse.status).to.equal(200);
+          expect(listResponse.body.households).to.be.an('array');
+          
+          // Should now have at least 2 households (original + new)
+          expect(listResponse.body.households.length).to.be.at.least(2);
+          
+          // Find the new household in the list
+          const newHousehold = listResponse.body.households.find(
+            (h: any) => h.id === newHouseholdId
+          );
+          expect(newHousehold).to.exist;
+          expect(newHousehold.name).to.equal('New Test Household');
+          expect(newHousehold.role).to.equal('admin'); // Creator should be admin
+        });
       });
     });
     
-    // If we had a household switcher visible, we'd verify it here
-    // Since the switcher component exists but may not show data properly,
-    // we're verifying the API interaction instead
-    
     // Log success for the test
-    cy.log('Household creation mutation hook tested successfully');
+    cy.log('✓ Household created successfully via mock backend');
+    cy.log('✓ New household appears in households list');
+    cy.log('✓ Creator has admin role in new household');
   });
 });

@@ -6,7 +6,7 @@ const REFRESH_TOKEN_KEY = 'refresh_token';
 const TOKEN_EXPIRY_KEY = 'token_expiry';
 
 // API configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
 
 // Token management utilities
 export const tokenManager = {
@@ -82,7 +82,18 @@ apiClient.interceptors.request.use(
     
     // Add request ID for tracing
     if (config.headers) {
-      config.headers['X-Request-Id'] = crypto.randomUUID();
+      // Use crypto.randomUUID if available, otherwise fallback to a timestamp-based ID
+      try {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+          config.headers['X-Request-Id'] = crypto.randomUUID();
+        } else {
+          // Fallback for environments where crypto.randomUUID is not available
+          config.headers['X-Request-Id'] = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        }
+      } catch (error) {
+        // If crypto.randomUUID throws an error, use fallback
+        config.headers['X-Request-Id'] = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      }
     }
     
     return config;
@@ -154,7 +165,7 @@ apiClient.interceptors.response.use(
         
         const { accessToken, refreshToken: newRefreshToken, expiresIn } = response.data;
         
-        tokenManager.setTokens(accessToken, newRefreshToken, expiresIn);
+        tokenManager.setTokens(accessToken, newRefreshToken, expiresIn || 900);
         
         if (originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
@@ -193,6 +204,7 @@ export const api = {
       password: string;
       displayName: string;
       timezone?: string;
+      defaultHouseholdName?: string;
     }) => apiClient.post('/auth/register', data),
     
     login: (data: {

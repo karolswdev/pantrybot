@@ -33,6 +33,7 @@ export interface AuthState {
     password: string;
     displayName: string;
     timezone?: string;
+    householdName?: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
   setCurrentHousehold: (householdId: string) => void;
@@ -59,21 +60,22 @@ const useAuthStore = create<AuthState>()(
         
         try {
           const response = await api.auth.login({ email, password });
-          const { userId, accessToken, refreshToken, expiresIn, households } = response.data;
+          const { accessToken, refreshToken, expiresIn, userId } = response.data;
           
           // Store tokens
-          tokenManager.setTokens(accessToken, refreshToken, expiresIn);
+          tokenManager.setTokens(accessToken, refreshToken, expiresIn || 900);
           
-          // Get user details (email and displayName from login response)
-          // Set default household if available
-          const defaultHousehold = households.length > 0 ? households[0].id : null;
-          
+          // Construct user object from login response
           const user: User = {
             id: userId,
             email: email,
-            displayName: email.split('@')[0], // Default display name
-            activeHouseholdId: defaultHousehold || undefined,
+            displayName: response.data.displayName || email.split('@')[0],
+            activeHouseholdId: response.data.defaultHouseholdId || undefined,
           };
+          
+          // Set households if provided, otherwise empty array
+          const households: Household[] = response.data.households || [];
+          const defaultHousehold = response.data.defaultHouseholdId || (households.length > 0 ? households[0].id : null);
           
           set({
             user,
@@ -99,7 +101,15 @@ const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         
         try {
-          const response = await api.auth.register(data);
+          // Pass the household name from the form or use 'Home' as default
+          const response = await api.auth.register({
+            email: data.email,
+            password: data.password,
+            displayName: data.displayName,
+            timezone: data.timezone || 'UTC',
+            defaultHouseholdName: data.householdName || 'Home' // Use provided household name or default
+          });
+          
           const { 
             userId, 
             email, 
@@ -111,7 +121,7 @@ const useAuthStore = create<AuthState>()(
           } = response.data;
           
           // Store tokens
-          tokenManager.setTokens(accessToken, refreshToken, expiresIn);
+          tokenManager.setTokens(accessToken, refreshToken, expiresIn || 900);
           
           // Create user object
           const user: User = {
@@ -124,7 +134,7 @@ const useAuthStore = create<AuthState>()(
           // Create default household
           const households: Household[] = defaultHouseholdId ? [{
             id: defaultHouseholdId,
-            name: 'Home',
+            name: data.householdName || 'Home',
             role: 'admin',
           }] : [];
           

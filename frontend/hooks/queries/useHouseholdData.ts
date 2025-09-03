@@ -101,21 +101,19 @@ export function useHouseholdData(householdId?: string) {
   return useQuery<HouseholdData>({
     queryKey: ['household', activeHouseholdId],
     queryFn: async () => {
-      // Use mock data during development when backend is not available
-      if (process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true' || !process.env.NEXT_PUBLIC_API_URL) {
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 500));
-        return MOCK_HOUSEHOLD_DATA;
-      }
-      
       if (!activeHouseholdId) {
         throw new Error('No household ID available');
       }
       
-      const response = await apiClient.get(`/households/${activeHouseholdId}`);
-      return response.data;
+      try {
+        const response = await apiClient.get(`/households/${activeHouseholdId}`);
+        return response.data;
+      } catch (error: any) {
+        console.error('Failed to fetch household data:', error.message);
+        throw error;
+      }
     },
-    enabled: true, // Always enabled since we can use mock data
+    enabled: !!activeHouseholdId, // Only fetch when we have a household ID
     staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
     gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes
   });
@@ -193,32 +191,35 @@ export function useExpiringItems(householdId?: string, limit = 5) {
   return useQuery<ExpiringItem[]>({
     queryKey: ['household', activeHouseholdId, 'expiring-items', limit],
     queryFn: async () => {
-      // Use mock data during development when backend is not available
-      if (process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true' || !process.env.NEXT_PUBLIC_API_URL) {
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 300));
-        return MOCK_EXPIRING_ITEMS.slice(0, limit);
-      }
-      
       if (!activeHouseholdId) {
         throw new Error('No household ID available');
       }
       
-      const response = await apiClient.get(`/households/${activeHouseholdId}/items`, {
-        params: {
-          status: 'expiring_soon',
-          sortBy: 'expirationDate',
-          sortOrder: 'asc',
-          pageSize: limit,
-        },
-      });
-      
-      return response.data.items.map((item: any) => ({
-        ...item,
-        expirationStatus: getExpirationStatus(item.daysUntilExpiration),
-      }));
+      try {
+        const response = await apiClient.get(`/households/${activeHouseholdId}/items`, {
+          params: {
+            status: 'expiring_soon',
+            sortBy: 'expirationDate',
+            sortOrder: 'asc',
+            pageSize: limit,
+          },
+        });
+        
+        // Handle empty items case
+        if (!response.data.items || response.data.items.length === 0) {
+          return [];
+        }
+        
+        return response.data.items.map((item: any) => ({
+          ...item,
+          expirationStatus: getExpirationStatus(item.daysUntilExpiration),
+        }));
+      } catch (error: any) {
+        console.error('Failed to fetch expiring items:', error.message);
+        throw error;
+      }
     },
-    enabled: true, // Always enabled since we can use mock data
+    enabled: !!activeHouseholdId, // Only fetch when we have a household ID
     staleTime: 1000 * 60 * 2, // Consider data fresh for 2 minutes
     gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
   });
