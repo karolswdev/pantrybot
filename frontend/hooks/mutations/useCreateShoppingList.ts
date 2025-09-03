@@ -24,25 +24,11 @@ export function useCreateShoppingList(householdId: string) {
         throw new Error('Household ID is required');
       }
 
-      try {
-        const response = await apiClient.post(
-          `/households/${householdId}/shopping-lists`,
-          data
-        );
-        return response.data;
-      } catch (error) {
-        // In development, simulate successful creation with mock response
-        console.warn('API unavailable, simulating shopping list creation');
-        const mockResponse: CreateShoppingListResponse = {
-          id: `mock-${Date.now()}`,
-          name: data.name,
-          notes: data.notes || '',
-          items: [],
-          createdAt: new Date().toISOString(),
-          createdBy: 'Current User',
-        };
-        return mockResponse;
-      }
+      const response = await apiClient.post(
+        `/households/${householdId}/shopping-lists`,
+        data
+      );
+      return response.data;
     },
     onSuccess: (newList) => {
       // Invalidate and refetch shopping lists after successful creation

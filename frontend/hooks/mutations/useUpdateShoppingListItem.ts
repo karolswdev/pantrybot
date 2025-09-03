@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useHouseholdStore } from '@/stores/household.store';
 import { ShoppingListItemType } from '@/hooks/queries/useShoppingListItems';
+import { apiClient } from '@/lib/api-client';
 
 interface UpdateItemPayload {
   itemId: string;
@@ -14,42 +15,34 @@ interface UpdateItemPayload {
 async function updateShoppingListItem(
   householdId: string,
   listId: string,
-  { itemId, ...updates }: UpdateItemPayload
+  { itemId, isCompleted, ...updates }: UpdateItemPayload
 ): Promise<ShoppingListItemType> {
-  try {
-    const response = await fetch(
-      `/api/v1/households/${householdId}/shopping-lists/${listId}/items/${itemId}`,
-      {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-        },
-        body: JSON.stringify(updates),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error('Failed to update shopping list item');
-    }
-
-    return response.json();
-  } catch (error) {
-    // Return mock response for development
-    console.warn('Using mock response for update item:', error);
-    return {
-      id: itemId,
-      shoppingListId: listId,
-      name: updates.name || 'Updated Item',
-      quantity: updates.quantity,
-      unit: updates.unit,
-      category: updates.category,
-      isCompleted: updates.isCompleted ?? false,
-      completedAt: updates.isCompleted ? new Date().toISOString() : undefined,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-  }
+  // Transform isCompleted to completed for backend
+  const backendPayload = {
+    ...updates,
+    completed: isCompleted,
+  };
+  
+  const response = await apiClient.patch(
+    `/households/${householdId}/shopping-lists/${listId}/items/${itemId}`,
+    backendPayload
+  );
+  
+  // Transform backend response to match frontend type
+  const data = response.data;
+  return {
+    id: data.id,
+    shoppingListId: listId,
+    name: data.name,
+    quantity: data.quantity,
+    unit: data.unit,
+    category: data.category,
+    notes: data.notes,
+    isCompleted: data.completed || false,
+    completedAt: data.completedAt,
+    createdAt: data.addedAt || data.createdAt,
+    updatedAt: data.updatedAt,
+  };
 }
 
 export function useUpdateShoppingListItem(listId: string) {

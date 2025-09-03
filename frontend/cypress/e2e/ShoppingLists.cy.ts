@@ -1,109 +1,158 @@
 describe('Shopping Lists', () => {
+  let accessToken: string;
+  let refreshToken: string;
+  let householdId: string;
+  let userId: string;
+  let households: any[];
+  
+  // Test user credentials
+  const testUser = {
+    email: 'shoppingtest@example.com',
+    password: 'Test123!@#',
+    displayName: 'Shopping Test User'
+  };
+
   beforeEach(() => {
-    // Set up authentication state
-    window.localStorage.setItem('auth-storage', JSON.stringify({
-      state: {
-        user: {
-          id: 'user-1',
-          email: 'test@example.com',
-          displayName: 'Test User',
-        },
-        accessToken: 'mock-access-token',
-        refreshToken: 'mock-refresh-token',
-        isAuthenticated: true,
-        activeHouseholdId: 'household-1',
-      },
-    }));
+    // First, try to register the test user (will fail if already exists)
+    cy.request({
+      method: 'POST',
+      url: 'http://localhost:8080/api/v1/auth/register',
+      body: testUser,
+      failOnStatusCode: false // Don't fail if user already exists
+    }).then((registerResponse) => {
+      // Now login with the test user
+      cy.request('POST', 'http://localhost:8080/api/v1/auth/login', {
+        email: testUser.email,
+        password: testUser.password
+      }).then((loginResponse) => {
+        accessToken = loginResponse.body.accessToken;
+        refreshToken = loginResponse.body.refreshToken;
+        userId = loginResponse.body.userId;
+        
+        // Get the user's households
+        cy.request({
+          method: 'GET',
+          url: 'http://localhost:8080/api/v1/households',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        }).then((householdsResponse) => {
+          households = householdsResponse.body.households;
+          householdId = households[0].id;
+        });
+      });
+    });
   });
 
-  it('should display shopping lists for the active household', () => {
-    // TC-FE-5.1: Display shopping lists for the active household
+  it('should display shopping lists from the mock backend', () => {
+    // TC-INT-5.1: Display shopping lists from the mock backend
     
-    // Arrange: Intercept GET /api/v1/households/{id}/shopping-lists and return mock data
-    cy.intercept('GET', '/api/v1/households/household-1/shopping-lists', {
-      statusCode: 200,
-      body: {
-        lists: [
-          {
-            id: 'list-1',
-            name: 'Weekly Groceries',
-            itemCount: 12,
-            completedCount: 3,
-            createdAt: '2024-01-14T00:00:00Z',
-            createdBy: 'John Doe',
-            lastUpdated: '2024-01-15T00:00:00Z',
-          },
-          {
-            id: 'list-2',
-            name: 'Party Supplies',
-            itemCount: 5,
-            completedCount: 0,
-            createdAt: '2024-01-15T00:00:00Z',
-            createdBy: 'Jane Smith',
-            lastUpdated: '2024-01-15T00:00:00Z',
-          },
-        ],
-        total: 2,
+    // Arrange: Create test shopping lists in the backend
+    cy.request({
+      method: 'POST',
+      url: `http://localhost:8080/api/v1/households/${householdId}/shopping-lists`,
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
       },
-    }).as('getShoppingLists');
+      body: {
+        name: 'Weekly Groceries',
+        notes: 'Regular shopping'
+      }
+    });
+    
+    cy.request({
+      method: 'POST',
+      url: `http://localhost:8080/api/v1/households/${householdId}/shopping-lists`,
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: {
+        name: 'Party Supplies',
+        notes: 'For the weekend'
+      }
+    });
 
-    // Act: Navigate to the /shopping page
+    // Act: Visit home first to set localStorage, then navigate
+    cy.visit('/', {
+      onBeforeLoad(win) {
+        // Set auth store data
+        win.localStorage.setItem('auth-storage', JSON.stringify({
+          state: {
+            user: {
+              id: userId,
+              email: testUser.email,
+              displayName: testUser.displayName,
+              defaultHouseholdId: householdId
+            },
+            token: accessToken,
+            refreshToken: refreshToken,
+            isAuthenticated: true,
+            currentHouseholdId: householdId,
+            households: households,
+            isLoading: false,
+            error: null
+          },
+        }));
+        // Also set tokens for api-client
+        win.localStorage.setItem('access_token', accessToken);
+        win.localStorage.setItem('refresh_token', refreshToken);
+        win.localStorage.setItem('token_expiry', (Date.now() + 900000).toString()); // 15 minutes
+      }
+    });
+    
+    // Then navigate to the shopping page
     cy.visit('/shopping');
     
-    // Wait for the API call
-    cy.wait('@getShoppingLists');
+    // Wait for the page to load and fetch data from backend
+    cy.get('[data-testid="shopping-list-page"]', { timeout: 10000 }).should('exist');
 
-    // Assert: Verify that 2 shopping list components are rendered
-    cy.get('[data-testid="shopping-list-page"]').should('exist');
-    cy.get('[data-testid^="shopping-list-"]').should('have.length', 2);
+    // Assert: Verify that at least 2 shopping list components are rendered
+    cy.get('[data-testid^="shopping-list-"]').should('have.length.at.least', 2);
     
-    // Assert: Verify the names match the mocked data
-    cy.get('[data-testid="shopping-list-list-1"]').should('contain', 'Weekly Groceries');
-    cy.get('[data-testid="shopping-list-list-1"]').should('contain', '12 items');
-    cy.get('[data-testid="shopping-list-list-1"]').should('contain', 'John Doe');
-    
-    cy.get('[data-testid="shopping-list-list-2"]').should('contain', 'Party Supplies');
-    cy.get('[data-testid="shopping-list-list-2"]').should('contain', '5 items');
-    cy.get('[data-testid="shopping-list-list-2"]').should('contain', 'Jane Smith');
+    // Assert: Verify the names match the created data
+    // Note: We check for the list names without relying on specific IDs since they're generated
+    cy.get('[data-testid^="shopping-list-"]').should('contain', 'Weekly Groceries');
+    cy.get('[data-testid^="shopping-list-"]').should('contain', 'Party Supplies');
   });
 
-  it('should successfully create a new shopping list', () => {
-    // TC-FE-5.2: Successfully create a new shopping list
-    
-    // Arrange: Intercept POST /api/v1/households/{id}/shopping-lists
-    cy.intercept('POST', '/api/v1/households/household-1/shopping-lists', {
-      statusCode: 201,
-      body: {
-        id: 'new-list-id',
-        name: 'Weekend Shopping',
-        notes: 'For the BBQ',
-        items: [],
-        createdAt: '2024-01-16T00:00:00Z',
-        createdBy: 'user-1',
-      },
-    }).as('createShoppingList');
+  it('should create a new shopping list via the mock backend', () => {
+    // TC-INT-5.2: Create a new shopping list via the mock backend
 
-    // Also intercept the GET to return the updated list
-    cy.intercept('GET', '/api/v1/households/household-1/shopping-lists', {
-      statusCode: 200,
-      body: {
-        lists: [
-          {
-            id: 'new-list-id',
-            name: 'Weekend Shopping',
-            itemCount: 0,
-            completedCount: 0,
-            createdAt: '2024-01-16T00:00:00Z',
-            createdBy: 'Test User',
-            lastUpdated: '2024-01-16T00:00:00Z',
+    // Act: Visit home first to set localStorage, then navigate
+    cy.visit('/', {
+      onBeforeLoad(win) {
+        // Set auth store data
+        win.localStorage.setItem('auth-storage', JSON.stringify({
+          state: {
+            user: {
+              id: userId,
+              email: testUser.email,
+              displayName: testUser.displayName,
+              defaultHouseholdId: householdId
+            },
+            token: accessToken,
+            refreshToken: refreshToken,
+            isAuthenticated: true,
+            currentHouseholdId: householdId,
+            households: households,
+            isLoading: false,
+            error: null
           },
-        ],
-        total: 1,
-      },
-    }).as('getUpdatedLists');
-
-    // Act: Navigate to shopping page
+        }));
+        // Also set tokens for api-client
+        win.localStorage.setItem('access_token', accessToken);
+        win.localStorage.setItem('refresh_token', refreshToken);
+        win.localStorage.setItem('token_expiry', (Date.now() + 900000).toString()); // 15 minutes
+      }
+    });
+    
+    // Then navigate to the shopping page
     cy.visit('/shopping');
+    
+    // Wait for page to load
+    cy.get('[data-testid="shopping-list-page"]', { timeout: 10000 }).should('exist');
     
     // Click the "New List" button
     cy.get('[data-testid="new-list-button"]').click();
@@ -115,25 +164,15 @@ describe('Shopping Lists', () => {
     cy.get('[data-testid="list-name-input"]').type('Weekend Shopping');
     cy.get('[data-testid="list-notes-input"]').type('For the BBQ');
     
-    // Submit the form
+    // Submit the form - this will trigger a real POST request
     cy.get('[data-testid="create-list-button"]').click();
 
-    // Assert: Verify the POST was called with the correct name
-    cy.wait('@createShoppingList').then((interception) => {
-      expect(interception.request.body).to.deep.include({
-        name: 'Weekend Shopping',
-        notes: 'For the BBQ',
-      });
-    });
-
-    // Wait for the list refresh
-    cy.wait('@getUpdatedLists');
-
-    // Assert: Verify the new list appears in the UI after successful response
-    cy.get('[data-testid="shopping-list-new-list-id"]').should('exist');
-    cy.get('[data-testid="shopping-list-new-list-id"]').should('contain', 'Weekend Shopping');
-    
-    // Verify modal is closed
+    // Wait for the modal to close and list to appear
     cy.get('[data-testid="create-list-modal"]').should('not.exist');
+    
+    // Assert: Verify the new list appears in the UI after successful response
+    cy.get('[data-testid^="shopping-list-"]', { timeout: 10000 })
+      .contains('Weekend Shopping')
+      .should('exist');
   });
 });

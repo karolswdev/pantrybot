@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useHouseholdStore } from '@/stores/household.store';
+import { apiClient } from '@/lib/api-client';
 
 export interface ShoppingListItemType {
   id: string;
@@ -8,6 +9,7 @@ export interface ShoppingListItemType {
   quantity?: number;
   unit?: string;
   category?: string;
+  notes?: string;
   isCompleted: boolean;
   completedAt?: string;
   createdAt: string;
@@ -15,82 +17,24 @@ export interface ShoppingListItemType {
 }
 
 async function fetchShoppingListItems(householdId: string, listId: string): Promise<ShoppingListItemType[]> {
-  try {
-    const response = await fetch(`/api/v1/households/${householdId}/shopping-lists/${listId}/items`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch shopping list items');
-    }
-
-    return response.json();
-  } catch (error) {
-    // Return mock data as fallback
-    console.warn('Using mock data for shopping list items:', error);
-    return [
-      {
-        id: '1',
-        shoppingListId: listId,
-        name: 'Milk',
-        quantity: 1,
-        unit: 'gal',
-        category: 'Dairy',
-        isCompleted: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: '2',
-        shoppingListId: listId,
-        name: 'Bread',
-        quantity: 1,
-        unit: 'loaf',
-        category: 'Bakery',
-        isCompleted: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: '3',
-        shoppingListId: listId,
-        name: 'Eggs',
-        quantity: 1,
-        unit: 'dozen',
-        category: 'Dairy',
-        isCompleted: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: '4',
-        shoppingListId: listId,
-        name: 'Apples',
-        quantity: 6,
-        unit: '',
-        category: 'Produce',
-        isCompleted: true,
-        completedAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: '5',
-        shoppingListId: listId,
-        name: 'Yogurt',
-        quantity: 4,
-        unit: 'pack',
-        category: 'Dairy',
-        isCompleted: true,
-        completedAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    ];
-  }
+  const response = await apiClient.get(
+    `/households/${householdId}/shopping-lists/${listId}/items`
+  );
+  
+  // Transform backend response to match frontend type
+  return response.data.map((item: any) => ({
+    id: item.id,
+    shoppingListId: listId,
+    name: item.name,
+    quantity: item.quantity,
+    unit: item.unit,
+    category: item.category,
+    notes: item.notes,
+    isCompleted: item.completed || false,
+    completedAt: item.completedAt,
+    createdAt: item.addedAt || item.createdAt,
+    updatedAt: item.updatedAt,
+  }));
 }
 
 export function useShoppingListItems(listId: string) {

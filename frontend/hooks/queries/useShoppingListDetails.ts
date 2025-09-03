@@ -1,43 +1,25 @@
 import { useQuery } from '@tanstack/react-query';
 import { useHouseholdStore } from '@/stores/household.store';
+import { apiClient } from '@/lib/api-client';
 
-interface ShoppingListDetails {
+export interface ShoppingListDetails {
   id: string;
   householdId: string;
   name: string;
-  description?: string;
-  estimatedTotal?: number;
+  notes?: string;
   createdAt: string;
-  updatedAt: string;
+  createdBy: string;
+  lastUpdated: string;
+  estimatedTotal?: number;
+  items: any[];
 }
 
 async function fetchShoppingListDetails(householdId: string, listId: string): Promise<ShoppingListDetails> {
-  try {
-    const response = await fetch(`/api/v1/households/${householdId}/shopping-lists/${listId}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch shopping list details');
-    }
-
-    return response.json();
-  } catch (error) {
-    // Return mock data as fallback
-    console.warn('Using mock data for shopping list details:', error);
-    return {
-      id: listId,
-      householdId,
-      name: 'Weekly Groceries',
-      description: 'Shopping list for the week',
-      estimatedTotal: 85,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-  }
+  const response = await apiClient.get(
+    `/households/${householdId}/shopping-lists/${listId}`
+  );
+  
+  return response.data;
 }
 
 export function useShoppingListDetails(listId: string) {

@@ -42,9 +42,7 @@ export default function ShoppingListDetailPage() {
     try {
       await addItemMutation.mutateAsync({ 
         name: newItemName.trim(),
-        quantity: 1,
-        category: '',
-        isCompleted: false 
+        quantity: 1
       });
       setNewItemName('');
     } catch (error) {
@@ -95,7 +93,7 @@ export default function ShoppingListDetailPage() {
           <div>
             <h1 className="text-2xl font-bold">{listDetails.name}</h1>
             <p className="text-sm text-muted-foreground">
-              {items.length} items · ${listDetails.estimatedTotal || 0} estimated
+              {items.length} items · ${listDetails?.estimatedTotal || Math.round(items.length * 5)} estimated
             </p>
           </div>
         </div>

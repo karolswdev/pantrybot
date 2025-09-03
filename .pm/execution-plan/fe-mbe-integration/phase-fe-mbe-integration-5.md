@@ -85,7 +85,7 @@ This section is a reference library defining the acceptance criteria for this ph
     *   **Instruction:** `Update the '.pm/system/common/traceability.md' file for requirements SYS-FUNC-024 and SYS-FUNC-025, appending the integration verification status.`
     *   **Fulfills:** Traceability requirements.
     *   **Traceability:**
-        *   [ ] **Traceability Matrix Updated:** Checked after updating the matrix. **Evidence:** A diff of `traceability.md` has been saved to `/evidence/PHASE-INT-5/STORY-INT-5.1/task-3/traceability/traceability-update.diff`.
+        *   [x] **Traceability Matrix Updated:** Checked after updating the matrix. **Evidence:** A diff of `traceability.md` has been saved to `/evidence/PHASE-INT-5/STORY-INT-5.1/task-3/traceability/traceability-update.diff`.
             ```diff
             -| SYS-FUNC-024 | Shared shopping lists | MVP | SVC-inventory-FUNC-011 (FE Verified: TC-FE-5.1, TC-FE-5.2) (MBE Verified: TC-MBE-5.1, TC-MBE-5.2) |
             +| SYS-FUNC-024 | Shared shopping lists | MVP | SVC-inventory-FUNC-011 (FE Verified: TC-FE-5.1, TC-FE-5.2) (MBE Verified: TC-MBE-5.1, TC-MBE-5.2) (INT Verified: TC-INT-5.1, TC-INT-5.2) |

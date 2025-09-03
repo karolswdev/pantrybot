@@ -49,19 +49,13 @@ export function useShoppingLists(householdId: string) {
         throw new Error('Household ID is required');
       }
 
-      try {
-        const response = await apiClient.get(
-          `/households/${householdId}/shopping-lists`
-        );
-        return response.data;
-      } catch (error) {
-        // Fallback to mock data when API is unavailable
-        console.warn('API unavailable, using mock shopping lists data');
-        return MOCK_SHOPPING_LISTS;
-      }
+      const response = await apiClient.get(
+        `/households/${householdId}/shopping-lists`
+      );
+      return response.data;
     },
     enabled: !!householdId,
-    retry: false, // Don't retry when backend is down
+    retry: 1, // Retry once on failure
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }

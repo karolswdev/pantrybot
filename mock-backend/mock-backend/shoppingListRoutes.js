@@ -40,6 +40,99 @@ router.get('/:householdId/shopping-lists', authMiddleware, (req, res) => {
   res.json({ lists: listsWithCounts });
 });
 
+// GET /api/v1/households/:householdId/shopping-lists/:listId
+// Get shopping list details with items
+router.get('/:householdId/shopping-lists/:listId', authMiddleware, (req, res) => {
+  const { householdId, listId } = req.params;
+  
+  // Check if user is a member of the household
+  const membership = db.household_members.find(
+    m => m.householdId === householdId && m.userId === req.user.id
+  );
+  
+  if (!membership) {
+    return res.status(403).json({ message: 'Forbidden - not a member of this household' });
+  }
+  
+  // Find the shopping list
+  const list = db.shoppingLists.find(
+    l => l.id === listId && l.householdId === householdId
+  );
+  
+  if (!list) {
+    return res.status(404).json({ message: 'Shopping list not found' });
+  }
+  
+  // Get all items for the list
+  const items = db.shoppingListItems.filter(item => item.listId === listId);
+  
+  res.json({
+    id: list.id,
+    householdId: list.householdId,
+    name: list.name,
+    notes: list.notes,
+    createdAt: list.createdAt,
+    createdBy: list.createdByName,
+    lastUpdated: list.lastUpdated,
+    items: items.map(item => ({
+      id: item.id,
+      name: item.name,
+      quantity: item.quantity,
+      unit: item.unit,
+      category: item.category,
+      notes: item.notes,
+      completed: item.completed,
+      completedBy: item.completedBy,
+      completedAt: item.completedAt,
+      addedBy: item.addedByName,
+      addedAt: item.addedAt,
+      updatedAt: item.updatedAt
+    }))
+  });
+});
+
+// GET /api/v1/households/:householdId/shopping-lists/:listId/items
+// Get all items for a shopping list
+router.get('/:householdId/shopping-lists/:listId/items', authMiddleware, (req, res) => {
+  const { householdId, listId } = req.params;
+  
+  // Check if user is a member of the household
+  const membership = db.household_members.find(
+    m => m.householdId === householdId && m.userId === req.user.id
+  );
+  
+  if (!membership) {
+    return res.status(403).json({ message: 'Forbidden - not a member of this household' });
+  }
+  
+  // Check if shopping list exists and belongs to household
+  const list = db.shoppingLists.find(
+    l => l.id === listId && l.householdId === householdId
+  );
+  
+  if (!list) {
+    return res.status(404).json({ message: 'Shopping list not found' });
+  }
+  
+  // Get all items for the list
+  const items = db.shoppingListItems.filter(item => item.listId === listId);
+  
+  res.json(items.map(item => ({
+    id: item.id,
+    name: item.name,
+    quantity: item.quantity,
+    unit: item.unit,
+    category: item.category,
+    notes: item.notes,
+    completed: item.completed,
+    completedBy: item.completedBy,
+    completedAt: item.completedAt,
+    addedBy: item.addedByName,
+    addedAt: item.addedAt,
+    updatedAt: item.updatedAt
+  })));
+});
+
 // POST /api/v1/households/:householdId/shopping-lists
 // Create a new shopping list
 router.post('/:householdId/shopping-lists', authMiddleware, (req, res) => {
