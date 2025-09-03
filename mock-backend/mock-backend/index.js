@@ -63,6 +63,12 @@ if (process.env.NODE_ENV !== 'production') {
   app.use('/api/v1/test', resetDbRoutes);
 }
 
+// Debug routes (only in non-production)
+if (process.env.NODE_ENV !== 'production') {
+  const debugRoutes = require('./debugRoutes');
+  app.use('/debug', debugRoutes);
+}
+
 // Start server
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
