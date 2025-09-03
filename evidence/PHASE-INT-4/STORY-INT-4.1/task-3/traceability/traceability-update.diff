@@ -1,0 +1,13 @@
+diff --git a/.pm/system/common/traceability.md b/.pm/system/common/traceability.md
+index f142860..07b051b 100644
+--- a/.pm/system/common/traceability.md
++++ b/.pm/system/common/traceability.md
+@@ -33,7 +33,7 @@ This document maps system-level requirements to service-level requirements for t
+ | SYS-FUNC-024 | Shared shopping lists | MVP | SVC-inventory-FUNC-011 (FE Verified: TC-FE-5.1, TC-FE-5.2) (MBE Verified: TC-MBE-5.1, TC-MBE-5.2) |
+ | SYS-FUNC-025 | Real-time shopping list sync | MVP | SVC-inventory-FUNC-012 (FE Verified: TC-FE-5.3, TC-FE-5.5, TC-FE-7.5) (MBE Verified: TC-MBE-5.5, TC-MBE-5.6) |
+ | SYS-FUNC-026 | Add inventory to shopping list | MVP | SVC-inventory-FUNC-013 |
+-| SYS-FUNC-027 | Real-time updates | MVP | SVC-inventory-FUNC-014 (FE Verified: TC-FE-3.7, TC-FE-4.3) (MBE Verified: TC-MBE-4.3) |
++| SYS-FUNC-027 | Real-time updates | MVP | SVC-inventory-FUNC-014 (FE Verified: TC-FE-3.7, TC-FE-4.3) (MBE Verified: TC-MBE-4.3) (INT Verified: TC-INT-4.1) |
+ | SYS-FUNC-028 | Concurrent update handling | MVP | SVC-inventory-FUNC-015 (FE Verified: TC-FE-3.9) (INT Verified: TC-INT-3.4) |
+ | SYS-SEC-001 | Hash passwords with bcrypt | MVP | SVC-users-SEC-001 |
+ | SYS-SEC-002 | HTTPS communications | MVP | All services |

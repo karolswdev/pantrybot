@@ -1,4 +1,4 @@
-import * as signalR from '@microsoft/signalr';
+import { io, Socket } from 'socket.io-client';
 
 export type InventoryEventType = 'item.updated' | 'item.added' | 'item.deleted';
 export type NotificationEventType = 'notification.new';
@@ -36,7 +36,7 @@ export interface ShoppingListEvent {
 }
 
 class SignalRService {
-  private connection: signalR.HubConnection | null = null;
+  private socket: Socket | null = null;
   private eventHandlers: Map<string, Set<(data: any) => void>> = new Map();
   private isConnecting = false;
   private reconnectTimer: NodeJS.Timeout | null = null;
@@ -51,95 +51,129 @@ class SignalRService {
   }
 
   async connect(token: string, householdId: string): Promise<void> {
-    if (this.connection?.state === signalR.HubConnectionState.Connected) {
-      console.log('SignalR already connected');
+    if (this.socket?.connected) {
+      console.log('Socket.IO already connected');
       return;
     }
 
     if (this.isConnecting) {
-      console.log('SignalR connection already in progress');
+      console.log('Socket.IO connection already in progress');
       return;
     }
 
     this.isConnecting = true;
 
     try {
-      // Create the connection with authentication
-      this.connection = new signalR.HubConnectionBuilder()
-        .withUrl(process.env.NEXT_PUBLIC_SIGNALR_URL || 'http://localhost:5000/hubs/inventory', {
-          accessTokenFactory: () => token,
-          headers: {
-            'X-Household-Id': householdId
-          }
-        })
-        .withAutomaticReconnect({
-          nextRetryDelayInMilliseconds: (retryContext) => {
-            if (retryContext.elapsedMilliseconds < 30000) {
-              // If we've been trying for less than 30 seconds, retry quickly
-              return 2000;
-            }
-            // After 30 seconds, slow down retries
-            return 10000;
-          }
-        })
-        .configureLogging(signalR.LogLevel.Information)
-        .build();
+      // Determine the WebSocket URL based on environment
+      const wsUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:8080';
+      
+      // Create socket connection with authentication
+      this.socket = io(wsUrl, {
+        auth: {
+          token: token
+        },
+        transports: ['websocket', 'polling'],
+        reconnection: true,
+        reconnectionDelay: 2000,
+        reconnectionDelayMax: 10000,
+        reconnectionAttempts: 5
+      });
 
       // Set up event handlers for connection lifecycle
-      this.connection.onreconnecting(() => {
-        console.log('SignalR reconnecting...');
-        this.emit('reconnecting', {});
+      this.socket.on('connect', () => {
+        console.log('Socket.IO connected successfully');
+        // Send household context after connection
+        if (householdId) {
+          this.socket?.emit('set-household', householdId);
+        }
+        this.emit('connected', { householdId });
       });
 
-      this.connection.onreconnected(() => {
-        console.log('SignalR reconnected');
-        this.emit('reconnected', {});
+      this.socket.on('connected', (data) => {
+        console.log('Server acknowledged connection:', data);
       });
 
-      this.connection.onclose(() => {
-        console.log('SignalR connection closed');
-        this.emit('disconnected', {});
-        this.scheduleReconnect(token, householdId);
+      this.socket.on('disconnect', (reason) => {
+        console.log('Socket.IO disconnected:', reason);
+        this.emit('disconnected', { reason });
+        if (reason === 'io server disconnect') {
+          // Server initiated disconnect, try to reconnect
+          this.scheduleReconnect(token, householdId);
+        }
+      });
+
+      this.socket.on('connect_error', (error) => {
+        console.error('Socket.IO connection error:', error.message);
+        this.emit('error', { error: error.message });
+      });
+
+      this.socket.io.on('reconnect', (attempt) => {
+        console.log('Socket.IO reconnected after', attempt, 'attempts');
+        this.emit('reconnected', { attempts: attempt });
+      });
+
+      this.socket.io.on('reconnect_attempt', (attempt) => {
+        console.log('Socket.IO reconnecting... attempt', attempt);
+        this.emit('reconnecting', { attempt });
       });
 
       // Register event handlers for inventory events
-      this.connection.on('ItemUpdated', (data: any) => {
+      this.socket.on('item.updated', (data: any) => {
+        console.log('Received item.updated event:', data);
         this.emit('item.updated', data);
       });
 
-      this.connection.on('ItemAdded', (data: any) => {
+      this.socket.on('item.added', (data: any) => {
+        console.log('Received item.added event:', data);
         this.emit('item.added', data);
       });
 
-      this.connection.on('ItemDeleted', (data: any) => {
+      this.socket.on('item.deleted', (data: any) => {
+        console.log('Received item.deleted event:', data);
         this.emit('item.deleted', data);
       });
 
       // Register event handlers for notification events
-      this.connection.on('NotificationNew', (data: any) => {
+      this.socket.on('notification.new', (data: any) => {
+        console.log('Received notification.new event:', data);
         this.emit('notification.new', data);
       });
 
       // Register event handlers for shopping list events
-      this.connection.on('ShoppingListItemAdded', (data: any) => {
+      this.socket.on('shoppinglist.item.added', (data: any) => {
+        console.log('Received shoppinglist.item.added event:', data);
         this.emit('shoppinglist.item.added', data);
       });
 
-      this.connection.on('ShoppingListItemUpdated', (data: any) => {
+      this.socket.on('shoppinglist.item.updated', (data: any) => {
+        console.log('Received shoppinglist.item.updated event:', data);
         this.emit('shoppinglist.item.updated', data);
       });
 
-      this.connection.on('ShoppingListItemDeleted', (data: any) => {
+      this.socket.on('shoppinglist.item.deleted', (data: any) => {
+        console.log('Received shoppinglist.item.deleted event:', data);
         this.emit('shoppinglist.item.deleted', data);
       });
 
-      // Start the connection
-      await this.connection.start();
-      console.log('SignalR connected successfully');
-      this.emit('connected', {});
+      // Wait for connection
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Socket.IO connection timeout'));
+        }, 10000); // 10 second timeout
+
+        this.socket!.once('connect', () => {
+          clearTimeout(timeout);
+          resolve();
+        });
+
+        this.socket!.once('connect_error', (error) => {
+          clearTimeout(timeout);
+          reject(error);
+        });
+      });
 
     } catch (error) {
-      console.error('Failed to connect to SignalR:', error);
+      console.error('Failed to connect to Socket.IO:', error);
       this.scheduleReconnect(token, householdId);
       throw error;
     } finally {
@@ -153,14 +187,10 @@ class SignalRService {
       this.reconnectTimer = null;
     }
 
-    if (this.connection) {
-      try {
-        await this.connection.stop();
-        this.connection = null;
-        console.log('SignalR disconnected');
-      } catch (error) {
-        console.error('Error disconnecting SignalR:', error);
-      }
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
+      console.log('Socket.IO disconnected');
     }
   }
 
@@ -171,7 +201,7 @@ class SignalRService {
 
     this.reconnectTimer = setTimeout(async () => {
       this.reconnectTimer = null;
-      console.log('Attempting to reconnect SignalR...');
+      console.log('Attempting to reconnect Socket.IO...');
       try {
         await this.connect(token, householdId);
       } catch (error) {
@@ -211,12 +241,13 @@ class SignalRService {
     }
   }
 
-  getConnectionState(): signalR.HubConnectionState | null {
-    return this.connection?.state || null;
+  getConnectionState(): 'connected' | 'disconnected' | null {
+    if (!this.socket) return null;
+    return this.socket.connected ? 'connected' : 'disconnected';
   }
 
   isConnected(): boolean {
-    return this.connection?.state === signalR.HubConnectionState.Connected;
+    return this.socket?.connected || false;
   }
 }
 

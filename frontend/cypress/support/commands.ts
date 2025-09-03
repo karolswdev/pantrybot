@@ -1,6 +1,7 @@
 /// <reference types="cypress" />
 
 // Custom commands for Cypress tests
+import './auth-helpers';
 
 declare global {
   namespace Cypress {

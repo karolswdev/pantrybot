@@ -116,16 +116,16 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
 
   // Get auth state and query client for real-time updates
   const queryClient = useQueryClient();
-  const { user } = useAuthStore();
+  const { user, token: authToken } = useAuthStore();
   const isCypressEnv = process.env.NODE_ENV !== 'production' && 
     typeof window !== 'undefined' && 
     (window as Window & { Cypress?: unknown }).Cypress;
-  const householdId = isCypressEnv
-    ? 'household-123' 
-    : user?.defaultHouseholdId;
+  
+  // Use the actual household ID from the user object (including in Cypress tests)
+  const householdId = user?.households?.[0]?.householdId || user?.defaultHouseholdId;
   
   // Get access token for SignalR connection
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  const token = authToken || (typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null);
 
   // Determine the effective location for API query
   const effectiveLocation = selectedLocation === "all" ? location : selectedLocation;

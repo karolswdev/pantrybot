@@ -25,6 +25,8 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  token: string | null;
+  refreshToken: string | null;
   
   // Actions
   login: (email: string, password: string) => Promise<void>;
@@ -53,6 +55,8 @@ const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
+      token: null,
+      refreshToken: null,
       
       // Login action
       login: async (email: string, password: string) => {
@@ -84,6 +88,8 @@ const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
             isLoading: false,
             error: null,
+            token: accessToken,
+            refreshToken: refreshToken,
           });
         } catch (error: any) {
           const errorMessage = error.response?.data?.message || 'Login failed';
@@ -145,6 +151,8 @@ const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
             isLoading: false,
             error: null,
+            token: accessToken,
+            refreshToken: refreshToken,
           });
         } catch (error: any) {
           const errorMessage = error.response?.data?.message || 'Registration failed';
@@ -181,6 +189,8 @@ const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
             isLoading: false,
             error: null,
+            token: null,
+            refreshToken: null,
           });
         }
       },
@@ -202,7 +212,17 @@ const useAuthStore = create<AuthState>()(
       
       // Check if authenticated
       checkAuth: () => {
-        const accessToken = tokenManager.getAccessToken();
+        const { token: stateToken } = get();
+        const accessToken = stateToken || tokenManager.getAccessToken();
+        
+        // If we have a token from state, set it in tokenManager
+        if (stateToken && !tokenManager.getAccessToken()) {
+          const refreshToken = get().refreshToken;
+          if (refreshToken) {
+            tokenManager.setTokens(stateToken, refreshToken, 900); // Default 15 min expiry
+          }
+        }
+        
         const isExpired = tokenManager.isTokenExpired();
         const isAuthenticated = !!accessToken && !isExpired;
         
@@ -212,6 +232,8 @@ const useAuthStore = create<AuthState>()(
             households: [],
             currentHouseholdId: null,
             isAuthenticated: false,
+            token: null,
+            refreshToken: null,
           });
         }
         
@@ -232,6 +254,9 @@ const useAuthStore = create<AuthState>()(
         user: state.user,
         households: state.households,
         currentHouseholdId: state.currentHouseholdId,
+        isAuthenticated: state.isAuthenticated,
+        token: state.token,
+        refreshToken: state.refreshToken,
       }),
     }
   )

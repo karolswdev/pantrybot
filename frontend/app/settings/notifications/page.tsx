@@ -181,10 +181,26 @@ export default function NotificationSettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Main email notifications toggle */}
           <div className="flex items-center space-x-2">
+            <Checkbox
+              id="email-notifications"
+              checked={formData.email.enabled}
+              onCheckedChange={(checked) =>
+                setFormData(prev => ({
+                  ...prev,
+                  email: { ...prev.email, enabled: checked as boolean },
+                }))
+              }
+            />
+            <Label htmlFor="email-notifications" className="font-semibold">Enable Email Notifications</Label>
+          </div>
+          
+          <div className="flex items-center space-x-2 pl-6">
             <Checkbox
               id="email-daily"
               checked={formData.email.dailyExpirySum}
+              disabled={!formData.email.enabled}
               onCheckedChange={(checked) =>
                 setFormData(prev => ({
                   ...prev,
@@ -192,12 +208,13 @@ export default function NotificationSettingsPage() {
                 }))
               }
             />
-            <Label htmlFor="email-daily">Daily expiry summary (8:00 AM)</Label>
+            <Label htmlFor="email-daily" className={!formData.email.enabled ? "text-gray-400" : ""}>Daily expiry summary (8:00 AM)</Label>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 pl-6">
             <Checkbox
               id="email-today"
               checked={formData.email.expiringToday}
+              disabled={!formData.email.enabled}
               onCheckedChange={(checked) =>
                 setFormData(prev => ({
                   ...prev,
@@ -205,12 +222,13 @@ export default function NotificationSettingsPage() {
                 }))
               }
             />
-            <Label htmlFor="email-today">Items expiring today</Label>
+            <Label htmlFor="email-today" className={!formData.email.enabled ? "text-gray-400" : ""}>Items expiring today</Label>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 pl-6">
             <Checkbox
               id="email-tomorrow"
               checked={formData.email.expiringTomorrow}
+              disabled={!formData.email.enabled}
               onCheckedChange={(checked) =>
                 setFormData(prev => ({
                   ...prev,
@@ -218,12 +236,13 @@ export default function NotificationSettingsPage() {
                 }))
               }
             />
-            <Label htmlFor="email-tomorrow">Items expiring tomorrow</Label>
+            <Label htmlFor="email-tomorrow" className={!formData.email.enabled ? "text-gray-400" : ""}>Items expiring tomorrow</Label>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 pl-6">
             <Checkbox
               id="email-weekly"
               checked={formData.email.weeklyInventoryReport}
+              disabled={!formData.email.enabled}
               onCheckedChange={(checked) =>
                 setFormData(prev => ({
                   ...prev,
@@ -231,12 +250,13 @@ export default function NotificationSettingsPage() {
                 }))
               }
             />
-            <Label htmlFor="email-weekly">Weekly inventory report</Label>
+            <Label htmlFor="email-weekly" className={!formData.email.enabled ? "text-gray-400" : ""}>Weekly inventory report</Label>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 pl-6">
             <Checkbox
               id="email-shopping"
               checked={formData.email.shoppingListReminders}
+              disabled={!formData.email.enabled}
               onCheckedChange={(checked) =>
                 setFormData(prev => ({
                   ...prev,
@@ -244,7 +264,7 @@ export default function NotificationSettingsPage() {
                 }))
               }
             />
-            <Label htmlFor="email-shopping">Shopping list reminders</Label>
+            <Label htmlFor="email-shopping" className={!formData.email.enabled ? "text-gray-400" : ""}>Shopping list reminders</Label>
           </div>
         </CardContent>
       </Card>
@@ -261,10 +281,26 @@ export default function NotificationSettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Main in-app notifications toggle */}
           <div className="flex items-center space-x-2">
+            <Checkbox
+              id="in-app-notifications"
+              checked={formData.inApp.enabled}
+              onCheckedChange={(checked) =>
+                setFormData(prev => ({
+                  ...prev,
+                  inApp: { ...prev.inApp, enabled: checked as boolean },
+                }))
+              }
+            />
+            <Label htmlFor="in-app-notifications" className="font-semibold">Enable In-App Notifications</Label>
+          </div>
+          
+          <div className="flex items-center space-x-2 pl-6">
             <Checkbox
               id="inapp-expiry"
               checked={formData.inApp.realtimeExpiry}
+              disabled={!formData.inApp.enabled}
               onCheckedChange={(checked) =>
                 setFormData(prev => ({
                   ...prev,
@@ -272,12 +308,13 @@ export default function NotificationSettingsPage() {
                 }))
               }
             />
-            <Label htmlFor="inapp-expiry">Real-time expiry alerts</Label>
+            <Label htmlFor="inapp-expiry" className={!formData.inApp.enabled ? "text-gray-400" : ""}>Real-time expiry alerts</Label>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 pl-6">
             <Checkbox
               id="inapp-activity"
               checked={formData.inApp.memberActivity}
+              disabled={!formData.inApp.enabled}
               onCheckedChange={(checked) =>
                 setFormData(prev => ({
                   ...prev,
@@ -285,12 +322,13 @@ export default function NotificationSettingsPage() {
                 }))
               }
             />
-            <Label htmlFor="inapp-activity">Member activity (items added/removed)</Label>
+            <Label htmlFor="inapp-activity" className={!formData.inApp.enabled ? "text-gray-400" : ""}>Member activity (items added/removed)</Label>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 pl-6">
             <Checkbox
               id="inapp-shopping"
               checked={formData.inApp.shoppingListUpdates}
+              disabled={!formData.inApp.enabled}
               onCheckedChange={(checked) =>
                 setFormData(prev => ({
                   ...prev,
@@ -298,12 +336,13 @@ export default function NotificationSettingsPage() {
                 }))
               }
             />
-            <Label htmlFor="inapp-shopping">Shopping list updates</Label>
+            <Label htmlFor="inapp-shopping" className={!formData.inApp.enabled ? "text-gray-400" : ""}>Shopping list updates</Label>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 pl-6">
             <Checkbox
               id="inapp-recipes"
               checked={formData.inApp.recipeSuggestions}
+              disabled={!formData.inApp.enabled}
               onCheckedChange={(checked) =>
                 setFormData(prev => ({
                   ...prev,
@@ -311,7 +350,7 @@ export default function NotificationSettingsPage() {
                 }))
               }
             />
-            <Label htmlFor="inapp-recipes">Recipe suggestions</Label>
+            <Label htmlFor="inapp-recipes" className={!formData.inApp.enabled ? "text-gray-400" : ""}>Recipe suggestions</Label>
           </div>
         </CardContent>
       </Card>
@@ -335,7 +374,14 @@ export default function NotificationSettingsPage() {
               Your Telegram account is connected and will receive notifications.
             </div>
           ) : (
-            <Button onClick={() => setTelegramModalOpen(true)}>
+            <Button 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setTelegramModalOpen(true);
+              }}
+              type="button"
+            >
               Connect with Telegram
             </Button>
           )}

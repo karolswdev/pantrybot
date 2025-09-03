@@ -11,7 +11,7 @@
 > 5.  **Commit Work:** You **MUST** create a Git commit at the completion of each story. This is a non-negotiable step.
 > 6.  **Update Progress in Real-Time:** Meticulously update every checkbox (`[ ]` to `[x]`) in this document as you complete each step. Your progress tracking must be flawless.
 
-## [ ] PHASE-INT-4: Real-Time Sync & Notifications Integration
+## [x] PHASE-INT-4: Real-Time Sync & Notifications Integration
 
 ---
 
@@ -55,7 +55,7 @@ This section is a reference library defining the acceptance criteria for this ph
 
 ### **3. Implementation Plan (The Execution)**
 
-#### [ ] STORY-INT-4.1: Integrate Real-Time WebSocket Communication
+#### [x] STORY-INT-4.1: Integrate Real-Time WebSocket Communication
 
 1.  **Task:** Refactor frontend WebSocket service and remove test mocks.
     *   **Instruction:** `Update the 'lib/realtime/signalr-service.ts' to correctly connect to the mock backend's socket.io server, ensuring it passes the JWT for authentication. Then, in 'cypress/e2e/InventorySync.cy.ts' and 'cypress/e2e/Notifications.cy.ts', remove all client-side event simulations (e.g., 'win.signalRService.emit(...)'). The tests should now expect events to come only from the server.`
@@ -67,13 +67,13 @@ This section is a reference library defining the acceptance criteria for this ph
     *   **Fulfills:** This task contributes to requirement **INT-REQ-4.1**.
     *   **Verification via Test Cases:**
         *   **Test Case `TC-INT-4.1`:**
-            *   [ ] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-INT-4/STORY-INT-4.1/task-2/test-output/TC-INT-4.1.log`.
+            *   [x] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-INT-4/STORY-INT-4.1/task-2/test-output/TC-INT-4.1.log`.
 
 3.  **Task:** Update Traceability Matrix for Real-Time Integration.
     *   **Instruction:** `Update '.pm/system/common/traceability.md' for requirement SYS-FUNC-027, appending the integration verification status.`
     *   **Fulfills:** Traceability requirements.
     *   **Traceability:**
-        *   [ ] **Traceability Matrix Updated:** Checked after updating the matrix. **Evidence:** A diff of `traceability.md` has been saved to `/evidence/PHASE-INT-4/STORY-INT-4.1/task-3/traceability/traceability-update.diff`.
+        *   [x] **Traceability Matrix Updated:** Checked after updating the matrix. **Evidence:** A diff of `traceability.md` has been saved to `/evidence/PHASE-INT-4/STORY-INT-4.1/task-3/traceability/traceability-update.diff`.
             ```diff
             -| SYS-FUNC-027 | Real-time updates | MVP | SVC-inventory-FUNC-014 (FE Verified: TC-FE-3.7, TC-FE-4.3) (MBE Verified: TC-MBE-4.3) |
             +| SYS-FUNC-027 | Real-time updates | MVP | SVC-inventory-FUNC-014 (FE Verified: TC-FE-3.7, TC-FE-4.3) (MBE Verified: TC-MBE-4.3) (INT Verified: TC-INT-4.1) |
@@ -85,19 +85,19 @@ This section is a reference library defining the acceptance criteria for this ph
 > You may only proceed once all checkboxes for all tasks within this story are marked `[x]`. Then, you **MUST** complete the following steps in order:
 >
 > 1.  **Run Full Regression Test:**
->     *   [ ] **All Prior Tests Passed:** Checked after running all tests created in the project up to this point.
+>     *   [x] **All Prior Tests Passed:** Checked after running all tests created in the project up to this point.
 >     *   **Instruction:** `Run the entire Cypress suite against the full stack running in Docker.`
 >     *   **Evidence:** The summary output has been saved to `/evidence/PHASE-INT-4/STORY-INT-4.1/regression-test.log`.
 > 2.  **Create Git Commit:**
->     *   [ ] **Work Committed:** Checked after creating the Git commit.
+>     *   [x] **Work Committed:** Checked after creating the Git commit.
 >     *   **Instruction:** `Execute 'git add .' followed by 'git commit -m "feat(story): Complete STORY-INT-4.1 - Integrate Real-Time WebSocket Communication"'.`
->     *   **Evidence:** Provide the full commit hash returned by the Git command.
+>     *   **Evidence:** Commit hash: d2c59ab
 > 3.  **Finalize Story:**
 >     *   **Instruction:** Once the two checkboxes above are complete, you **MUST** update this story's main checkbox from `[ ]` to `[x]`.
 
 ---
 
-#### [ ] STORY-INT-4.2: Integrate Notification Settings Endpoints
+#### [x] STORY-INT-4.2: Integrate Notification Settings Endpoints
 
 1.  **Task:** Remove API mocking from notification settings E2E tests.
     *   **Instruction:** `In 'cypress/e2e/NotificationSettings.cy.ts' and 'cypress/e2e/TelegramLink.cy.ts', remove all 'cy.intercept()' calls that mock the '/api/v1/notifications/*' endpoints.`
@@ -109,17 +109,17 @@ This section is a reference library defining the acceptance criteria for this ph
     *   **Fulfills:** This task contributes to requirements **INT-REQ-4.2** and **INT-REQ-4.3**.
     *   **Verification via Test Cases:**
         *   **Test Case `TC-INT-4.2`:**
-            *   [ ] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-INT-4/STORY-INT-4.2/task-2/test-output/TC-INT-4.2.log`.
+            *   [x] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-INT-4/STORY-INT-4.2/task-2/test-output/TC-INT-4.2-4.3.log`.
         *   **Test Case `TC-INT-4.3`:**
-            *   [ ] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-INT-4/STORY-INT-4.2/task-2/test-output/TC-INT-4.3.log`.
+            *   [x] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-INT-4/STORY-INT-4.2/task-2/test-output/TC-INT-4.2-4.3.log`.
         *   **Test Case `TC-INT-4.4`:**
-            *   [ ] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-INT-4/STORY-INT-4.2/task-2/test-output/TC-INT-4.4.log`.
+            *   [x] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-INT-4/STORY-INT-4.2/task-2/test-output/TC-INT-4.4.log`.
 
 3.  **Task:** Update Traceability Matrix for Notification Settings Integration.
     *   **Instruction:** `Update the '.pm/system/common/traceability.md' file for requirements SYS-FUNC-019 and SYS-FUNC-023, appending the integration verification status.`
     *   **Fulfills:** Traceability requirements.
     *   **Traceability:**
-        *   [ ] **Traceability Matrix Updated:** Checked after updating the matrix. **Evidence:** A diff of `traceability.md` has been saved to `/evidence/PHASE-INT-4/STORY-INT-4.2/task-3/traceability/traceability-update.diff`.
+        *   [x] **Traceability Matrix Updated:** Checked after updating the matrix. **Evidence:** A diff of `traceability.md` has been saved to `/evidence/PHASE-INT-4/STORY-INT-4.2/task-3/traceability/traceability-update.diff`.
             ```diff
             -| SYS-FUNC-019 | Customize warning period | MVP | SVC-notifications-FUNC-004 (FE Verified - Search: TC-FE-6.4) (MBE Verified: TC-MBE-4.5, TC-MBE-6.2) |
             +| SYS-FUNC-019 | Customize warning period | MVP | SVC-notifications-FUNC-004 (FE Verified - Search: TC-FE-6.4) (MBE Verified: TC-MBE-4.5, TC-MBE-6.2) (INT Verified: TC-INT-4.3) |
@@ -133,13 +133,13 @@ This section is a reference library defining the acceptance criteria for this ph
 > You may only proceed once all checkboxes for all tasks within this story are marked `[x]`. Then, you **MUST** complete the following steps in order:
 >
 > 1.  **Run Full Regression Test:**
->     *   [ ] **All Prior Tests Passed:** Checked after running all tests created in the project up to this point.
+>     *   [x] **All Prior Tests Passed:** Checked after running all tests created in the project up to this point.
 >     *   **Instruction:** `Run the entire Cypress suite against the full stack running in Docker.`
 >     *   **Evidence:** The summary output has been saved to `/evidence/PHASE-INT-4/STORY-INT-4.2/regression-test.log`.
 > 2.  **Create Git Commit:**
->     *   [ ] **Work Committed:** Checked after creating the Git commit.
+>     *   [x] **Work Committed:** Checked after creating the Git commit.
 >     *   **Instruction:** `Execute 'git add .' followed by 'git commit -m "feat(story): Complete STORY-INT-4.2 - Integrate Notification Settings Endpoints"'.`
->     *   **Evidence:** Provide the full commit hash returned by the Git command.
+>     *   **Evidence:** Commit hash: 8edc7a4
 > 3.  **Finalize Story:**
 >     *   **Instruction:** Once the two checkboxes above are complete, you **MUST** update this story's main checkbox from `[ ]` to `[x]`.
 
@@ -152,7 +152,7 @@ This Phase is officially complete **only when all `STORY-INT` checkboxes in Sect
 #### Final Acceptance Gate
 
 *   **Instruction:** You are at the final gate for this phase. Before marking the entire phase as done, you must perform one last, full regression test to ensure nothing was broken by the final commits.
-*   [ ] **Final Full Regression Test Passed:**
+*   [x] **Final Full Regression Test Passed:**
     *   **Instruction:** `Execute the full Cypress test suite one last time within the Docker Compose environment.`
     *   **Evidence:** A final summary log confirming that all tests for this phase (TC-INT-4.1 through TC-INT-4.4) pass has been saved to `/evidence/PHASE-INT-4/final-acceptance-gate.log`.
 
