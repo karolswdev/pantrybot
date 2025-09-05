@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -137,7 +138,13 @@ export function ItemCard({
           <div className="flex justify-center mb-3">
             <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center">
               {item.imageUrl ? (
-                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover rounded-lg" />
+                <Image 
+                  src={item.imageUrl} 
+                  alt={item.name} 
+                  width={64}
+                  height={64}
+                  className="w-full h-full object-cover rounded-lg" 
+                />
               ) : (
                 <Package className="w-8 h-8 text-gray-400" />
               )}
@@ -229,7 +236,13 @@ export function ItemCard({
         {/* Item icon */}
         <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
           {item.imageUrl ? (
-            <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover rounded-lg" />
+            <Image 
+              src={item.imageUrl} 
+              alt={item.name}
+              width={48}
+              height={48} 
+              className="w-full h-full object-cover rounded-lg" 
+            />
           ) : (
             <Package className="w-6 h-6 text-gray-400" />
           )}

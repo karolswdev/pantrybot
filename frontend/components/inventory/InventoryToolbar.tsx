@@ -24,7 +24,6 @@ export interface InventoryToolbarProps {
   onViewModeChange: (value: "grid" | "list") => void;
   onAddItem: () => void;
   itemCount?: number;
-  currentLocation?: "fridge" | "freezer" | "pantry";
 }
 
 export function InventoryToolbar({
@@ -43,7 +42,6 @@ export function InventoryToolbar({
   onViewModeChange,
   onAddItem,
   itemCount = 0,
-  currentLocation,
 }: InventoryToolbarProps) {
   const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
   const [showFilters, setShowFilters] = useState(false);

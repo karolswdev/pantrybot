@@ -1,17 +1,14 @@
 import { apiClient, tokenManager } from '../api-client';
 import MockAdapter from 'axios-mock-adapter';
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
 
 describe('API Client Token Refresh', () => {
   let mock: MockAdapter;
-  let axiosMock: MockAdapter;
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
   
   beforeEach(() => {
     // Create mock adapter for apiClient
     mock = new MockAdapter(apiClient);
-    // Create mock adapter for axios (for refresh endpoint)
-    axiosMock = new MockAdapter(axios);
     // Clear localStorage
     localStorage.clear();
     // Mock console.error to avoid noise in tests
@@ -20,7 +17,6 @@ describe('API Client Token Refresh', () => {
 
   afterEach(() => {
     mock.restore();
-    axiosMock.restore();
     localStorage.clear();
     jest.restoreAllMocks();
   });
@@ -39,6 +35,24 @@ describe('API Client Token Refresh', () => {
     // Track API calls
     let householdsCallCount = 0;
     let refreshCallCount = 0;
+    
+    // Mock axios.create to return a mocked instance for refresh endpoint
+    const mockRefreshAxios = {
+      post: jest.fn().mockImplementation((url, data) => {
+        refreshCallCount++;
+        expect(data.refreshToken).toBe(mockRefreshToken);
+        
+        return Promise.resolve({
+          data: {
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
+            expiresIn: 900
+          }
+        });
+      })
+    };
+    
+    jest.spyOn(axios, 'create').mockReturnValue(mockRefreshAxios as unknown as AxiosInstance);
     
     // Mock the initial request to /households that returns 401 on first call
     mock.onGet('/households').reply(() => {
@@ -60,19 +74,6 @@ describe('API Client Token Refresh', () => {
           total: 1
         }];
       }
-    });
-    
-    // Mock the refresh token endpoint on the axios instance
-    axiosMock.onPost(`${API_BASE_URL}/auth/refresh`).reply((config) => {
-      refreshCallCount++;
-      const data = JSON.parse(config.data);
-      expect(data.refreshToken).toBe(mockRefreshToken);
-      
-      return [200, {
-        accessToken: newAccessToken,
-        refreshToken: newRefreshToken,
-        expiresIn: 900
-      }];
     });
     
     // Act
@@ -107,20 +108,27 @@ describe('API Client Token Refresh', () => {
     // Spy on tokenManager.clearTokens
     const clearTokensSpy = jest.spyOn(tokenManager, 'clearTokens');
     
+    // Mock axios.create to return a mocked instance that rejects for refresh
+    const mockRefreshAxios = {
+      post: jest.fn().mockRejectedValue({
+        response: {
+          status: 401,
+          data: { message: 'Invalid or expired refresh token' }
+        }
+      })
+    };
+    
+    jest.spyOn(axios, 'create').mockReturnValue(mockRefreshAxios as unknown as AxiosInstance);
+    
     // Mock request that returns 401
     mock.onGet('/households').reply(401, { message: 'Unauthorized' });
-    
-    // Mock refresh endpoint to return 401 (invalid refresh token)
-    axiosMock.onPost(`${API_BASE_URL}/auth/refresh`).reply(401, {
-      message: 'Invalid or expired refresh token'
-    });
     
     // Act & Assert
     try {
       await apiClient.get('/households');
       // Should not reach here
       fail('Expected request to throw an error');
-    } catch (error: any) {
+    } catch (error) {
       // Verify that clearTokens was called (this happens in the interceptor)
       expect(clearTokensSpy).toHaveBeenCalled();
       
@@ -169,20 +177,26 @@ describe('API Client Token Refresh', () => {
       return [200, { items: [], total: 0 }];
     });
     
-    // Mock the refresh token endpoint
-    axiosMock.onPost(`${API_BASE_URL}/auth/refresh`).reply(() => {
-      refreshCallCount++;
-      // Add delay to simulate network latency
-      return new Promise(resolve => {
-        setTimeout(() => {
-          resolve([200, {
-            accessToken: newAccessToken,
-            refreshToken: newRefreshToken,
-            expiresIn: 900
-          }]);
-        }, 50);
-      });
-    });
+    // Mock axios.create to return a mocked instance for refresh endpoint
+    const mockRefreshAxios = {
+      post: jest.fn().mockImplementation(() => {
+        refreshCallCount++;
+        // Add delay to simulate network latency
+        return new Promise(resolve => {
+          setTimeout(() => {
+            resolve({
+              data: {
+                accessToken: newAccessToken,
+                refreshToken: newRefreshToken,
+                expiresIn: 900
+              }
+            });
+          }, 50);
+        });
+      })
+    };
+    
+    jest.spyOn(axios, 'create').mockReturnValue(mockRefreshAxios as unknown as AxiosInstance);
     
     // Act - Make multiple simultaneous requests
     const [response1, response2] = await Promise.all([
@@ -219,31 +233,38 @@ describe('API Client Token Refresh', () => {
     // Mock auth endpoint returning 401
     mock.onPost('/auth/login').reply(401, { message: 'Invalid credentials' });
     
-    // Mock refresh endpoint (should not be called)
-    axiosMock.onPost(`${API_BASE_URL}/auth/refresh`).reply(() => {
-      refreshCallCount++;
-      return [200, {
-        accessToken: 'new-token',
-        refreshToken: 'new-refresh',
-        expiresIn: 900
-      }];
-    });
+    // Mock axios.create - refresh endpoint should not be called for auth endpoints
+    const mockRefreshAxios = {
+      post: jest.fn().mockImplementation(() => {
+        refreshCallCount++;
+        return Promise.resolve({
+          data: {
+            accessToken: 'new-token',
+            refreshToken: 'new-refresh',
+            expiresIn: 900
+          }
+        });
+      })
+    };
+    
+    jest.spyOn(axios, 'create').mockReturnValue(mockRefreshAxios as unknown as AxiosInstance);
     
     // Act & Assert
     try {
       await apiClient.post('/auth/login', { email: 'test@test.com', password: 'wrong' });
       fail('Expected request to throw an error');
-    } catch (error: any) {
+    } catch (error) {
       // Verify that refresh was NOT attempted for auth endpoint
       expect(refreshCallCount).toBe(0);
       
-      // Verify that tokens were cleared
-      expect(tokenManager.getAccessToken()).toBeNull();
-      expect(tokenManager.getRefreshToken()).toBeNull();
+      // Verify that tokens were NOT cleared (correct behavior for auth endpoints)
+      // Auth endpoints like login/register should not clear existing tokens on 401
+      // because the 401 is due to wrong credentials, not expired tokens
+      expect(tokenManager.getAccessToken()).toBe('expired-access-token');
+      expect(tokenManager.getRefreshToken()).toBe('valid-refresh-token');
       
-      // Note: In a real browser environment, window.location.href would be set to '/login'
-      // But in the test environment, we can't easily mock this due to JSDOM limitations
-      // The important behavior is that tokens are cleared and refresh is not attempted
+      // Note: For auth endpoints, we don't clear tokens or redirect
+      // The component handles the auth error (wrong credentials)
     }
   });
 });

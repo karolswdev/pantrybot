@@ -51,9 +51,14 @@ describe('Login E2E Tests', () => {
     // Submit the form
     cy.contains('button', 'Sign In').click();
 
-    // Check that error message is displayed (looking for the error div)
-    cy.get('.bg-red-50', { timeout: 5000 }).should('be.visible');
-    cy.get('.bg-red-50').should('contain.text', 'failed');
+    // Wait for API response and error to display
+    cy.wait(2000);
+    
+    // Check that error message is displayed with proper styling
+    // The Login component shows errors in a div with bg-red-50 class
+    cy.get('.bg-red-50')
+      .should('be.visible')
+      .and('contain', 'Invalid credentials');
     
     // Ensure we stay on the login page
     cy.url().should('include', '/login');
@@ -75,15 +80,20 @@ describe('Login E2E Tests', () => {
 
     // Enter invalid email format
     cy.get('input[placeholder="user@example.com"]').type('invalidemail');
-    cy.get('input[placeholder="Enter your password"]').type('SomePassword');
     
-    // Submit the form
-    cy.contains('button', 'Sign In').click();
-
-    // Check that we stay on login page and see validation message
+    // Click on password field to trigger validation
+    cy.get('input[placeholder="Enter your password"]').click();
+    
+    // Wait for validation to appear
+    cy.wait(500);
+    
+    // Check for validation error - the Login component shows field errors in p.text-red-600
+    cy.get('p.text-red-600')
+      .should('be.visible')
+      .and('contain', 'Invalid email');
+    
+    // Also verify we stay on login page
     cy.url().should('include', '/login');
-    // The form should show a validation error message
-    cy.contains('Invalid email').should('be.visible');
   });
 
   it('should toggle password visibility', () => {
@@ -172,10 +182,8 @@ describe('Login E2E Tests', () => {
     });
   });
 
-  // Skip rate limiting test as it requires multiple failed attempts
-  // which would need specific mock backend configuration
-  it.skip('should handle rate limiting errors', () => {
-    // This test is skipped for now as it requires configuring
-    // the mock backend to simulate rate limiting behavior
-  });
+  // Rate limiting test is not required for MVP - would need specific mock backend configuration
+  // it.skip('should handle rate limiting errors', () => {
+  //   // This test would require configuring the mock backend to simulate rate limiting behavior
+  // });
 });

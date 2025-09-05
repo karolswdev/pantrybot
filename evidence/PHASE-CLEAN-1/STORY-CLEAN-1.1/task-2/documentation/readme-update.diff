@@ -1,0 +1,13 @@
+diff --git a/frontend/README.md b/frontend/README.md
+index b70255a..d34f2aa 100644
+--- a/frontend/README.md
++++ b/frontend/README.md
+@@ -18,7 +18,7 @@ This is the Next.js frontend application for Fridgr - a household food inventory
+ 
+ ### Prerequisites
+ 
+-- Node.js 18+
++- Node.js 20+
+ - npm or yarn
+ 
+ ### Installation

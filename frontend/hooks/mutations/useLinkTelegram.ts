@@ -36,7 +36,7 @@ export function useLinkTelegram() {
       // Update the cached notification settings with the new Telegram link status
       queryClient.setQueryData(['notifications', 'settings'], (old: unknown) => {
         if (!old) return old;
-        const typedOld = old as any;
+        const typedOld = old as { telegram?: { linked?: boolean; username?: string } };
         return {
           ...typedOld,
           telegram: {

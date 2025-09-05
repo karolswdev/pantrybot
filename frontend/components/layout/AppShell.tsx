@@ -34,11 +34,6 @@ export default function AppShell({ children }: AppShellProps) {
   useEffect(() => {
     // Check authentication status
     const checkAuth = () => {
-      // For Cypress tests, rely on actual auth state
-      const isCypressEnv = process.env.NODE_ENV !== 'production' && 
-        typeof window !== 'undefined' && 
-        (window as Window & { Cypress?: unknown }).Cypress;
-      
       // Always check auth from store
       checkAuthFromStore();
       setIsLoading(false);

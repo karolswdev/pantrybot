@@ -1,16 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ChevronDown, Home, Check } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 import { useHouseholds } from "@/hooks/queries/useHouseholds";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -23,7 +16,7 @@ import {
 
 export function HouseholdSwitcher() {
   const { currentHouseholdId, setCurrentHousehold, households: storeHouseholds } = useAuthStore();
-  const { data, isLoading, error } = useHouseholds();
+  const { data, isLoading } = useHouseholds();
   const [isOpen, setIsOpen] = useState(false);
 
   // Use households from the store if available, otherwise from the API

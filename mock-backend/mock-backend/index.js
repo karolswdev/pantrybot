@@ -59,8 +59,8 @@ app.use('/api/v1/households', (req, res, next) => {
 
 // Test utilities (only in non-production)
 if (process.env.NODE_ENV !== 'production') {
-  const resetDbRoutes = require('./reset-db');
-  app.use('/api/v1/test', resetDbRoutes);
+  const testRoutes = require('./testRoutes');
+  app.use('/api/v1/test', testRoutes);
 }
 
 // Debug routes (only in non-production)

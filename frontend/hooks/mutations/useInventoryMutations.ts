@@ -10,7 +10,7 @@ export function useCreateItem() {
   // Use test household ID if in Cypress environment (with production guard)
   const isCypressEnv = process.env.NODE_ENV !== 'production' && 
     typeof window !== 'undefined' && 
-    (window as any).Cypress;
+    (window as Window & { Cypress?: boolean }).Cypress;
   const currentHouseholdId = isCypressEnv
     ? 'household-123' 
     : storeHouseholdId;
@@ -42,7 +42,7 @@ export function useUpdateItem() {
   // Use test household ID if in Cypress environment (with production guard)
   const isCypressEnv = process.env.NODE_ENV !== 'production' && 
     typeof window !== 'undefined' && 
-    (window as any).Cypress;
+    (window as Window & { Cypress?: boolean }).Cypress;
   const currentHouseholdId = isCypressEnv
     ? 'household-123' 
     : storeHouseholdId;
@@ -76,7 +76,7 @@ export function useUpdateItem() {
       }
     },
     onError: (error: unknown) => {
-      const axiosError = error as any;
+      const axiosError = error as { response?: { status?: number } };
       if (axiosError?.response?.status === 409) {
         // Handle conflict error - item was modified by someone else
         throw new Error('This item was modified by someone else. Please refresh and try again.');
@@ -94,7 +94,7 @@ export function useDeleteItem() {
   // Use test household ID if in Cypress environment (with production guard)
   const isCypressEnv = process.env.NODE_ENV !== 'production' && 
     typeof window !== 'undefined' && 
-    (window as any).Cypress;
+    (window as Window & { Cypress?: boolean }).Cypress;
   const currentHouseholdId = isCypressEnv
     ? 'household-123' 
     : storeHouseholdId;
@@ -125,7 +125,7 @@ export function useConsumeItem() {
   // Use test household ID if in Cypress environment (with production guard)
   const isCypressEnv = process.env.NODE_ENV !== 'production' && 
     typeof window !== 'undefined' && 
-    (window as any).Cypress;
+    (window as Window & { Cypress?: boolean }).Cypress;
   const currentHouseholdId = isCypressEnv
     ? 'household-123' 
     : storeHouseholdId;
@@ -152,7 +152,7 @@ export function useConsumeItem() {
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
     },
     onError: (error: unknown) => {
-      const axiosError = error as any;
+      const axiosError = error as { response?: { status?: number } };
       if (axiosError?.response?.status === 400) {
         throw new Error('Quantity exceeds available amount');
       }
@@ -169,7 +169,7 @@ export function useWasteItem() {
   // Use test household ID if in Cypress environment (with production guard)
   const isCypressEnv = process.env.NODE_ENV !== 'production' && 
     typeof window !== 'undefined' && 
-    (window as any).Cypress;
+    (window as Window & { Cypress?: boolean }).Cypress;
   const currentHouseholdId = isCypressEnv
     ? 'household-123' 
     : storeHouseholdId;
@@ -198,7 +198,7 @@ export function useWasteItem() {
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
     },
     onError: (error: unknown) => {
-      const axiosError = error as any;
+      const axiosError = error as { response?: { status?: number } };
       if (axiosError?.response?.status === 400) {
         throw new Error('Quantity exceeds available amount');
       }

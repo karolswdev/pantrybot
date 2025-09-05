@@ -97,13 +97,13 @@ describe('Dashboard Integration with Backend', () => {
     // Step 5: Verify React Query is making real API calls
     cy.window().then((win) => {
       // Check if React Query client exists
-      const queryClient = (win as any).__queryClient;
+      const queryClient = (win as Window & { __queryClient?: unknown }).__queryClient;
       if (queryClient) {
         const cache = queryClient.getQueryCache();
         const queries = cache.getAll();
         
         // Log all query keys for debugging
-        queries.forEach((query: any) => {
+        queries.forEach((query: { queryKey: unknown; state: { status: string; data?: unknown } }) => {
           cy.log(`Query Key: ${JSON.stringify(query.queryKey)}`);
           cy.log(`Query State: ${query.state.status}`);
           if (query.state.data) {
@@ -112,7 +112,7 @@ describe('Dashboard Integration with Backend', () => {
         });
         
         // Find the household query
-        const householdQuery = queries.find((q: any) => 
+        const householdQuery = queries.find((q: { queryKey: unknown[]; state: { data?: { statistics: { totalItems: number; expiringItems: number } } } }) => 
           q.queryKey[0] === 'household' && q.queryKey[1] === householdId
         );
         

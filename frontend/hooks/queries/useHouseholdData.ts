@@ -108,8 +108,8 @@ export function useHouseholdData(householdId?: string) {
       try {
         const response = await apiClient.get(`/households/${activeHouseholdId}`);
         return response.data;
-      } catch (error: any) {
-        console.error('Failed to fetch household data:', error.message);
+      } catch (error) {
+        console.error('Failed to fetch household data:', (error as Error).message);
         throw error;
       }
     },
@@ -210,12 +210,12 @@ export function useExpiringItems(householdId?: string, limit = 5) {
           return [];
         }
         
-        return response.data.items.map((item: any) => ({
+        return response.data.items.map((item: { daysUntilExpiration: number; [key: string]: unknown }) => ({
           ...item,
           expirationStatus: getExpirationStatus(item.daysUntilExpiration),
         }));
-      } catch (error: any) {
-        console.error('Failed to fetch expiring items:', error.message);
+      } catch (error) {
+        console.error('Failed to fetch expiring items:', (error as Error).message);
         throw error;
       }
     },

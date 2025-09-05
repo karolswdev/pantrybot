@@ -3,7 +3,10 @@
 // Custom commands for Cypress tests
 import './auth-helpers';
 
+export {}; // Make this a module
+
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
       /**
@@ -99,5 +102,3 @@ Cypress.Commands.add('login', (email: string, password: string) => {
     window.localStorage.setItem('auth-storage', JSON.stringify(authState))
   })
 })
-
-export {}

@@ -24,6 +24,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { login, isLoading, error, clearError, isAuthenticated } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
   
   // Redirect if already authenticated
   useEffect(() => {
@@ -32,8 +33,16 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, router]);
 
+  // Clear login error when error from store changes
+  useEffect(() => {
+    if (error) {
+      setLoginError(error);
+    }
+  }, [error]);
+
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    mode: 'onChange',  // Validate on change
     defaultValues: {
       email: '',
       password: '',
@@ -42,14 +51,22 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
+    console.log('Form submitted with data:', data);
     try {
       clearError();
+      setLoginError(null);
       await login(data.email, data.password);
       // Login successful - navigate to dashboard
       // Using replace to prevent going back to login
       router.replace('/dashboard');
     } catch (error) {
-      // Error is handled in the store
+      // Set error message for display
+      // Extract error message from the axios response or use a default
+      const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 
+                          (error as Error)?.message || 
+                          'Login failed. Please check your credentials.';
+      console.log('Setting login error:', errorMessage);
+      setLoginError(errorMessage);
       console.error('Login error:', error);
     }
   };
@@ -62,22 +79,28 @@ export default function LoginPage() {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
+          console.log('Form validation errors:', errors);
+        })} className="space-y-4">
           <FormField
             control={form.control}
             name="email"
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
                   <Input
-                    type="email"
+                    type="text"
                     placeholder="user@example.com"
                     autoComplete="email"
                     {...field}
                   />
                 </FormControl>
-                <FormMessage />
+                {fieldState.error && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {fieldState.error.message}
+                  </p>
+                )}
               </FormItem>
             )}
           />
@@ -85,7 +108,7 @@ export default function LoginPage() {
           <FormField
             control={form.control}
             name="password"
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
@@ -109,7 +132,11 @@ export default function LoginPage() {
                     </button>
                   </div>
                 </FormControl>
-                <FormMessage />
+                {fieldState.error && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {fieldState.error.message}
+                  </p>
+                )}
               </FormItem>
             )}
           />
@@ -141,9 +168,9 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          {error && (
+          {(loginError || error) && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
-              {error}
+              {loginError || error}
             </div>
           )}
 

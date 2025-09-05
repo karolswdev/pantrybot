@@ -12,25 +12,38 @@ export function useShoppingListRealtime(listId: string) {
     if (!listId || !activeHouseholdId) return;
 
     // Handler for when items are added
-    const handleItemAdded = (event: any) => {
+    const handleItemAdded = (event: unknown) => {
       // Check if event is for this list
-      if (event.listId !== listId) return;
+      const typedEvent = event as { listId: string; item: Record<string, unknown> };
+      if (typedEvent.listId !== listId) return;
       
-      console.log('Shopping list item added:', event);
+      console.log('Shopping list item added:', typedEvent);
       
       // Transform the event item to match frontend type
+      const item = typedEvent.item as {
+        id: string;
+        name: string;
+        quantity: number;
+        unit?: string;
+        category?: string;
+        notes?: string;
+        completed?: boolean;
+        completedAt?: string;
+        addedAt?: string;
+        updatedAt?: string;
+      };
       const newItem: ShoppingListItemType = {
-        id: event.item.id,
+        id: item.id,
         shoppingListId: listId,
-        name: event.item.name,
-        quantity: event.item.quantity,
-        unit: event.item.unit,
-        category: event.item.category,
-        notes: event.item.notes,
-        isCompleted: event.item.completed || false,
-        completedAt: event.item.completedAt,
-        createdAt: event.item.addedAt,
-        updatedAt: event.item.updatedAt || event.item.addedAt,
+        name: item.name,
+        quantity: item.quantity,
+        unit: item.unit,
+        category: item.category,
+        notes: item.notes,
+        isCompleted: item.completed || false,
+        completedAt: item.completedAt,
+        createdAt: item.addedAt || '',
+        updatedAt: item.updatedAt || item.addedAt || '',
       };
       
       // Update the cache with the new item
@@ -49,23 +62,35 @@ export function useShoppingListRealtime(listId: string) {
     };
 
     // Handler for when items are updated
-    const handleItemUpdated = (event: any) => {
+    const handleItemUpdated = (event: unknown) => {
       // Check if event is for this list
-      if (event.listId !== listId) return;
+      const typedEvent = event as { listId: string; item: Record<string, unknown> };
+      if (typedEvent.listId !== listId) return;
       
-      console.log('Shopping list item updated:', event);
+      console.log('Shopping list item updated:', typedEvent);
       
       // Transform the event item to match frontend type
+      const item = typedEvent.item as {
+        id: string;
+        name?: string;
+        quantity?: number;
+        unit?: string;
+        category?: string;
+        notes?: string;
+        completed?: boolean;
+        completedAt?: string;
+        updatedAt?: string;
+      };
       const updatedItem: Partial<ShoppingListItemType> = {
-        id: event.item.id,
-        name: event.item.name,
-        quantity: event.item.quantity,
-        unit: event.item.unit,
-        category: event.item.category,
-        notes: event.item.notes,
-        isCompleted: event.item.completed || false,
-        completedAt: event.item.completedAt,
-        updatedAt: event.item.updatedAt,
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        unit: item.unit,
+        category: item.category,
+        notes: item.notes,
+        isCompleted: item.completed || false,
+        completedAt: item.completedAt,
+        updatedAt: item.updatedAt,
       };
       
       // Update the cache with the updated item
@@ -84,13 +109,14 @@ export function useShoppingListRealtime(listId: string) {
     };
 
     // Handler for when items are deleted
-    const handleItemDeleted = (event: any) => {
+    const handleItemDeleted = (event: unknown) => {
       // Check if event is for this list
-      if (event.listId !== listId) return;
+      const typedEvent = event as { listId: string; itemId?: string; item?: { id?: string } };
+      if (typedEvent.listId !== listId) return;
       
-      console.log('Shopping list item deleted:', event);
+      console.log('Shopping list item deleted:', typedEvent);
       
-      const deletedItemId = event.itemId || event.item?.id;
+      const deletedItemId = typedEvent.itemId || typedEvent.item?.id;
       
       // Remove the item from the cache
       queryClient.setQueryData(

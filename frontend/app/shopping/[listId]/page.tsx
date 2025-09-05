@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Plus, Share2, Edit2, Trash2 } from 'lucide-react';
 import { useShoppingListItems } from '@/hooks/queries/useShoppingListItems';
 import { useShoppingListDetails } from '@/hooks/queries/useShoppingListDetails';

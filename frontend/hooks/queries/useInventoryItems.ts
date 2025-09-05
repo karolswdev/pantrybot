@@ -32,9 +32,9 @@ export interface InventoryItemsResponse {
  * @returns Query result with inventory items
  */
 export function useInventoryItems(params: UseInventoryItemsParams = {}) {
-  const { user } = useAuthStore();
+  const { user, currentHouseholdId } = useAuthStore();
   // Use the actual household ID from the user object (including in Cypress tests)
-  const defaultHouseholdId = user?.households?.[0]?.householdId || user?.defaultHouseholdId;
+  const defaultHouseholdId = currentHouseholdId || user?.defaultHouseholdId;
   const householdId = params.householdId || defaultHouseholdId;
 
   return useQuery<InventoryItemsResponse>({

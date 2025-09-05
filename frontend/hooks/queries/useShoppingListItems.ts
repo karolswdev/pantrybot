@@ -22,7 +22,19 @@ async function fetchShoppingListItems(householdId: string, listId: string): Prom
   );
   
   // Transform backend response to match frontend type
-  return response.data.map((item: any) => ({
+  return response.data.map((item: {
+    id: string;
+    name: string;
+    quantity: number;
+    unit?: string;
+    category?: string;
+    notes?: string;
+    completed?: boolean;
+    completedAt?: string;
+    addedAt?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  }) => ({
     id: item.id,
     shoppingListId: listId,
     name: item.name,

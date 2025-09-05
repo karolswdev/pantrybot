@@ -1,5 +1,13 @@
 describe('CreateHousehold - TC-INT-2.3', () => {
-  let authData: any;
+  interface AuthData {
+    accessToken: string;
+    refreshToken: string;
+    userId: string;
+    email: string;
+    displayName: string;
+    defaultHouseholdId: string;
+  };
+  let authData: AuthData;
   let householdId: string;
 
   beforeEach(() => {
@@ -14,8 +22,8 @@ describe('CreateHousehold - TC-INT-2.3', () => {
       password: 'password123',
       displayName: 'Test User'
     }).then((response) => {
-      authData = response.body;
-      const { accessToken, refreshToken, userId, email, displayName, defaultHouseholdId } = authData;
+      authData = response.body as AuthData;
+      const { accessToken, refreshToken, userId, defaultHouseholdId } = authData;
       householdId = defaultHouseholdId;
       
       // Set up authentication in localStorage
@@ -104,7 +112,7 @@ describe('CreateHousehold - TC-INT-2.3', () => {
           
           // Find the new household in the list
           const newHousehold = listResponse.body.households.find(
-            (h: any) => h.id === newHouseholdId
+            (h: { id: string }) => h.id === newHouseholdId
           );
           expect(newHousehold).to.exist;
           expect(newHousehold.name).to.equal('New Test Household');

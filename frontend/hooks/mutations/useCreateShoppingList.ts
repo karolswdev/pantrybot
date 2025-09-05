@@ -10,7 +10,7 @@ interface CreateShoppingListResponse {
   id: string;
   name: string;
   notes: string;
-  items: any[];
+  items: Array<Record<string, unknown>>;
   createdAt: string;
   createdBy: string;
 }
@@ -37,7 +37,7 @@ export function useCreateShoppingList(householdId: string) {
       });
 
       // Optionally update the cache directly
-      queryClient.setQueryData(['shopping-lists', householdId], (oldData: any) => {
+      queryClient.setQueryData(['shopping-lists', householdId], (oldData: { lists?: unknown[]; total?: number } | undefined) => {
         if (!oldData) return oldData;
         
         const newListForCache = {

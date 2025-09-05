@@ -99,7 +99,7 @@ describe("Inventory E2E Tests", () => {
         }).then((response) => {
           const items = response.body.items || [];
           // Delete each item
-          items.forEach((item: any) => {
+          items.forEach((item: { id: string }) => {
             cy.request({
               method: 'DELETE',
               url: `http://localhost:8080/api/v1/households/${hId}/items/${item.id}`,

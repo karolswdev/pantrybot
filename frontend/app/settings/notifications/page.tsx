@@ -110,7 +110,7 @@ export default function NotificationSettingsPage() {
         title: 'Settings saved',
         message: 'Your notification preferences have been updated.',
       });
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         title: 'Error',
@@ -138,7 +138,7 @@ export default function NotificationSettingsPage() {
         title: 'Success',
         message: 'Your Telegram account has been linked.',
       });
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         title: 'Error',

@@ -57,7 +57,7 @@ export const apiClient: AxiosInstance = axios.create({
 let isRefreshing = false;
 let failedQueue: Array<{
   resolve: (value?: unknown) => void;
-  reject: (reason?: any) => void;
+  reject: (reason?: unknown) => void;
 }> = [];
 
 const processQueue = (error: Error | null, token: string | null = null) => {
@@ -114,8 +114,15 @@ apiClient.interceptors.response.use(
     // Check if error is 401 and we haven't already tried to refresh
     if (error.response?.status === 401 && !originalRequest._retry) {
       
-      // Don't attempt refresh for auth endpoints
+      // Don't attempt refresh for auth endpoints (just return the error)
       if (originalRequest.url?.includes('/auth/')) {
+        // For login/register endpoints, don't clear tokens or redirect
+        // Let the component handle the error
+        if (originalRequest.url?.includes('/auth/login') || 
+            originalRequest.url?.includes('/auth/register')) {
+          return Promise.reject(error);
+        }
+        // For other auth endpoints, clear tokens and redirect
         tokenManager.clearTokens();
         // Redirect to login
         if (typeof window !== 'undefined') {
@@ -277,8 +284,19 @@ export const api = {
       notes?: string;
     }) => apiClient.post(`/households/${householdId}/items`, data),
     
-    update: (householdId: string, itemId: string, data: any, etag?: string) => {
-      const headers: any = {};
+    update: (householdId: string, itemId: string, data: Partial<{
+      name: string;
+      quantity: number;
+      unit?: string;
+      location: 'fridge' | 'freezer' | 'pantry';
+      category?: string;
+      expirationDate?: string;
+      bestBeforeDate?: string;
+      purchaseDate?: string;
+      price?: number;
+      notes?: string;
+    }>, etag?: string) => {
+      const headers: Record<string, string> = {};
       if (etag) {
         headers['If-Match'] = etag;
       }

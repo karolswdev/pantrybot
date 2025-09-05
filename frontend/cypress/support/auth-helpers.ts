@@ -69,7 +69,10 @@ Cypress.Commands.add('setupAuth', (authData: AuthSetupData) => {
 });
 
 // Add type definition for the custom command
+export {}; // Make this a module
+
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
       setupAuth(authData: AuthSetupData): Chainable<void>;

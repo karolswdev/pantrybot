@@ -1,5 +1,13 @@
 describe('InviteMember - TC-INT-2.4', () => {
-  let authData: any;
+  interface AuthData {
+    accessToken: string;
+    refreshToken: string;
+    userId: string;
+    email: string;
+    displayName: string;
+    defaultHouseholdId: string;
+  };
+  let authData: AuthData;
   let householdId: string;
 
   beforeEach(() => {
@@ -14,8 +22,8 @@ describe('InviteMember - TC-INT-2.4', () => {
       password: 'password123',
       displayName: 'Admin User'
     }).then((response) => {
-      authData = response.body;
-      const { accessToken, refreshToken, userId, email, displayName, defaultHouseholdId } = authData;
+      authData = response.body as AuthData;
+      const { accessToken, refreshToken, userId, defaultHouseholdId } = authData;
       householdId = defaultHouseholdId;
       
       // Set up authentication in localStorage

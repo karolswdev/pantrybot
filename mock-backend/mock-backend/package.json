@@ -1,15 +1,24 @@
 {
-  "name": "mock-backend",
+  "name": "fridgr-mock-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Fridgr - Mock backend for development and testing",
   "main": "index.js",
   "scripts": {
     "start": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "mock-backend",
+    "api",
+    "testing",
+    "development"
+  ],
+  "author": "Fridgr Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KaShaSoft/food-ventory.git"
+  },
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",

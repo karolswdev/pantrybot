@@ -18,7 +18,7 @@ This is the Next.js frontend application for Fridgr - a household food inventory
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - npm or yarn
 
 ### Installation

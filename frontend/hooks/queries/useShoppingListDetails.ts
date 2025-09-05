@@ -11,7 +11,7 @@ export interface ShoppingListDetails {
   createdBy: string;
   lastUpdated: string;
   estimatedTotal?: number;
-  items: any[];
+  items: Array<Record<string, unknown>>;
 }
 
 async function fetchShoppingListDetails(householdId: string, listId: string): Promise<ShoppingListDetails> {

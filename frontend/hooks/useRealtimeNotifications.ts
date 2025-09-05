@@ -14,18 +14,26 @@ export function useRealtimeNotifications() {
     }
 
     // Handler for new notifications
-    const handleNotificationNew = (data: any) => {
+    const handleNotificationNew = (data: unknown) => {
       console.log("Received notification via SignalR:", data);
       
       // Transform the SignalR notification to our notification format
+      const eventData = data as {
+        id?: string;
+        type?: string;
+        title?: string;
+        message?: string;
+        timestamp?: string;
+        metadata?: Record<string, unknown>;
+      };
       const notification = {
-        id: data.id || crypto.randomUUID(),
-        type: data.type || "info" as any,
-        title: data.title || "New Notification",
-        message: data.message || "",
+        id: eventData.id || crypto.randomUUID(),
+        type: (eventData.type || "info") as "expiring" | "expired" | "low_stock" | "shopping" | "household" | "info",
+        title: eventData.title || "New Notification",
+        message: eventData.message || "",
         read: false,
-        createdAt: data.timestamp || new Date().toISOString(),
-        metadata: data.metadata || {},
+        createdAt: eventData.timestamp || new Date().toISOString(),
+        metadata: eventData.metadata || {},
       };
       
       handleRealtimeNotification(notification);

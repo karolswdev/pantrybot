@@ -91,8 +91,8 @@ const useAuthStore = create<AuthState>()(
             token: accessToken,
             refreshToken: refreshToken,
           });
-        } catch (error: any) {
-          const errorMessage = error.response?.data?.message || 'Login failed';
+        } catch (error) {
+          const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Login failed';
           set({
             isLoading: false,
             error: errorMessage,
@@ -154,8 +154,8 @@ const useAuthStore = create<AuthState>()(
             token: accessToken,
             refreshToken: refreshToken,
           });
-        } catch (error: any) {
-          const errorMessage = error.response?.data?.message || 'Registration failed';
+        } catch (error) {
+          const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Registration failed';
           set({
             isLoading: false,
             error: errorMessage,
@@ -175,9 +175,10 @@ const useAuthStore = create<AuthState>()(
           if (refreshToken) {
             await api.auth.logout(refreshToken);
           }
-        } catch (error) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (_error) {
           // Ignore logout errors - we're logging out anyway
-          console.error('Logout error:', error);
+          // Error logged);
         } finally {
           // Clear tokens and state
           tokenManager.clearTokens();

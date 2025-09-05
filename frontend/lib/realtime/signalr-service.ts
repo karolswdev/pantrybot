@@ -9,7 +9,7 @@ export interface InventoryEvent {
   householdId: string;
   payload: {
     itemId: string;
-    item?: any; // Full item data for add/update
+    item?: Record<string, unknown>; // Full item data for add/update
   };
 }
 
@@ -31,13 +31,13 @@ export interface ShoppingListEvent {
   shoppingListId: string;
   payload: {
     itemId: string;
-    item?: any; // Full item data for add/update
+    item?: Record<string, unknown>; // Full item data for add/update
   };
 }
 
 class SignalRService {
   private socket: Socket | null = null;
-  private eventHandlers: Map<string, Set<(data: any) => void>> = new Map();
+  private eventHandlers: Map<string, Set<(data: unknown) => void>> = new Map();
   private isConnecting = false;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private readonly reconnectDelay = 5000; // 5 seconds
@@ -118,39 +118,39 @@ class SignalRService {
       });
 
       // Register event handlers for inventory events
-      this.socket.on('item.updated', (data: any) => {
+      this.socket.on('item.updated', (data: unknown) => {
         console.log('Received item.updated event:', data);
         this.emit('item.updated', data);
       });
 
-      this.socket.on('item.added', (data: any) => {
+      this.socket.on('item.added', (data: unknown) => {
         console.log('Received item.added event:', data);
         this.emit('item.added', data);
       });
 
-      this.socket.on('item.deleted', (data: any) => {
+      this.socket.on('item.deleted', (data: unknown) => {
         console.log('Received item.deleted event:', data);
         this.emit('item.deleted', data);
       });
 
       // Register event handlers for notification events
-      this.socket.on('notification.new', (data: any) => {
+      this.socket.on('notification.new', (data: unknown) => {
         console.log('Received notification.new event:', data);
         this.emit('notification.new', data);
       });
 
       // Register event handlers for shopping list events
-      this.socket.on('shoppinglist.item.added', (data: any) => {
+      this.socket.on('shoppinglist.item.added', (data: unknown) => {
         console.log('Received shoppinglist.item.added event:', data);
         this.emit('shoppinglist.item.added', data);
       });
 
-      this.socket.on('shoppinglist.item.updated', (data: any) => {
+      this.socket.on('shoppinglist.item.updated', (data: unknown) => {
         console.log('Received shoppinglist.item.updated event:', data);
         this.emit('shoppinglist.item.updated', data);
       });
 
-      this.socket.on('shoppinglist.item.deleted', (data: any) => {
+      this.socket.on('shoppinglist.item.deleted', (data: unknown) => {
         console.log('Received shoppinglist.item.deleted event:', data);
         this.emit('shoppinglist.item.deleted', data);
       });
@@ -210,14 +210,14 @@ class SignalRService {
     }, this.reconnectDelay);
   }
 
-  on(event: string, handler: (data: any) => void): void {
+  on(event: string, handler: (data: unknown) => void): void {
     if (!this.eventHandlers.has(event)) {
       this.eventHandlers.set(event, new Set());
     }
     this.eventHandlers.get(event)!.add(handler);
   }
 
-  off(event: string, handler: (data: any) => void): void {
+  off(event: string, handler: (data: unknown) => void): void {
     const handlers = this.eventHandlers.get(event);
     if (handlers) {
       handlers.delete(handler);
@@ -228,7 +228,7 @@ class SignalRService {
   }
 
   // Made public for testing purposes, but should normally be private
-  emit(event: string, data: any): void {
+  emit(event: string, data: unknown): void {
     const handlers = this.eventHandlers.get(event);
     if (handlers) {
       handlers.forEach(handler => {
@@ -256,5 +256,5 @@ export const signalRService = new SignalRService();
 
 // Expose to window for Cypress testing
 if (typeof window !== 'undefined') {
-  (window as any).signalRService = signalRService;
+  (window as Window & { signalRService?: typeof signalRService }).signalRService = signalRService;
 }

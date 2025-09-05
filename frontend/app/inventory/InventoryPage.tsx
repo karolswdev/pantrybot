@@ -116,13 +116,10 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
 
   // Get auth state and query client for real-time updates
   const queryClient = useQueryClient();
-  const { user, token: authToken } = useAuthStore();
-  const isCypressEnv = process.env.NODE_ENV !== 'production' && 
-    typeof window !== 'undefined' && 
-    (window as Window & { Cypress?: unknown }).Cypress;
+  const { user, token: authToken, currentHouseholdId } = useAuthStore();
   
   // Use the actual household ID from the user object (including in Cypress tests)
-  const householdId = user?.households?.[0]?.householdId || user?.defaultHouseholdId;
+  const householdId = currentHouseholdId || user?.defaultHouseholdId;
   
   // Get access token for SignalR connection
   const token = authToken || (typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null);
@@ -131,7 +128,7 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
   const effectiveLocation = selectedLocation === "all" ? location : selectedLocation;
   
   // Fetch inventory items using the query hook with all filter parameters
-  const { data, isLoading, isError, error } = useInventoryItems({
+  const { data, isLoading, isError } = useInventoryItems({
     householdId,
     location: effectiveLocation,
     category: selectedCategory === "All" ? undefined : selectedCategory,
@@ -141,11 +138,10 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
     status: selectedStatus === "all" ? undefined : selectedStatus,
   });
 
-  // Use placeholder data if API fails or is not available
-  const items = data?.items || (isError ? getPlaceholderItems(effectiveLocation) : []);
-  
   // Filter items client-side for status if API doesn't support it
   const filteredItems = useMemo(() => {
+    // Use placeholder data if API fails or is not available
+    const items = data?.items || (isError ? getPlaceholderItems(effectiveLocation) : []);
     if (selectedStatus === "all") return items;
     
     const now = new Date();
@@ -165,7 +161,7 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
       
       return true;
     });
-  }, [items, selectedStatus]);
+  }, [data?.items, isError, effectiveLocation, selectedStatus]);
 
   // Set up real-time updates via SignalR
   useEffect(() => {
@@ -182,8 +178,9 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
     };
 
     // Handle item update events
-    const handleItemUpdated = (data: { payload: { itemId: string; item: Partial<InventoryItem> } }) => {
-      console.log('Real-time update received: item.updated', data);
+    const handleItemUpdated = (data: unknown) => {
+      const eventData = data as { payload: { itemId: string; item: Partial<InventoryItem> } };
+      console.log('Real-time update received: item.updated', eventData);
       
       // Update the query cache with the new item data
       queryClient.setQueryData(
@@ -192,7 +189,7 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
           if (!oldData) return oldData;
           
           const updatedItems = (oldData as { items: InventoryItem[] }).items.map((item: InventoryItem) => 
-            item.id === data.payload.itemId ? { ...item, ...data.payload.item } : item
+            item.id === eventData.payload.itemId ? { ...item, ...eventData.payload.item } : item
           );
           
           return {
@@ -204,8 +201,9 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
     };
 
     // Handle item added events
-    const handleItemAdded = (data: { payload: { item: InventoryItem } }) => {
-      console.log('Real-time update received: item.added', data);
+    const handleItemAdded = (data: unknown) => {
+      const eventData = data as { payload: { item: InventoryItem } };
+      console.log('Real-time update received: item.added', eventData);
       
       // Refetch the query to get the new item
       queryClient.invalidateQueries({
@@ -214,8 +212,9 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
     };
 
     // Handle item deleted events
-    const handleItemDeleted = (data: { payload: { itemId: string } }) => {
-      console.log('Real-time update received: item.deleted', data);
+    const handleItemDeleted = (data: unknown) => {
+      const eventData = data as { payload: { itemId: string } };
+      console.log('Real-time update received: item.deleted', eventData);
       
       // Update the query cache to remove the deleted item
       queryClient.setQueryData(
@@ -225,7 +224,7 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
           
           const typedData = oldData as { items: InventoryItem[], totalCount: number };
           const filteredItems = typedData.items.filter((item: InventoryItem) => 
-            item.id !== data.payload.itemId
+            item.id !== eventData.payload.itemId
           );
           
           return {
@@ -361,7 +360,6 @@ export default function InventoryPage({ location, categories }: InventoryPagePro
           onViewModeChange={setViewMode}
           onAddItem={handleAddItem}
           itemCount={filteredItems.length}
-          currentLocation={location}
         />
       </div>
 

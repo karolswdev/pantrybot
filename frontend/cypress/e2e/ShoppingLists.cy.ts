@@ -3,7 +3,7 @@ describe('Shopping Lists', () => {
   let refreshToken: string;
   let householdId: string;
   let userId: string;
-  let households: any[];
+  let households: { id: string; name: string; role: string }[];
   
   // Test user credentials
   const testUser = {

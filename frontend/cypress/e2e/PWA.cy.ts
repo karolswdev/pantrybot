@@ -47,8 +47,8 @@ describe('PWA', () => {
       expect(manifest.icons.length).to.be.greaterThan(0);
       
       // Assert: Should have at least 192x192 and 512x512 icons for PWA requirements
-      const icon192 = manifest.icons.find((icon: any) => icon.sizes === '192x192');
-      const icon512 = manifest.icons.find((icon: any) => icon.sizes === '512x512');
+      const icon192 = manifest.icons.find((icon: { sizes: string }) => icon.sizes === '192x192');
+      const icon512 = manifest.icons.find((icon: { sizes: string }) => icon.sizes === '512x512');
       expect(icon192).to.exist;
       expect(icon512).to.exist;
     });

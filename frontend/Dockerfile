@@ -2,7 +2,7 @@
 
 # Stage 1: Dependencies
 # This stage installs all npm dependencies for the application
-FROM node:18-alpine AS dependencies
+FROM node:20-alpine AS dependencies
 WORKDIR /app
 
 # Copy package files for dependency installation
@@ -13,7 +13,7 @@ RUN npm ci
 
 # Stage 2: Builder
 # This stage builds the Next.js application for production
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copy dependencies from the previous stage
@@ -31,7 +31,7 @@ RUN npm run build
 
 # Stage 3: Runner
 # This stage sets up the production server using the built application
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 
 # Set production environment

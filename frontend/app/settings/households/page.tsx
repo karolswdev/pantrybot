@@ -34,7 +34,6 @@ export default function HouseholdSettingsPage() {
   // Get current household details
   const currentHousehold = households.find(h => h.id === currentHouseholdId);
   const isAdmin = currentHousehold?.role === 'admin';
-  const isMember = currentHousehold?.role === 'member';
 
   const handleInviteMember = () => {
     // This will be implemented in Task 3

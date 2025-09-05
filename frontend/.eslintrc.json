@@ -1,7 +1,46 @@
 {
   "extends": ["next/core-web-vitals", "next/typescript"],
   "rules": {
-    "@typescript-eslint/no-explicit-any": "warn",
-    "@typescript-eslint/no-unused-vars": "warn"
-  }
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-unused-vars": ["warn", { 
+      "argsIgnorePattern": "^_",
+      "varsIgnorePattern": "^_",
+      "caughtErrorsIgnorePattern": "^_"
+    }]
+  },
+  "overrides": [
+    {
+      "files": ["public/sw.js"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-unused-vars": "off",
+        "@typescript-eslint/no-unused-expressions": "off"
+      }
+    },
+    {
+      "files": ["**/*.tsx", "**/*.ts"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": ["error", {
+          "ignoreRestArgs": true
+        }]
+      }
+    },
+    {
+      "files": ["cypress/**/*.ts", "cypress/**/*.tsx"],
+      "rules": {
+        "@typescript-eslint/no-namespace": "off"
+      }
+    },
+    {
+      "files": ["cypress/**/*.cy.ts"],
+      "rules": {
+        "@typescript-eslint/no-unused-expressions": "off",
+        "@typescript-eslint/no-unused-vars": ["warn", {
+          "argsIgnorePattern": "^_",
+          "varsIgnorePattern": "^_|email|displayName",
+          "caughtErrorsIgnorePattern": "^_"
+        }]
+      }
+    }
+  ]
 }
