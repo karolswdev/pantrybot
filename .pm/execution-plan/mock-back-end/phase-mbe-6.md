@@ -11,7 +11,7 @@
 > 5.  **Commit Work:** You **MUST** create a Git commit at the completion of each story. This is a non-negotiable step.
 > 6.  **Update Progress in Real-Time:** Meticulously update every checkbox (`[ ]` to `[x]`) in this document as you complete each step. Your progress tracking must be flawless.
 
-## [ ] PHASE-MBE-6: Reporting & Advanced Filtering Endpoints
+## [x] PHASE-MBE-6: Reporting & Advanced Filtering Endpoints
 
 ---
 
@@ -49,31 +49,31 @@ This section is a reference library defining the acceptance criteria for this ph
 
 ### **3. Implementation Plan (The Execution)**
 
-#### [ ] STORY-MBE-6.1: Implement Data Aggregation and Filtering
+#### [x] STORY-MBE-6.1: Implement Data Aggregation and Filtering
 
 1.  **Task:** Implement the `GET /households/{householdId}/statistics` endpoint.
     *   **Instruction:** `In 'householdRoutes.js', add a new endpoint at '/{householdId}/statistics'. The handler should be protected by the authentication middleware. It should calculate mock statistics by iterating over the in-memory 'inventoryItems' and 'itemHistory' arrays for the given householdId. Return a 200 OK with a JSON object that matches the `statistics` object shape in the `Get Household Details` response in 'api-specifications.md'.`
     *   **Fulfills:** This task contributes to requirement **MBE-REQ-6.1**.
     *   **Verification via Test Cases:**
         *   **Test Case `TC-MBE-6.1`:**
-            *   [ ] **Test Method Passed:** Checked after the test passes. **Evidence:** The `curl` command and response have been saved to `/evidence/PHASE-MBE-6/STORY-MBE-6.1/task-1/test-output/TC-MBE-6.1.log`.
+            *   [x] **Test Method Passed:** Checked after the test passes. **Evidence:** The `curl` command and response have been saved to `/evidence/PHASE-MBE-6/STORY-MBE-6.1/task-1/test-output/TC-MBE-6.1.log`.
 
 2.  **Task:** Enhance the `GET /households/{householdId}/items` endpoint.
     *   **Instruction:** `In 'inventoryRoutes.js', modify the handler for listing items. Add logic to check for 'search' and 'status' query parameters from 'req.query'. If present, apply the appropriate filtering logic to the in-memory 'inventoryItems' array before sending the response. The 'search' should be case-insensitive and match against the item name. The 'status' filter should match the 'expirationStatus' field you mocked in Phase 3.`
     *   **Fulfills:** This task contributes to requirement **MBE-REQ-6.2**.
     *   **Verification via Test Cases:**
         *   **Test Case `TC-MBE-6.2`:**
-            *   [ ] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-MBE-6/STORY-MBE-6.1/task-2/test-output/TC-MBE-6.2.log`.
+            *   [x] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-MBE-6/STORY-MBE-6.1/task-2/test-output/TC-MBE-6.2.log`.
         *   **Test Case `TC-MBE-6.3`:**
-            *   [ ] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-MBE-6/STORY-MBE-6.1/task-2/test-output/TC-MBE-6.3.log`.
+            *   [x] **Test Method Passed:** **Evidence:** Output saved to `/evidence/PHASE-MBE-6/STORY-MBE-6.1/task-2/test-output/TC-MBE-6.3.log`.
 
 3.  **Task:** Update Documentation and Traceability Matrix.
     *   **Instruction:** `First, update 'mock-backend/README.md'. Document the new statistics endpoint. Enhance the documentation for the 'GET /items' endpoint to include the new optional query parameters ('search', 'status'). Second, update 'system/common/traceability.md' for requirements SYS-FUNC-017, SYS-FUNC-019, and SYS-FUNC-020 with the 'MBE Verified' status.`
     *   **Fulfills:** Documentation and traceability requirements.
     *   **Documentation:**
-        *   [ ] **Documentation Updated:** Checked after the relevant documentation is updated. **Evidence:** A diff of the `mock-backend/README.md` file has been saved to `/evidence/PHASE-MBE-6/STORY-MBE-6.1/task-3/documentation/readme-update.diff`.
+        *   [x] **Documentation Updated:** Checked after the relevant documentation is updated. **Evidence:** A diff of the `mock-backend/README.md` file has been saved to `/evidence/PHASE-MBE-6/STORY-MBE-6.1/task-3/documentation/readme-update.diff`.
     *   **Traceability:**
-        *   [ ] **Traceability Matrix Updated:** Checked after updating the matrix. **Evidence:** A diff of `traceability.md` has been saved to `/evidence/PHASE-MBE-6/STORY-MBE-6.1/task-3/traceability/traceability-update.diff`.
+        *   [x] **Traceability Matrix Updated:** Checked after updating the matrix. **Evidence:** A diff of `traceability.md` has been saved to `/evidence/PHASE-MBE-6/STORY-MBE-6.1/task-3/traceability/traceability-update.diff`.
             ```diff
             -| SYS-FUNC-017 | Categorize items | MVP | SVC-inventory-FUNC-009 (FE Verified - Reports: TC-FE-6.1, TC-FE-7.8) |
             +| SYS-FUNC-017 | Categorize items | MVP | SVC-inventory-FUNC-009 (FE Verified - Reports: TC-FE-6.1, TC-FE-7.8) (MBE Verified: TC-MBE-6.1) |
@@ -89,11 +89,12 @@ This section is a reference library defining the acceptance criteria for this ph
 > You may only proceed once all checkboxes for all tasks within this story are marked `[x]`. Then, you **MUST** complete the following steps in order:
 >
 > 1.  **Run Full Regression Test:**
->     *   [ ] **All Prior Tests Passed:** Checked after running all tests created in the project up to this point.
+>     *   [x] **All Prior Tests Passed:** Checked after running all tests created in the project up to this point.
 >     *   **Instruction:** `Manually execute all API and WebSocket tests from all previous phases (TC-MBE-1.1 through TC-MBE-5.6) and the new tests for this story (TC-MBE-6.1 through TC-MBE-6.3).`
 >     *   **Evidence:** A summary log confirming all 34 test cases have passed has been saved to `/evidence/PHASE-MBE-6/STORY-MBE-6.1/regression-test.log`.
 > 2.  **Create Git Commit:**
->     *   [ ] **Work Committed:** Checked after creating the Git commit.
+>     *   [x] **Work Committed:** Checked after creating the Git commit.
+>     *   **Commit Hash:** 500592eeef4ae0f27296238acd7f86384ec023e6
 >     *   **Instruction:** `Execute 'git add .' followed by 'git commit -m "feat(story): Complete STORY-MBE-6.1 - Implement Data Aggregation and Filtering"'.`
 >     *   **Evidence:** Provide the full commit hash returned by the Git command.
 > 3.  **Finalize Story:**
@@ -108,7 +109,7 @@ This Phase is officially complete **only when all `STORY-MBE` checkboxes in Sect
 #### Final Acceptance Gate
 
 *   **Instruction:** You are at the final gate for this phase. Before marking the entire phase as done, you must perform one last, full regression test to ensure nothing was broken by the final commits.
-*   [ ] **Final Full Regression Test Passed:**
+*   [x] **Final Full Regression Test Passed:**
     *   **Instruction:** `Execute all API and WebSocket test cases (TC-MBE-1.1 through TC-MBE-6.3) one last time to ensure full functionality.`
     *   **Evidence:** A final summary log confirming that all 34 test cases pass has been saved to `/evidence/PHASE-MBE-6/final-acceptance-gate.log`.
 
