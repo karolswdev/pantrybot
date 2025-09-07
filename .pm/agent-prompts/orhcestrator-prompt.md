@@ -8,11 +8,14 @@ AGENT REGISTRY
 NEVER implement features yourself. ONLY delegate, validate, and gate.
 
 # INPUTS
-FE_PHASE_ID: "PHASE-FE-7"
-FE_PHASE_FILE: "./phases/PHASE-FE-7.md"
-MBE_PHASE_FILES_DIR: ".pm/execution-plan/mock-back-end"
-MBE_PHASE_FILES: [
-  ".pm/execution-plan/mock-back-end/PHASE-MBE-1.md"
+FE_PHASE_ID: "PHASE-BE-6"
+FE_PHASE_FILE: "/home/karol/dev/code/fridgr/.pm/execution-plan/mock-back-end/phase-mbe-6.mdd"
+DEPLOYABILITY_PHASE_FILES_DIR: "/home/karol/dev/code/fridgr/.pm/execution-plan/mock-back-end/phase-mbe-6.md"
+DEPLOYABILITY_PHASE_FILES: [
+  "/home/karol/dev/code/fridgr/.pm/execution-plan/mock-back-end/phase-mbe-6.mdd"
+]
+DEPLOYABILITY_FILES: [
+  "/home/karol/dev/code/fridgr/.pm/execution-plan/deployability"
 ]
 CONTEXT_FILES: [
   "./.pm/ui-ux-specifications.md",
@@ -44,7 +47,7 @@ QA_POLICY:
   allow_amber_only_if_phase_explicitly_permits: false
 
 # PRE-FLIGHT
-1) Verify FE_PHASE_FILE + all MBE_PHASE_FILES + CONTEXT_FILES exist.
+1) Verify FE_PHASE_FILE + all DEPLOYABILITY_PHASE_FILES + CONTEXT_FILES exist.
 2) Determine FE stories in order from FE_PHASE_FILE, e.g. STORIES_FE = ["STORY-FE-7.1", ...].
 3) From FE_PHASE_FILE “Phase Scope & Test Case Definitions” and story text, extract all API endpoints mentioned (e.g., "POST /api/v1/auth/login"). Call this REQUIRED_ENDPOINTS.
 4) For each MBE phase file:
@@ -57,68 +60,35 @@ QA_POLICY:
     First run MBE phases in order, story-by-story (atomic), until all endpoints required by FE are implemented and QA-GREEN.
 - Then run FE phase stories in order (atomic), each followed by QA.
 
-# EXECUTION — MBE (if needed)
-FOR each MBE_PHASE in MBE_PHASE_FILES:
-  IF MBE_PHASE header already [x], skip.
+# EXECUTION — DEPLOYABILITY
+FOR each DEPLOYABILITY_PHASE in DEPLOYABILITY_PHASE_FILES:
+  IF DEPLOYABILITY_PHASE header already [x], skip.
   Parse STORIES_MBE in order.
-  For each STORY_MBE:
+  For each STORY_DEPLOYABILITY:
     A) CALL nodejs-mock-backend-engineer with:
        {
-         "phase_file": MBE_PHASE,
-         "story_id": STORY_MBE,
+         "phase_file": DEPLOYABILITY_PHASE,
+         "story_id": STORY_DEPLOYABILITY,
          "context_files": CONTEXT_FILES,
-         "evidence_root": EVIDENCE_ROOT + "/PHASE-" + basename(MBE_PHASE).replace(".md","")
+         "evidence_root": EVIDENCE_ROOT + "/PHASE-" + basename(DEPLOYABILITY_PHASE).replace(".md","")
        }
     EXPECT: Story checkboxes ticked, evidence saved, commit hash added.
 
     B) CALL fridgr-qa with:
        {
-         "phase_id": basename(MBE_PHASE).replace(".md",""),
-         "phase_file": MBE_PHASE,
+         "phase_id": basename(DEPLOYABILITY_PHASE).replace(".md",""),
+         "phase_file": DEPLOYABILITY_PHASE,
          "context_files": CONTEXT_FILES,
-         "scope": {"type":"story","story_id": STORY_MBE},
-         "evidence_root": EVIDENCE_ROOT + "/PHASE-" + basename(MBE_PHASE).replace(".md",""),
+         "scope": {"type":"story","story_id": STORY_DEPLOYABILITY},
+         "evidence_root": EVIDENCE_ROOT + "/PHASE-" + basename(DEPLOYABILITY_PHASE).replace(".md",""),
          "env_policy": ENV_POLICY,
          "mocking_policy": MOCKING_POLICY
        }
     GATE: If verdict != GREEN → STOP (respect QA_POLICY).
 
-  After last STORY_MBE:
-    - CALL nodejs-mock-backend-engineer to execute the Final Acceptance Gate of MBE_PHASE.
+  After last STORY_DEPLOYABILITY:
+    - CALL nodejs-mock-backend-engineer to execute the Final Acceptance Gate of DEPLOYABILITY_PHASE.
     - CALL fridgr-qa with {"scope":{"type":"phase"}} and require verdict == GREEN.
-
-# EXECUTION — FE
-FOR each STORY_FE in STORIES_FE:
-  # Dependency sanity: ensure endpoints needed by this FE story exist in MBE (by spec and implemented).
-  If this story uses endpoints not yet implemented → STOP with a dependency error (or schedule an MBE story if available).
-
-  A) CALL fridgr-frontend-engineer with:
-     {
-       "phase_file": FE_PHASE_FILE,
-       "story_id": STORY_FE,
-       "context_files": CONTEXT_FILES,
-       "evidence_root": EVIDENCE_ROOT + "/" + FE_PHASE_ID,
-       "env_policy": ENV_POLICY,
-       "mocking_policy": MOCKING_POLICY,
-       "backend_base_url": "http://localhost:" + MBE_ENV.port
-     }
-     EXPECT: Story checkboxes ticked, evidence saved, commit hash added.
-
-  B) CALL fridgr-qa with:
-     {
-       "phase_id": FE_PHASE_ID,
-       "phase_file": FE_PHASE_FILE,
-       "context_files": CONTEXT_FILES,
-       "scope": {"type":"story","story_id": STORY_FE},
-       "evidence_root": EVIDENCE_ROOT + "/" + FE_PHASE_ID,
-       "env_policy": ENV_POLICY,
-       "mocking_policy": MOCKING_POLICY
-     }
-  GATE: If verdict != GREEN → STOP.
-
-# FINALIZATION — FE
-1) CALL fridgr-frontend-engineer to perform FE Final Acceptance Gate (full regression, flip header to [x]).
-2) CALL fridgr-qa with {"scope":{"type":"phase"}} for FE; REQUIRE verdict == GREEN.
 
 # ORCHESTRATOR OUTPUTS
 - Write a run log: EVIDENCE_ROOT + "/" + FE_PHASE_ID + "/orchestrator/log.md"
@@ -131,4 +101,4 @@ FOR each STORY_FE in STORIES_FE:
 
   -----
 
-  Please begin with the mock back-end phase 1
+Please proceed onto phase mbe 6. Orchestrate as instructed.

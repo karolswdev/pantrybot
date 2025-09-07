@@ -1,0 +1,18 @@
+diff --git a/.pm/system/common/traceability.md b/.pm/system/common/traceability.md
+index dcc3c7d..d4a48f5 100644
+--- a/.pm/system/common/traceability.md
++++ b/.pm/system/common/traceability.md
+@@ -23,10 +23,10 @@ This document maps system-level requirements to service-level requirements for t
+ | SYS-FUNC-014 | Mark items as wasted | MVP | SVC-inventory-FUNC-006 (FE Verified: TC-FE-3.6, TC-FE-7.3) (MBE Verified: TC-MBE-3.7) (INT Verified: TC-INT-3.6) |
+ | SYS-FUNC-015 | Move items between locations | MVP | SVC-inventory-FUNC-007 |
+ | SYS-FUNC-016 | Calculate days until expiration | MVP | SVC-inventory-FUNC-008 (MBE Verified: TC-MBE-3.2) |
+-| SYS-FUNC-017 | Categorize items | MVP | SVC-inventory-FUNC-009 (FE Verified - Reports: TC-FE-6.1, TC-FE-7.8) (INT Verified: TC-INT-6.1) |
++| SYS-FUNC-017 | Categorize items | MVP | SVC-inventory-FUNC-009 (FE Verified - Reports: TC-FE-6.1, TC-FE-7.8) (MBE Verified: TC-MBE-6.1) (INT Verified: TC-INT-6.1) |
+ | SYS-FUNC-018 | Send expiration warnings | MVP | SVC-inventory-FUNC-010, SVC-notifications-FUNC-003 |
+-| SYS-FUNC-019 | Customize warning period | MVP | SVC-notifications-FUNC-004 (FE Verified - Search: TC-FE-6.4) (MBE Verified: TC-MBE-4.5) (INT Verified: TC-INT-4.3, TC-INT-6.2) |
+-| SYS-FUNC-020 | Email notifications | MVP | SVC-notifications-FUNC-005 (FE Verified - Filter: TC-FE-6.5, TC-FE-6.6) (INT Verified: TC-INT-6.3) |
++| SYS-FUNC-019 | Customize warning period | MVP | SVC-notifications-FUNC-004 (FE Verified - Search: TC-FE-6.4) (MBE Verified: TC-MBE-4.5, TC-MBE-6.2) (INT Verified: TC-INT-4.3, TC-INT-6.2) |
++| SYS-FUNC-020 | Email notifications | MVP | SVC-notifications-FUNC-005 (FE Verified - Filter: TC-FE-6.5, TC-FE-6.6) (MBE Verified: TC-MBE-6.3) (INT Verified: TC-INT-6.3) |
+ | SYS-FUNC-021 | In-app notifications | MVP | SVC-notifications-FUNC-006 (FE Verified: TC-FE-4.1, TC-FE-4.2, TC-FE-7.7) |
+ | SYS-FUNC-022 | Telegram bot notifications | MVP | SVC-notifications-FUNC-007 |
+ | SYS-FUNC-023 | Link Telegram accounts | MVP | SVC-notifications-FUNC-008 (FE Verified: TC-FE-4.4, TC-FE-7.4) (MBE Verified: TC-MBE-4.6) (INT Verified: TC-INT-4.4) |

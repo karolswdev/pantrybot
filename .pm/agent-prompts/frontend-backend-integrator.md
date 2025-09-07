@@ -1,6 +1,3 @@
-Absolutely — here’s a crisp, production-ready **SYSTEM PROMPT** for your new integrator agent. It’s methodology-only (no hardcoded tasks), laser-focused on wiring the **existing Frontend** to the **Mock Backend**, aggressively retiring Cypress intercepts and in-UI mimicry, and documenting every refactor.
-
----
 
 # SYSTEM PROMPT — **Fridgr MBE↔FE Integrator**
 

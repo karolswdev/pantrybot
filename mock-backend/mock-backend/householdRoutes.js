@@ -167,6 +167,86 @@ router.get('/:id', (req, res) => {
   }
 });
 
+// GET /api/v1/households/:id/statistics - Get household statistics
+router.get('/:id/statistics', (req, res) => {
+  try {
+    const userId = req.user.id;
+    const householdId = req.params.id;
+
+    // Find the household
+    const household = households.find(h => h.id === householdId);
+    if (!household) {
+      return res.status(404).json({
+        error: 'Not Found',
+        message: 'Household not found'
+      });
+    }
+
+    // Check if user is a member of the household
+    const membership = household_members.find(
+      hm => hm.householdId === householdId && hm.userId === userId
+    );
+    
+    if (!membership) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'Access denied'
+      });
+    }
+
+    // Import required data
+    const { inventoryItems, itemHistory } = require('./db');
+
+    // Calculate statistics from in-memory data
+    const householdItems = inventoryItems.filter(item => item.householdId === householdId);
+    
+    // Count total items
+    const totalItems = householdItems.length;
+    
+    // Count expiring items (within 3 days)
+    const now = new Date();
+    const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
+    const expiringItems = householdItems.filter(item => {
+      if (!item.expirationDate) return false;
+      const expDate = new Date(item.expirationDate);
+      return expDate > now && expDate <= threeDaysFromNow;
+    }).length;
+    
+    // Count expired items
+    const expiredItems = householdItems.filter(item => {
+      if (!item.expirationDate) return false;
+      const expDate = new Date(item.expirationDate);
+      return expDate < now;
+    }).length;
+    
+    // Calculate consumed and wasted this month
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthHistory = itemHistory.filter(h => 
+      h.householdId === householdId && 
+      new Date(h.timestamp) >= startOfMonth
+    );
+    
+    const consumedThisMonth = monthHistory.filter(h => h.action === 'consumed').length;
+    const wastedThisMonth = monthHistory.filter(h => h.action === 'wasted').length;
+
+    const statistics = {
+      totalItems,
+      expiringItems,
+      expiredItems,
+      consumedThisMonth,
+      wastedThisMonth
+    };
+
+    res.status(200).json({ statistics });
+  } catch (error) {
+    console.error('Get household statistics error:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: 'An error occurred while fetching household statistics'
+    });
+  }
+});
+
 // PUT /api/v1/households/:id - Update household
 router.put('/:id', (req, res) => {
   try {
@@ -412,77 +492,5 @@ router.post('/:id/members', (req, res) => {
   }
 });
 
-// GET /api/v1/households/:id/statistics - Get household statistics
-router.get('/:id/statistics', (req, res) => {
-  try {
-    const userId = req.user.id;
-    const householdId = req.params.id;
-    const { days = 30 } = req.query; // Support date range parameter
-
-    // Find the household
-    const household = households.find(h => h.id === householdId);
-    if (!household) {
-      return res.status(404).json({
-        error: 'Not Found',
-        message: 'Household not found'
-      });
-    }
-
-    // Check if user is a member of the household
-    const membership = household_members.find(
-      hm => hm.householdId === householdId && hm.userId === userId
-    );
-    
-    if (!membership) {
-      return res.status(403).json({
-        error: 'Forbidden',
-        message: 'Access denied'
-      });
-    }
-
-    // Return mock statistics data
-    // This matches the structure expected by the Reports page
-    const statistics = {
-      wastedThisMonth: days === '7' ? 7 : 45,
-      wastedLastMonth: days === '7' ? 5 : 60,
-      wasteChangePercentage: days === '7' ? 5 : -25,
-      weeklyWaste: [
-        { week: 'Week 1', value: days === '7' ? 2 : 15 },
-        { week: 'Week 2', value: days === '7' ? 1 : 12 },
-        { week: 'Week 3', value: days === '7' ? 2 : 10 },
-        { week: 'Week 4', value: days === '7' ? 2 : 8 }
-      ],
-      categoryBreakdown: [
-        { category: 'Produce', percentage: 40, value: days === '7' ? 2.8 : 18 },
-        { category: 'Dairy', percentage: 30, value: days === '7' ? 2.1 : 13.5 },
-        { category: 'Leftovers', percentage: 20, value: days === '7' ? 1.4 : 9 },
-        { category: 'Meat', percentage: 10, value: days === '7' ? 0.7 : 4.5 }
-      ],
-      expiryPatterns: [
-        { dayOfWeek: 'Mon', count: 5 },
-        { dayOfWeek: 'Tue', count: 3 },
-        { dayOfWeek: 'Wed', count: 2 },
-        { dayOfWeek: 'Thu', count: 1 },
-        { dayOfWeek: 'Fri', count: 8 },
-        { dayOfWeek: 'Sat', count: 6 },
-        { dayOfWeek: 'Sun', count: 5 }
-      ],
-      inventoryValue: 350,
-      totalItemsWasted: days === '7' ? 3 : 12,
-      totalItemsConsumed: days === '7' ? 10 : 38,
-      savingsFromConsumed: days === '7' ? 25.50 : 98.75
-    };
-
-    res.status(200).json({
-      statistics
-    });
-  } catch (error) {
-    console.error('Get household statistics error:', error);
-    res.status(500).json({
-      error: 'Internal Server Error',
-      message: 'An error occurred while fetching household statistics'
-    });
-  }
-});
 
 module.exports = router;
