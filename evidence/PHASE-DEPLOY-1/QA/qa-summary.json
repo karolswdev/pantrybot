@@ -1,0 +1,71 @@
+{
+  "phaseId": "PHASE-DEPLOY-1",
+  "storyId": "STORY-DEPLOY-1.1",
+  "verdict": "GREEN",
+  "timestampUtc": "2025-09-08T00:00:00Z",
+  "env": {
+    "mode": "dev",
+    "baseUrl": "http://localhost:3000"
+  },
+  "versions": {
+    "node": "18.20.5",
+    "npm": "10.9.2",
+    "next": "14.2.5",
+    "cypress": "13.14.2"
+  },
+  "tests": {
+    "verificationCases": [
+      {
+        "id": "VC-DEPLOY-1.4",
+        "status": "PASS",
+        "evidence": "./evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.1/task-2/test-output/VC-DEPLOY-1.4.log"
+      },
+      {
+        "id": "VC-DEPLOY-1.5",
+        "status": "PASS",
+        "evidence": "./evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.1/task-3/review/VC-DEPLOY-1.5.md"
+      }
+    ]
+  },
+  "filesCreated": [
+    {
+      "path": "docker-compose.staging.yml",
+      "verified": true,
+      "checksPass": true
+    },
+    {
+      "path": "scripts/generate-nginx-conf.sh",
+      "verified": true,
+      "checksPass": true
+    },
+    {
+      "path": "scripts/setup-ssl.sh",
+      "verified": true,
+      "checksPass": true
+    }
+  ],
+  "traceability": [
+    {
+      "requirementId": "DEPLOY-REQ-1.3",
+      "testCases": ["VC-DEPLOY-1.4", "VC-DEPLOY-1.5"],
+      "evidence": [
+        "./evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.1/task-2/test-output/VC-DEPLOY-1.4.log",
+        "./evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.1/task-3/review/VC-DEPLOY-1.5.md"
+      ],
+      "status": "PASS"
+    }
+  ],
+  "gitCommit": {
+    "hash": "43aaf5d1d3f91e17b71bb1a69139f7627e06a1d6",
+    "message": "feat(deploy): Complete STORY-DEPLOY-1.1 - Staging Environment Configuration and Scripting",
+    "verified": true
+  },
+  "phaseFileStatus": {
+    "storyCheckbox": true,
+    "taskCheckboxes": [true, true, true],
+    "regressionTest": true,
+    "commitCreated": true
+  },
+  "blockers": [],
+  "ambers": []
+}
