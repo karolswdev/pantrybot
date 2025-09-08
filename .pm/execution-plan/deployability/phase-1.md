@@ -74,7 +74,7 @@ This section is a reference library defining the acceptance criteria for this ph
     *   **Fulfills:** This task contributes to requirement **DEPLOY-REQ-1.3**.
     *   **Verification via Test Cases:**
         *   **Test Case `VC-DEPLOY-1.4`:**
-            *   [ ] **Test Method Passed:** Checked after the test passes. **Evidence:** Test script output saved to `/evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.1/task-2/test-output/VC-DEPLOY-1.4.log`.
+            *   [x] **Test Method Passed:** Checked after the test passes. **Evidence:** Test script output saved to `/evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.1/task-2/test-output/VC-DEPLOY-1.4.log`.
 
 3.  **Task:** Create the SSL certificate setup script.
     *   **Instruction:** `Create an executable script at 'scripts/setup-ssl.sh'. This script will take a domain name as an argument. It must perform the following:
@@ -84,13 +84,13 @@ This section is a reference library defining the acceptance criteria for this ph
     *   **Fulfills:** This task contributes to requirement **DEPLOY-REQ-1.3**.
     *   **Verification via Test Cases:**
         *   **Test Case `VC-DEPLOY-1.5`:**
-            *   [ ] **Test Method Passed:** Checked after manual review. **Evidence:** A review summary saved to `/evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.1/task-3/review/VC-DEPLOY-1.5.md`.
+            *   [x] **Test Method Passed:** Checked after manual review. **Evidence:** A review summary saved to `/evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.1/task-3/review/VC-DEPLOY-1.5.md`.
 
 ---
 > ### **Story Completion: STORY-DEPLOY-1.1**
 >
 > 1.  **Run Full Regression Test:**
->     *   [ ] **All Prior Tests Passed:** Run the automated script test for `VC-DEPLOY-1.4`.
+>     *   [x] **All Prior Tests Passed:** Run the automated script test for `VC-DEPLOY-1.4`.
 > 2.  **Create Git Commit:**
 >     *   [ ] **Work Committed:** Checked after creating the Git commit.
 >     *   **Instruction:** `Execute 'git add .' followed by 'git commit -m "feat(deploy): Complete STORY-DEPLOY-1.1 - Staging Environment Configuration and Scripting"'.`

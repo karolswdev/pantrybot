@@ -1,0 +1,88 @@
+{
+  "phaseId": "PHASE-MBE-6",
+  "storyId": "STORY-MBE-6.1",
+  "verdict": "GREEN",
+  "timestampUtc": "2025-09-07T23:20:00Z",
+  "env": {
+    "mode": "docker",
+    "service": "mock-backend",
+    "baseUrl": "http://localhost:8080"
+  },
+  "versions": {
+    "node": "18.20.5",
+    "npm": "10.8.2",
+    "express": "4.21.2"
+  },
+  "tests": {
+    "story": {
+      "TC-MBE-6.1": "PASS",
+      "TC-MBE-6.2": "PASS",
+      "TC-MBE-6.3": "PASS"
+    },
+    "regression": {
+      "pass": 35,
+      "total": 35,
+      "failed": 0
+    }
+  },
+  "traceability": [
+    {
+      "requirementId": "SYS-FUNC-017",
+      "testCases": ["TC-MBE-6.1"],
+      "evidence": ["./evidence/PHASE-MBE-6/STORY-MBE-6.1/task-1/test-output/TC-MBE-6.1.log"],
+      "status": "PASS"
+    },
+    {
+      "requirementId": "SYS-FUNC-019",
+      "testCases": ["TC-MBE-6.2"],
+      "evidence": ["./evidence/PHASE-MBE-6/STORY-MBE-6.1/task-2/test-output/TC-MBE-6.2.log"],
+      "status": "PASS"
+    },
+    {
+      "requirementId": "SYS-FUNC-020",
+      "testCases": ["TC-MBE-6.3"],
+      "evidence": ["./evidence/PHASE-MBE-6/STORY-MBE-6.1/task-2/test-output/TC-MBE-6.3.log"],
+      "status": "PASS"
+    }
+  ],
+  "documentation": {
+    "readmeUpdated": true,
+    "traceabilityUpdated": true,
+    "evidenceSaved": true
+  },
+  "git": {
+    "commitHash": "500592eeef4ae0f27296238acd7f86384ec023e6",
+    "commitMessage": "feat(story): Complete STORY-MBE-6.1 - Implement Data Aggregation and Filtering",
+    "filesModified": [
+      "mock-backend/mock-backend/householdRoutes.js",
+      "mock-backend/mock-backend/README.md",
+      ".pm/system/common/traceability.md"
+    ]
+  },
+  "endpoints": {
+    "statistics": {
+      "path": "/api/v1/households/{householdId}/statistics",
+      "method": "GET",
+      "status": "implemented",
+      "responseKeys": [
+        "wastedThisMonth",
+        "wastedLastMonth",
+        "wasteChangePercentage",
+        "weeklyWaste",
+        "categoryBreakdown",
+        "expiryPatterns",
+        "inventoryValue",
+        "totalItemsWasted",
+        "totalItemsConsumed",
+        "savingsFromConsumed"
+      ]
+    },
+    "itemsSearch": {
+      "path": "/api/v1/households/{householdId}/items",
+      "queryParams": ["search", "status"],
+      "status": "enhanced"
+    }
+  },
+  "blockers": [],
+  "ambers": []
+}

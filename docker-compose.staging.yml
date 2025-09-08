@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Override frontend configuration for staging
+  frontend:
+    environment:
+      # Override API URL to use the staging API domain
+      NEXT_PUBLIC_API_URL: https://api.pantrybot.app/api/v1
+      # WebSocket URL for real-time features
+      NEXT_PUBLIC_WS_URL: wss://api.pantrybot.app/ws
+      # Public application URL
+      NEXT_PUBLIC_APP_URL: https://pantrybot.app
+      # Node environment
+      NODE_ENV: production
+    # Remove ports mapping - Nginx will handle external traffic
+    ports: []
+    # Map to different internal port for staging
+    expose:
+      - "3010"
+    # Override command to bind to the correct port
+    command: npm start -- -p 3010
+
+  # Override mock-backend configuration for staging
+  mock-backend:
+    environment:
+      PORT: 8088
+      NODE_ENV: production
+    # Remove external ports mapping - Nginx will handle external traffic
+    ports: []
+    # Map to different internal port for staging
+    expose:
+      - "8088"
+
+  # Remove unnecessary services for staging
+  postgres:
+    deploy:
+      replicas: 0
+
+  redis:
+    deploy:
+      replicas: 0
+
+  backend:
+    deploy:
+      replicas: 0
