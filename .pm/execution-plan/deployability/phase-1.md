@@ -126,7 +126,7 @@ This section is a reference library defining the acceptance criteria for this ph
 > 2.  **Create Git Commit:**
 >     *   [x] **Work Committed:** Checked after creating the Git commit.
 >     *   **Instruction:** `Execute 'git add .' followed by 'git commit -m "feat(ci): Complete STORY-DEPLOY-1.2 - CI Artifact Pipeline and Manual Deployment Script"'.`
->     *   **Evidence:** Commit hash will be provided after commit.
+>     *   **Evidence:** Commit hash: 13b41bbc11fcecf923efe33007258ee81410afb4
 > 3.  **Finalize Story:**
 >     *   **Instruction:** Once the commit is created, update this story's main checkbox from `[ ]` to `[x]`.
 
@@ -166,7 +166,7 @@ This section is a reference library defining the acceptance criteria for this ph
     *   **Instruction:** `Update '.pm/system/common/traceability.md' with a new section for Deployment Requirements, linking all DEPLOY-REQ IDs to their verification statuses.`
     *   **Fulfills:** Traceability requirements.
     *   **Traceability:**
-        *   [ ] **Traceability Matrix Updated:** Checked after updating the matrix. **Evidence:** A diff of `traceability.md` has been saved to `/evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.3/task-4/traceability/traceability-update.diff`.
+        *   [x] **Traceability Matrix Updated:** Checked after updating the matrix. **Evidence:** A diff of `traceability.md` has been saved to `/evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.3/task-4/traceability/traceability-update.diff`.
 
 ---
 > ### **Story Completion: STORY-DEPLOY-1.3**
@@ -201,6 +201,7 @@ This Phase is officially complete **only when all `STORY-DEPLOY` checkboxes in S
 
 ### QA VERDICT
 
+#### STORY-DEPLOY-1.1 Verification
 **Verdict:** GREEN  
 **Timestamp:** 2025-09-08T00:00:00Z  
 **Scope:** STORY-DEPLOY-1.1  
@@ -210,3 +211,16 @@ This Phase is officially complete **only when all `STORY-DEPLOY` checkboxes in S
 **Evidence Artifacts:**
 - QA Report: [./evidence/PHASE-DEPLOY-1/QA/report.md](./evidence/PHASE-DEPLOY-1/QA/report.md)
 - QA Summary: [./evidence/PHASE-DEPLOY-1/QA/qa-summary.json](./evidence/PHASE-DEPLOY-1/QA/qa-summary.json)
+
+---
+
+#### STORY-DEPLOY-1.2 Verification
+**Verdict:** GREEN  
+**Timestamp:** 2025-09-08T00:15:00Z  
+**Scope:** STORY-DEPLOY-1.2  
+
+**Summary:** STORY-DEPLOY-1.2 has been successfully implemented and verified. The manual deployment script (scripts/deploy.sh) and CI workflow (.github/workflows/deploy-staging.yml) have been created according to specifications. Test case VC-DEPLOY-1.3 passes - the workflow correctly builds and pushes Docker images to ghcr.io WITHOUT containing any SSH or deployment steps. Evidence has been properly collected and the story has been committed to git with hash 13b41bbc11fcecf923efe33007258ee81410afb4.
+
+**Evidence Artifacts:**
+- QA Report: [./evidence/PHASE-DEPLOY-1/QA/story-deploy-1-2-report.md](./evidence/PHASE-DEPLOY-1/QA/story-deploy-1-2-report.md)
+- QA Summary: [./evidence/PHASE-DEPLOY-1/QA/story-deploy-1-2-summary.json](./evidence/PHASE-DEPLOY-1/QA/story-deploy-1-2-summary.json)

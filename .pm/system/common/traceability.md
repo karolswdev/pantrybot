@@ -53,6 +53,15 @@ This document maps system-level requirements to service-level requirements for t
 | SYS-PORT-002 | Frontend MUST work as Progressive Web App | MVP | Frontend service (FE Verified - PWA & Mobile: TC-FE-6.7, TC-FE-6.8, TC-FE-6.9) (INT Note: TC-INT-6.4 requires auth integration) |
 | SYS-PORT-003 | System MUST support PostgreSQL 14+ | MVP | SVC-inventory, SVC-users |
 
+## Deployment Requirements Traceability
+
+| Deployment Requirement ID | Title | Verification Case | Status | Evidence |
+|---------------------------|-------|-------------------|--------|----------|
+| DEPLOY-REQ-1.1 | The application MUST be securely accessible over the internet via its designated domains after manual deployment | VC-DEPLOY-1.1, VC-DEPLOY-1.2 | Pending Manual Verification | /evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.3/task-2/test-output/ |
+| DEPLOY-REQ-1.2 | The artifact creation process MUST be automated through a CI/CD pipeline | VC-DEPLOY-1.3 | Verified | /evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.2/task-2/documentation/deploy-workflow.yml |
+| DEPLOY-REQ-1.3 | The Nginx and SSL setup MUST be scriptable | VC-DEPLOY-1.4, VC-DEPLOY-1.5 | Verified | /evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.1/task-2/, /evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.1/task-3/ |
+| DEPLOY-REQ-1.4 | The application MUST be fully functional after manual deployment | VC-DEPLOY-1.6 | Pending Manual Verification | /evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.3/task-3/test-output/ |
+
 ## Service Dependencies
 
 ### Users Service
