@@ -130,7 +130,7 @@ verify_deployment() {
     
     # Check if containers are running
     local frontend_status=$(docker-compose -f docker-compose.yml -f docker-compose.staging.yml ps -q frontend)
-    local backend_status=$(docker-compose -f docker-compose.yml -f docker-compose.staging.yml ps -q mock-backend)
+    local backend_status=$(docker-compose -f docker-compose.yml -f docker-compose.staging.yml ps -q backend)
     
     if [ -n "$frontend_status" ] && [ -n "$backend_status" ]; then
         print_message "$GREEN" "✅ All required services are running"
@@ -138,11 +138,11 @@ verify_deployment() {
         # Test health endpoints if accessible locally
         print_message "$YELLOW" "Testing service health endpoints..."
         
-        # Test mock-backend health
+        # Test backend health
         if curl -s -f http://localhost:8088/health > /dev/null 2>&1; then
-            print_message "$GREEN" "   ✅ Mock backend is healthy"
+            print_message "$GREEN" "   ✅ Backend is healthy"
         else
-            print_message "$YELLOW" "   ⚠️  Mock backend health check failed (might be normal if Nginx is required)"
+            print_message "$YELLOW" "   ⚠️  Backend health check failed (might be normal if Nginx is required)"
         fi
         
         # Test frontend

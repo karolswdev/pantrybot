@@ -1,17 +1,18 @@
 {
-  "name": "fridgr-mock-backend",
+  "name": "fridgr-backend",
   "version": "1.0.0",
-  "description": "Fridgr - Mock backend for development and testing",
+  "description": "Fridgr - Node.js/Express backend API",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "node index.js",
+    "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "mock-backend",
+    "backend",
     "api",
-    "testing",
-    "development"
+    "express",
+    "nodejs"
   ],
   "author": "Fridgr Team",
   "license": "MIT",

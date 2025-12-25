@@ -57,8 +57,8 @@ npm install
 # Start frontend development server
 npm run dev
 
-# In another terminal, start mock backend
-cd ../mock-backend/mock-backend
+# In another terminal, start backend
+cd ../backend
 npm install
 npm start
 
@@ -75,8 +75,7 @@ fridgr/
 │   ├── hooks/               # Custom React hooks & queries
 │   ├── lib/                 # Utilities and services
 │   └── cypress/             # E2E tests
-├── mock-backend/            # Node.js mock API server
-│   └── mock-backend/        # Express server with WebSocket support
+├── backend/                 # Node.js API server (Express with WebSocket)
 ├── .pm/                     # Project management & documentation
 │   ├── evidence/            # Test execution evidence
 │   ├── execution-plan/      # Development phases
@@ -97,11 +96,11 @@ fridgr/
 - **Forms**: React Hook Form with Zod validation
 - **Testing**: Cypress E2E, Jest
 
-### Mock Backend
+### Backend
 - **Runtime**: Node.js
 - **Framework**: Express.js
 - **Real-time**: Socket.io
-- **Database**: In-memory with persistence
+- **Database**: In-memory with file persistence (PostgreSQL ready)
 - **Authentication**: JWT tokens
 
 ### DevOps

@@ -52,11 +52,11 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
             type=raw,value=staging,enable={{is_default_branch}}
       
-      - name: Extract metadata for mock-backend
+      - name: Extract metadata for backend
         id: meta-backend
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/mock-backend
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/backend
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -80,12 +80,12 @@ jobs:
             NEXT_PUBLIC_WS_URL=wss://api.pantrybot.app/ws
             NEXT_PUBLIC_APP_URL=https://pantrybot.app
       
-      # Step 6: Build and push Mock Backend Docker image
-      - name: Build and push Mock Backend image
+      # Step 6: Build and push Backend Docker image
+      - name: Build and push Backend image
         uses: docker/build-push-action@v5
         with:
-          context: ./mock-backend/mock-backend
-          file: ./mock-backend/mock-backend/Dockerfile
+          context: ./backend
+          file: ./backend/Dockerfile
           push: true
           tags: ${{ steps.meta-backend.outputs.tags }}
           labels: ${{ steps.meta-backend.outputs.labels }}
@@ -107,7 +107,7 @@ jobs:
           echo "${{ steps.meta-frontend.outputs.tags }}" | tr ',' '\n' >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "#### Mock Backend Image:" >> $GITHUB_STEP_SUMMARY
+          echo "#### Backend Image:" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           echo "${{ steps.meta-backend.outputs.tags }}" | tr ',' '\n' >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

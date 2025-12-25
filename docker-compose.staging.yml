@@ -20,8 +20,8 @@ services:
     # Override command to bind to the correct port
     command: npm start -- -p 3010
 
-  # Override mock-backend configuration for staging
-  mock-backend:
+  # Override backend configuration for staging
+  backend:
     environment:
       PORT: 8088
       NODE_ENV: production
@@ -37,9 +37,5 @@ services:
       replicas: 0
 
   redis:
-    deploy:
-      replicas: 0
-
-  backend:
     deploy:
       replicas: 0

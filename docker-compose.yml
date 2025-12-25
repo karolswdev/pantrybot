@@ -37,12 +37,12 @@ services:
       timeout: 5s
       retries: 5
 
-  # Mock Backend Service for Integration Testing
-  mock-backend:
+  # Backend API Service (Node.js/Express)
+  backend:
     build:
-      context: ./mock-backend/mock-backend
+      context: ./backend
       dockerfile: Dockerfile
-    container_name: fridgr-mock-backend
+    container_name: fridgr-backend
     environment:
       PORT: 8080
       NODE_ENV: development
@@ -55,30 +55,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  # Backend API Service (placeholder for future implementation)
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: fridgr-backend
-    environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://+:5000
-      ConnectionStrings__DefaultConnection: Host=postgres;Database=fridgr;Username=fridgr_user;Password=fridgr_password
-      ConnectionStrings__Redis: redis:6379
-    ports:
-      - "5000:5000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - fridgr-network
-    # Temporarily use a simple alpine image until backend is implemented
-    image: alpine:latest
-    command: /bin/sh -c "echo 'Backend placeholder running' && sleep infinity"
 
   # Frontend Next.js Service
   frontend:
@@ -98,7 +74,7 @@ services:
     ports:
       - "3003:3000"
     depends_on:
-      - mock-backend
+      - backend
     networks:
       - fridgr-network
     # volumes:

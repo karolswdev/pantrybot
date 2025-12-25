@@ -1,0 +1,99 @@
+{
+  "phaseId": "PHASE-DEPLOY-1",
+  "storyId": "STORY-DEPLOY-1.3",
+  "verdict": "AMBER",
+  "timestampUtc": "2025-09-08T06:00:00Z",
+  "env": {
+    "mode": "dev",
+    "baseUrl": "http://localhost:3000"
+  },
+  "versions": {
+    "node": "v18.19.0",
+    "npm": "10.2.3",
+    "next": "14.0.0",
+    "cypress": "13.6.0"
+  },
+  "tasks": {
+    "total": 4,
+    "automated": 1,
+    "manual": 3,
+    "completedAutomated": 1,
+    "pendingManual": 3
+  },
+  "traceability": [
+    {
+      "requirementId": "DEPLOY-REQ-1.1",
+      "testCases": ["VC-DEPLOY-1.1", "VC-DEPLOY-1.2"],
+      "evidence": ["./evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.3/task-2/test-output/"],
+      "status": "PENDING_MANUAL"
+    },
+    {
+      "requirementId": "DEPLOY-REQ-1.2",
+      "testCases": ["VC-DEPLOY-1.3"],
+      "evidence": ["./evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.2/task-2/documentation/deploy-workflow.yml"],
+      "status": "VERIFIED"
+    },
+    {
+      "requirementId": "DEPLOY-REQ-1.3",
+      "testCases": ["VC-DEPLOY-1.4", "VC-DEPLOY-1.5"],
+      "evidence": ["./evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.1/task-2/", "./evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.1/task-3/"],
+      "status": "VERIFIED"
+    },
+    {
+      "requirementId": "DEPLOY-REQ-1.4",
+      "testCases": ["VC-DEPLOY-1.6"],
+      "evidence": ["./evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.3/task-3/test-output/"],
+      "status": "PENDING_MANUAL"
+    }
+  ],
+  "documentation": {
+    "manualDeploymentGuide": true,
+    "operatorGuide": true,
+    "completionSummary": true,
+    "placeholderEvidence": true
+  },
+  "git": {
+    "partialCompletionCommit": "83e92ecc8acb8930cbad5420d67c956b2e2a5629",
+    "commitMessage": "docs(deploy): Partial completion of STORY-DEPLOY-1.3 - Documentation and Traceability",
+    "filesModified": 8
+  },
+  "blockers": [],
+  "ambers": [
+    {
+      "id": "QA-AMB-001",
+      "title": "Manual Deployment Pending",
+      "detail": "Tasks 1-3 require human operator intervention on VPS",
+      "path": "./evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.3/operator-guide.md"
+    },
+    {
+      "id": "QA-AMB-002",
+      "title": "Story Incomplete",
+      "detail": "Main story checkbox cannot be marked until manual tasks are verified",
+      "path": "./.pm/execution-plan/deployability/phase-1.md"
+    }
+  ],
+  "automatedTasksStatus": {
+    "task4_traceability": {
+      "status": "COMPLETED",
+      "evidence": "./evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.3/task-4/traceability/traceability-update.diff",
+      "verified": true
+    }
+  },
+  "manualTasksStatus": {
+    "task1_deployment": {
+      "status": "PENDING",
+      "documentation": "./evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.3/task-1/documentation/manual-deployment-steps.md"
+    },
+    "task2_verification": {
+      "status": "PENDING",
+      "placeholders": [
+        "./evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.3/task-2/test-output/VC-DEPLOY-1.1.log",
+        "./evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.3/task-2/test-output/VC-DEPLOY-1.2.log"
+      ]
+    },
+    "task3_e2e": {
+      "status": "PENDING",
+      "placeholder": "./evidence/PHASE-DEPLOY-1/STORY-DEPLOY-1.3/task-3/test-output/VC-DEPLOY-1.6.log"
+    }
+  }
+}

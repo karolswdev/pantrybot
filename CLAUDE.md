@@ -4,60 +4,59 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Fridgr is a household food inventory management system designed to reduce food waste through intelligent tracking of perishable items. The project is currently in the planning/early development phase with comprehensive documentation in the `.pm/` directory.
+Fridgr is a household food inventory management system designed to reduce food waste through intelligent tracking of perishable items. The project has a production-ready MVP with a Next.js frontend and Node.js/Express backend.
 
 ## Architecture
 
 ### Technology Stack
-- **Backend**: .NET 8 (C#) - Modular Monolith with Ports & Adapters (Hexagonal Architecture)
-- **Frontend**: Next.js 14+ with TypeScript, React 18+, Tailwind CSS, Zustand
-- **Database**: PostgreSQL 15+
-- **Real-time**: SignalR
+- **Backend**: Node.js with Express.js - REST API with WebSocket support
+- **Frontend**: Next.js 15+ with TypeScript, React 19+, Tailwind CSS, Zustand
+- **Database**: In-memory with file persistence (PostgreSQL ready for production)
+- **Real-time**: Socket.io
 - **Containerization**: Docker & Docker Compose
 
-### Project Structure (Planned)
+### Project Structure
 ```
 backend/
-├── src/
-│   ├── Fridgr.Domain/        # Core domain (entities, value objects)
-│   ├── Fridgr.Application/   # Use cases, DTOs, interfaces
-│   ├── Fridgr.Infrastructure/# Adapters, persistence, external services
-│   └── Fridgr.API/           # Controllers, middleware, configuration
-└── tests/                    # Unit, integration, and E2E tests
+├── index.js              # Express server entry point
+├── authRoutes.js         # Authentication endpoints
+├── inventoryRoutes.js    # Inventory CRUD operations
+├── householdRoutes.js    # Household management
+├── shoppingListRoutes.js # Shopping list endpoints
+├── notificationRoutes.js # Notification preferences
+├── dashboardRoutes.js    # Dashboard/reports endpoints
+├── socket.js             # WebSocket handlers
+├── db.js                 # In-memory database
+├── authMiddleware.js     # JWT authentication middleware
+└── tests/                # Regression test scripts
 
 frontend/
-├── app/                      # Next.js app router pages
-├── components/              # React components
-└── lib/                     # Utilities and services
+├── app/                  # Next.js app router pages
+├── components/           # React components
+├── hooks/                # Custom React hooks
+├── stores/               # Zustand state stores
+├── lib/                  # Utilities and services
+└── cypress/              # E2E tests
 ```
 
 ## Development Commands
 
-### Backend (.NET)
+### Backend (Node.js)
 ```bash
 # Navigate to backend directory
 cd backend
 
-# Restore dependencies
-dotnet restore
+# Install dependencies
+npm install
 
-# Build the solution
-dotnet build
+# Start the server
+npm start
 
-# Run tests
-dotnet test
+# Start with auto-reload (development)
+npm run dev
 
-# Run the API
-dotnet run --project src/Fridgr.API
-
-# Run database migrations
-dotnet ef database update
-
-# Add a new migration
-dotnet ef migrations add <MigrationName>
-
-# Run with hot reload
-dotnet watch run --project src/Fridgr.API
+# Run regression tests
+./final_regression_test.sh
 ```
 
 ### Frontend (Next.js)
@@ -110,7 +109,7 @@ docker-compose build
 
 ## API Endpoints
 
-Base URL: `http://localhost:5000/api/v1` (development)
+Base URL: `http://localhost:8080/api/v1` (development)
 
 Key endpoints:
 - `/auth/*` - Authentication (register, login, refresh)
@@ -118,25 +117,18 @@ Key endpoints:
 - `/households/{id}/items/*` - Inventory management
 - `/notifications/*` - Notification preferences
 - `/shopping-lists/*` - Shopping list management
-
-Swagger documentation available at: `http://localhost:5000/swagger`
+- `/health` - Health check endpoint
 
 ## Key Architectural Patterns
 
-### Domain-Driven Design (DDD)
-- Aggregates: User, Household, InventoryItem, ShoppingList
-- Value Objects: Email, HouseholdId, ItemId, Quantity, ExpirationInfo
-- Domain Events for loose coupling between modules
-
-### CQRS Pattern
-- Command handlers for write operations (e.g., AddInventoryItemCommandHandler)
-- Query handlers for read operations (e.g., GetExpiringItemsQueryHandler)
-- Separate read/write models where beneficial
+### REST API Design
+- RESTful endpoints with consistent naming
+- JWT authentication with refresh tokens
+- WebSocket integration for real-time updates
 
 ### Multi-tenancy
-- Row-level security with HouseholdId in all tenant-specific tables
-- Automatic query filters in Entity Framework Core
-- Composite indexes on (HouseholdId, other columns)
+- HouseholdId-based data isolation
+- Role-based access control per household
 
 ### Authentication & Authorization
 - JWT tokens with 15-minute access token expiry
@@ -146,44 +138,32 @@ Swagger documentation available at: `http://localhost:5000/swagger`
 ## Testing Guidelines
 
 ### Backend Testing
-- Unit tests for domain logic and services
-- Integration tests for API endpoints
-- Use xUnit, Moq, and FluentAssertions
-- Test database with in-memory provider or TestContainers
+- Regression test scripts in `backend/tests/`
+- Run `./final_regression_test.sh` for full test suite
 
 ### Frontend Testing
 - Component tests with React Testing Library
-- E2E tests for critical user flows
+- 25 Cypress E2E test suites for critical user flows
 - Mock API responses for isolated testing
 
 ## Real-time Features
 
-SignalR hubs for:
+Socket.io for:
 - Inventory updates
 - Shopping list synchronization
 - Expiration notifications
 - Household activity feed
 
-## Database Migrations
-
-- Use Entity Framework Core migrations
-- Never modify existing migrations
-- Always review generated SQL before applying
-- Test migrations on a copy of production data
-
 ## Environment Variables
 
-Backend (.env):
-- `ConnectionStrings__DefaultConnection`
-- `Jwt__Secret`
-- `Jwt__Issuer`
-- `Redis__ConnectionString`
-- `Email__SmtpHost`
-- `Telegram__BotToken`
+Backend:
+- `PORT` - Server port (default: 8080)
+- `NODE_ENV` - Environment (development/production)
+- `JWT_SECRET` - JWT signing secret
 
 Frontend (.env.local):
-- `NEXT_PUBLIC_API_URL`
-- `NEXT_PUBLIC_SIGNALR_URL`
+- `NEXT_PUBLIC_API_URL` - Backend API URL
+- `NEXT_PUBLIC_WS_URL` - WebSocket URL
 
 ## Important Documentation
 
@@ -211,4 +191,13 @@ Comprehensive project documentation in `.pm/` directory:
 - Bcrypt password hashing
 - TLS 1.2+ for all communications
 - Never log sensitive data (passwords, tokens)
-- SQL injection prevention via parameterized queries
+
+## Future Enhancements
+
+To make the backend production-ready:
+- Add PostgreSQL persistence (replace in-memory DB)
+- Add Redis for session/cache management
+- Add comprehensive input validation
+- Add rate limiting middleware
+- Add structured logging
+- Add health check with dependency status
