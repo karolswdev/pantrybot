@@ -13,7 +13,7 @@ const tabs = [
   },
   {
     name: "Inventory",
-    href: "/inventory/fridge",
+    href: "/inventory",
     icon: Package,
   },
   {
@@ -49,7 +49,7 @@ export function MobileTabBar() {
         {tabs.map((tab) => {
           const isActive = tab.href !== "#" &&
             (pathname === tab.href ||
-             (tab.href === "/inventory/fridge" && pathname.startsWith("/inventory")));
+             (tab.href === "/inventory" && pathname.startsWith("/inventory")));
           const Icon = tab.icon;
 
           if (tab.isSpecial) {

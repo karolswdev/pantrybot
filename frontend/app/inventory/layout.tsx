@@ -11,6 +11,7 @@ interface InventoryLayoutProps {
 }
 
 const locations = [
+  { name: "All Items", href: "/inventory", icon: "📦" },
   { name: "Fridge", href: "/inventory/fridge", icon: "🥶" },
   { name: "Freezer", href: "/inventory/freezer", icon: "🧊" },
   { name: "Pantry", href: "/inventory/pantry", icon: "🗄️" },

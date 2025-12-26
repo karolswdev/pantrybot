@@ -115,7 +115,7 @@ describe('Mobile Layout', () => {
     cy.get('nav[class*="fixed bottom-0"]').within(() => {
       // Find links by their text content and verify href attributes
       cy.get('a').contains('Home').parent('a').should('have.attr', 'href', '/dashboard');
-      cy.get('a').contains('Inventory').parent('a').should('have.attr', 'href', '/inventory/fridge');
+      cy.get('a').contains('Inventory').parent('a').should('have.attr', 'href', '/inventory');
       cy.get('a').contains('Shopping').parent('a').should('have.attr', 'href', '/shopping');
       cy.get('a').contains('Settings').parent('a').should('have.attr', 'href', '/settings');
       

@@ -41,6 +41,7 @@ describe('Authentication', () => {
   it('should protect multiple routes', () => {
     const protectedRoutes = [
       '/dashboard',
+      '/inventory',
       '/inventory/fridge',
       '/inventory/freezer',
       '/inventory/pantry',

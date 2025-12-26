@@ -19,6 +19,7 @@ import {
   Plus,
   Snowflake,
   Warehouse,
+  LayoutGrid,
 } from "lucide-react";
 
 // Protected routes that require authentication
@@ -37,6 +38,7 @@ const navItems = [
     name: "Inventory",
     icon: Package,
     children: [
+      { name: "All Items", href: "/inventory", icon: LayoutGrid },
       { name: "Fridge", href: "/inventory/fridge", icon: Snowflake },
       { name: "Freezer", href: "/inventory/freezer", icon: Snowflake },
       { name: "Pantry", href: "/inventory/pantry", icon: Warehouse },
