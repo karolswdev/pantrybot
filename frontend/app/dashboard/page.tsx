@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { StatCard } from '@/components/dashboard/StatCard';
-import { ExpiringItemsList, ExpiringItem } from '@/components/dashboard/ExpiringItemsList';
+import { ExpiringItemsHero, ExpiringItem } from '@/components/dashboard/ExpiringItemsHero';
 import { QuickActions } from '@/components/dashboard/QuickActions';
 import { RecentActivity, ActivityItem } from '@/components/dashboard/RecentActivity';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
@@ -88,6 +88,8 @@ export default function DashboardPage() {
       location: item.location,
       expiresIn: formatExpirationText(item.daysUntilExpiration),
       daysUntilExpiration: item.daysUntilExpiration,
+      quantity: item.quantity,
+      unit: item.unit,
     }));
   }, [expiringItems]);
 
@@ -174,8 +176,8 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Expiring Items List */}
-      <ExpiringItemsList items={formattedExpiringItems} loading={isLoadingExpiring} />
+      {/* Expiring Items - Hero Section */}
+      <ExpiringItemsHero items={formattedExpiringItems} loading={isLoadingExpiring} />
 
       {/* Quick Actions */}
       <QuickActions />
