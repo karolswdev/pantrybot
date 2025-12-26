@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { signalRService } from '@/lib/realtime/signalr-service';
+import { socketService } from '@/lib/realtime/socket-service';
 import { ShoppingListItemType } from '@/hooks/queries/useShoppingListItems';
 import { useHouseholdStore } from '@/stores/household.store';
 
@@ -129,16 +129,16 @@ export function useShoppingListRealtime(listId: string) {
       );
     };
 
-    // Subscribe to events
-    signalRService.on('shoppinglist.item.added', handleItemAdded);
-    signalRService.on('shoppinglist.item.updated', handleItemUpdated);
-    signalRService.on('shoppinglist.item.deleted', handleItemDeleted);
+    // Subscribe to events (using Socket.IO event names from backend)
+    socketService.on('list.item.added', handleItemAdded);
+    socketService.on('list.item.updated', handleItemUpdated);
+    socketService.on('list.item.deleted', handleItemDeleted);
 
     // Cleanup
     return () => {
-      signalRService.off('shoppinglist.item.added', handleItemAdded);
-      signalRService.off('shoppinglist.item.updated', handleItemUpdated);
-      signalRService.off('shoppinglist.item.deleted', handleItemDeleted);
+      socketService.off('list.item.added', handleItemAdded);
+      socketService.off('list.item.updated', handleItemUpdated);
+      socketService.off('list.item.deleted', handleItemDeleted);
     };
   }, [listId, activeHouseholdId, queryClient]);
 }

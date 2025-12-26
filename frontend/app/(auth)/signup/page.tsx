@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, Loader2, Check, X } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Check, X, Rocket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -50,7 +50,7 @@ export default function SignupPage() {
   const router = useRouter();
   const { register, isLoading, error, clearError, isAuthenticated } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
-  
+
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
@@ -89,11 +89,8 @@ export default function SignupPage() {
         timezone: data.timezone,
         householdName: data.householdName,
       });
-      // Registration successful - navigate to dashboard
-      // Using replace to prevent going back to signup
       router.replace('/dashboard');
     } catch (error) {
-      // Error is handled in the store
       console.error('Registration error:', error);
     }
   };
@@ -101,8 +98,8 @@ export default function SignupPage() {
   return (
     <>
       <div className="space-y-2 text-center mb-6">
-        <h2 className="text-2xl font-bold">Create your account</h2>
-        <p className="text-gray-600">Join Fridgr and reduce food waste</p>
+        <h2 className="text-2xl font-bold text-gray-800">Join the fresh crew!</h2>
+        <p className="text-gray-500">Start tracking & save your food today</p>
       </div>
 
       <Form {...form}>
@@ -112,15 +109,15 @@ export default function SignupPage() {
             name="displayName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Display Name</FormLabel>
+                <FormLabel className="text-gray-700 font-semibold">Your Name</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="John Doe"
+                    placeholder="What should we call you?"
                     autoComplete="name"
                     {...field}
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-danger-600 font-medium" />
               </FormItem>
             )}
           />
@@ -130,16 +127,16 @@ export default function SignupPage() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel className="text-gray-700 font-semibold">Email</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
-                    placeholder="john@example.com"
+                    placeholder="you@example.com"
                     autoComplete="email"
                     {...field}
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-danger-600 font-medium" />
               </FormItem>
             )}
           />
@@ -149,7 +146,7 @@ export default function SignupPage() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel className="text-gray-700 font-semibold">Password</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
@@ -161,32 +158,36 @@ export default function SignupPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary-500 transition-colors"
                     >
                       {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
+                        <EyeOff className="h-5 w-5" />
                       ) : (
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-5 w-5" />
                       )}
                     </button>
                   </div>
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-danger-600 font-medium" />
                 {password && (
-                  <div className="mt-2 space-y-1">
+                  <div className="mt-3 space-y-1.5 p-3 bg-gray-50 rounded-xl">
                     {passwordValidations.map((validation, index) => {
                       const isValid = validation.regex.test(password);
                       return (
                         <div
                           key={index}
-                          className={`flex items-center gap-2 text-sm ${
-                            isValid ? 'text-green-600' : 'text-gray-400'
+                          className={`flex items-center gap-2 text-sm font-medium transition-colors ${
+                            isValid ? 'text-primary-600' : 'text-gray-400'
                           }`}
                         >
                           {isValid ? (
-                            <Check className="h-3 w-3" />
+                            <div className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center">
+                              <Check className="h-3 w-3 text-primary-600" />
+                            </div>
                           ) : (
-                            <X className="h-3 w-3" />
+                            <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
+                              <X className="h-3 w-3 text-gray-400" />
+                            </div>
                           )}
                           {validation.text}
                         </div>
@@ -203,14 +204,14 @@ export default function SignupPage() {
             name="householdName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Household Name</FormLabel>
+                <FormLabel className="text-gray-700 font-semibold">Household Name</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Smith Family"
+                    placeholder="e.g., The Smith Kitchen"
                     {...field}
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-danger-600 font-medium" />
               </FormItem>
             )}
           />
@@ -220,22 +221,26 @@ export default function SignupPage() {
             name="timezone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Timezone</FormLabel>
+                <FormLabel className="text-gray-700 font-semibold">Timezone</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-12 rounded-xl border-2 hover:border-primary/30 focus:ring-2 focus:ring-primary/20 focus:border-primary">
                       <SelectValue placeholder="Select your timezone" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent className="rounded-xl border-2">
                     {TIMEZONES.map((tz) => (
-                      <SelectItem key={tz.value} value={tz.value}>
+                      <SelectItem
+                        key={tz.value}
+                        value={tz.value}
+                        className="rounded-lg focus:bg-primary-50 focus:text-primary-700"
+                      >
                         {tz.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <FormMessage className="text-danger-600 font-medium" />
               </FormItem>
             )}
           />
@@ -244,64 +249,69 @@ export default function SignupPage() {
             control={form.control}
             name="agreeToTerms"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 pt-2">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
+                    className="mt-0.5 rounded-md border-2 data-[state=checked]:bg-primary-500 data-[state=checked]:border-primary-500"
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
-                  <FormLabel className="text-sm font-normal">
+                  <FormLabel className="text-sm font-medium text-gray-600">
                     I agree to the{' '}
                     <Link
                       href="/terms"
-                      className="text-primary-600 hover:text-primary-700"
+                      className="text-primary-600 hover:text-primary-700 font-semibold"
                     >
                       Terms & Conditions
                     </Link>{' '}
                     and{' '}
                     <Link
                       href="/privacy"
-                      className="text-primary-600 hover:text-primary-700"
+                      className="text-primary-600 hover:text-primary-700 font-semibold"
                     >
                       Privacy Policy
                     </Link>
                   </FormLabel>
-                  <FormMessage />
+                  <FormMessage className="text-danger-600 font-medium" />
                 </div>
               </FormItem>
             )}
           />
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+            <div className="bg-danger-50 border-2 border-danger-200 text-danger-700 px-4 py-3 rounded-xl text-sm font-medium animate-bounce-in">
               {error}
             </div>
           )}
 
           <Button
             type="submit"
-            className="w-full"
+            size="lg"
+            className="w-full mt-2"
             disabled={isLoading}
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating account...
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Creating your account...
               </>
             ) : (
-              'Create Account'
+              <>
+                <Rocket className="mr-2 h-5 w-5" />
+                Get Started
+              </>
             )}
           </Button>
         </form>
       </Form>
 
       <div className="mt-6 text-center text-sm">
-        <span className="text-gray-600">Already have an account? </span>
+        <span className="text-gray-500">Already have an account? </span>
         <Link
           href="/login"
-          className="font-medium text-primary-600 hover:text-primary-700"
+          className="font-bold text-primary-600 hover:text-primary-700 transition-colors"
         >
           Sign in
         </Link>

@@ -6,11 +6,10 @@ import { useUpdateNotificationSettings } from '@/hooks/mutations/useUpdateNotifi
 import { useLinkTelegram } from '@/hooks/mutations/useLinkTelegram';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useNotificationStore } from '@/stores/notifications.store';
-import { Loader2, Bell, Mail, MessageSquare } from 'lucide-react';
+import { Loader2, Bell, Mail, Send, Settings, Clock, Calendar, ShoppingCart, Users, Sparkles, Bot, Check } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -19,6 +18,104 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+
+// Custom toggle switch component with playful styling
+function PlayfulToggle({
+  checked,
+  onCheckedChange,
+  disabled = false,
+  id
+}: {
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  disabled?: boolean;
+  id: string;
+}) {
+  return (
+    <button
+      id={id}
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={() => !disabled && onCheckedChange(!checked)}
+      className={`
+        relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full
+        border-2 border-transparent transition-all duration-300 ease-in-out
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2
+        ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg hover:scale-105'}
+        ${checked
+          ? 'bg-gradient-to-r from-primary-500 to-primary-600 shadow-glow-primary'
+          : 'bg-gray-200'
+        }
+      `}
+    >
+      <span
+        className={`
+          pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg
+          ring-0 transition-transform duration-300 ease-in-out
+          ${checked ? 'translate-x-6' : 'translate-x-1'}
+          ${checked ? 'shadow-primary-500/30' : ''}
+        `}
+      >
+        {checked && (
+          <Check className="h-3 w-3 text-primary-500 absolute top-1 left-1" />
+        )}
+      </span>
+    </button>
+  );
+}
+
+// Custom checkbox with playful styling
+function PlayfulCheckbox({
+  checked,
+  onCheckedChange,
+  disabled = false,
+  id,
+  label,
+  icon: Icon
+}: {
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  disabled?: boolean;
+  id: string;
+  label: string;
+  icon?: React.ElementType;
+}) {
+  return (
+    <label
+      htmlFor={id}
+      className={`
+        flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200
+        ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-50 hover:-translate-y-0.5'}
+        ${checked && !disabled ? 'bg-primary-50' : ''}
+      `}
+    >
+      <button
+        id={id}
+        type="button"
+        role="checkbox"
+        aria-checked={checked}
+        disabled={disabled}
+        onClick={() => !disabled && onCheckedChange(!checked)}
+        className={`
+          flex items-center justify-center h-6 w-6 rounded-lg border-2 transition-all duration-200
+          ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}
+          ${checked
+            ? 'bg-gradient-to-br from-primary-500 to-primary-600 border-primary-500 shadow-glow-primary'
+            : 'border-gray-300 bg-white hover:border-primary-400'
+          }
+        `}
+      >
+        {checked && <Check className="h-4 w-4 text-white" />}
+      </button>
+      {Icon && <Icon className={`h-4 w-4 ${checked ? 'text-primary-600' : 'text-gray-400'}`} />}
+      <span className={`text-sm font-medium ${disabled ? 'text-gray-400' : checked ? 'text-gray-800' : 'text-gray-600'}`}>
+        {label}
+      </span>
+    </label>
+  );
+}
 
 export default function NotificationSettingsPage() {
   const { data: settings, isLoading, error } = useNotificationSettings();
@@ -80,7 +177,7 @@ export default function NotificationSettingsPage() {
   const handleSaveSettings = async () => {
     try {
       const notificationTypes = [];
-      
+
       if (formData.email.dailyExpirySum) notificationTypes.push('dailyExpirySum');
       if (formData.email.expiringToday || formData.email.expiringTomorrow) notificationTypes.push('expiration');
       if (formData.email.weeklyInventoryReport) notificationTypes.push('weeklyInventoryReport');
@@ -149,8 +246,12 @@ export default function NotificationSettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6 flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="container mx-auto p-6 flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <div className="relative">
+          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 animate-pulse-soft" />
+          <Loader2 className="h-8 w-8 animate-spin text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+        </div>
+        <p className="text-gray-500 font-medium animate-pulse">Loading your preferences...</p>
       </div>
     );
   }
@@ -158,8 +259,12 @@ export default function NotificationSettingsPage() {
   if (error) {
     return (
       <div className="container mx-auto p-6">
-        <div className="text-center text-red-600">
-          Failed to load notification settings. Please try again.
+        <div className="text-center p-8 bg-danger-50 rounded-3xl border-2 border-danger-200">
+          <div className="text-4xl mb-4">😔</div>
+          <h3 className="text-lg font-bold text-danger-600 mb-2">Oops! Something went wrong</h3>
+          <p className="text-danger-500">
+            Failed to load notification settings. Please try again.
+          </p>
         </div>
       </div>
     );
@@ -167,261 +272,323 @@ export default function NotificationSettingsPage() {
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-6">Notification Settings</h1>
+      {/* Header with gradient */}
+      <div className="mb-8 animate-slide-down">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-3 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl shadow-glow-primary">
+            <Bell className="h-7 w-7 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 via-primary-500 to-accent-500 bg-clip-text text-transparent">
+              Notification Settings
+            </h1>
+            <p className="text-gray-500 mt-1">Stay updated your way! 🔔</p>
+          </div>
+        </div>
+      </div>
 
       {/* Email Notifications */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Mail className="h-5 w-5" />
-            Email Notifications
-          </CardTitle>
-          <CardDescription>
-            Configure which notifications you want to receive via email
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Main email notifications toggle */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
+      <Card className="mb-6 rounded-3xl border-2 border-primary-100 shadow-playful hover:shadow-playful-lg transition-all duration-300 overflow-hidden animate-bounce-in">
+        <CardHeader className="bg-gradient-to-r from-primary-50 to-primary-100/50 border-b border-primary-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white rounded-xl shadow-sm">
+                <span className="text-2xl">📧</span>
+              </div>
+              <div>
+                <CardTitle className="text-lg text-gray-800">Email Notifications</CardTitle>
+                <CardDescription className="text-gray-500">
+                  Get updates delivered to your inbox
+                </CardDescription>
+              </div>
+            </div>
+            <PlayfulToggle
               id="email-notifications"
               checked={formData.email.enabled}
               onCheckedChange={(checked) =>
                 setFormData(prev => ({
                   ...prev,
-                  email: { ...prev.email, enabled: checked as boolean },
+                  email: { ...prev.email, enabled: checked },
                 }))
               }
             />
-            <Label htmlFor="email-notifications" className="font-semibold">Enable Email Notifications</Label>
           </div>
-          
-          <div className="flex items-center space-x-2 pl-6">
-            <Checkbox
-              id="email-daily"
-              checked={formData.email.dailyExpirySum}
-              disabled={!formData.email.enabled}
-              onCheckedChange={(checked) =>
-                setFormData(prev => ({
-                  ...prev,
-                  email: { ...prev.email, dailyExpirySum: checked as boolean },
-                }))
-              }
-            />
-            <Label htmlFor="email-daily" className={!formData.email.enabled ? "text-gray-400" : ""}>Daily expiry summary (8:00 AM)</Label>
-          </div>
-          <div className="flex items-center space-x-2 pl-6">
-            <Checkbox
-              id="email-today"
-              checked={formData.email.expiringToday}
-              disabled={!formData.email.enabled}
-              onCheckedChange={(checked) =>
-                setFormData(prev => ({
-                  ...prev,
-                  email: { ...prev.email, expiringToday: checked as boolean },
-                }))
-              }
-            />
-            <Label htmlFor="email-today" className={!formData.email.enabled ? "text-gray-400" : ""}>Items expiring today</Label>
-          </div>
-          <div className="flex items-center space-x-2 pl-6">
-            <Checkbox
-              id="email-tomorrow"
-              checked={formData.email.expiringTomorrow}
-              disabled={!formData.email.enabled}
-              onCheckedChange={(checked) =>
-                setFormData(prev => ({
-                  ...prev,
-                  email: { ...prev.email, expiringTomorrow: checked as boolean },
-                }))
-              }
-            />
-            <Label htmlFor="email-tomorrow" className={!formData.email.enabled ? "text-gray-400" : ""}>Items expiring tomorrow</Label>
-          </div>
-          <div className="flex items-center space-x-2 pl-6">
-            <Checkbox
-              id="email-weekly"
-              checked={formData.email.weeklyInventoryReport}
-              disabled={!formData.email.enabled}
-              onCheckedChange={(checked) =>
-                setFormData(prev => ({
-                  ...prev,
-                  email: { ...prev.email, weeklyInventoryReport: checked as boolean },
-                }))
-              }
-            />
-            <Label htmlFor="email-weekly" className={!formData.email.enabled ? "text-gray-400" : ""}>Weekly inventory report</Label>
-          </div>
-          <div className="flex items-center space-x-2 pl-6">
-            <Checkbox
-              id="email-shopping"
-              checked={formData.email.shoppingListReminders}
-              disabled={!formData.email.enabled}
-              onCheckedChange={(checked) =>
-                setFormData(prev => ({
-                  ...prev,
-                  email: { ...prev.email, shoppingListReminders: checked as boolean },
-                }))
-              }
-            />
-            <Label htmlFor="email-shopping" className={!formData.email.enabled ? "text-gray-400" : ""}>Shopping list reminders</Label>
-          </div>
+        </CardHeader>
+        <CardContent className="pt-4 space-y-1">
+          <PlayfulCheckbox
+            id="email-daily"
+            checked={formData.email.dailyExpirySum}
+            disabled={!formData.email.enabled}
+            onCheckedChange={(checked) =>
+              setFormData(prev => ({
+                ...prev,
+                email: { ...prev.email, dailyExpirySum: checked },
+              }))
+            }
+            label="Daily expiry summary (8:00 AM)"
+            icon={Calendar}
+          />
+          <PlayfulCheckbox
+            id="email-today"
+            checked={formData.email.expiringToday}
+            disabled={!formData.email.enabled}
+            onCheckedChange={(checked) =>
+              setFormData(prev => ({
+                ...prev,
+                email: { ...prev.email, expiringToday: checked },
+              }))
+            }
+            label="Items expiring today"
+            icon={Clock}
+          />
+          <PlayfulCheckbox
+            id="email-tomorrow"
+            checked={formData.email.expiringTomorrow}
+            disabled={!formData.email.enabled}
+            onCheckedChange={(checked) =>
+              setFormData(prev => ({
+                ...prev,
+                email: { ...prev.email, expiringTomorrow: checked },
+              }))
+            }
+            label="Items expiring tomorrow"
+            icon={Clock}
+          />
+          <PlayfulCheckbox
+            id="email-weekly"
+            checked={formData.email.weeklyInventoryReport}
+            disabled={!formData.email.enabled}
+            onCheckedChange={(checked) =>
+              setFormData(prev => ({
+                ...prev,
+                email: { ...prev.email, weeklyInventoryReport: checked },
+              }))
+            }
+            label="Weekly inventory report"
+            icon={Calendar}
+          />
+          <PlayfulCheckbox
+            id="email-shopping"
+            checked={formData.email.shoppingListReminders}
+            disabled={!formData.email.enabled}
+            onCheckedChange={(checked) =>
+              setFormData(prev => ({
+                ...prev,
+                email: { ...prev.email, shoppingListReminders: checked },
+              }))
+            }
+            label="Shopping list reminders"
+            icon={ShoppingCart}
+          />
         </CardContent>
       </Card>
 
       {/* In-App Notifications */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
-            In-App Notifications
-          </CardTitle>
-          <CardDescription>
-            Configure which notifications you want to see in the app
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Main in-app notifications toggle */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
+      <Card className="mb-6 rounded-3xl border-2 border-secondary-100 shadow-playful hover:shadow-playful-lg transition-all duration-300 overflow-hidden animate-bounce-in" style={{ animationDelay: '0.1s' }}>
+        <CardHeader className="bg-gradient-to-r from-secondary-50 to-secondary-100/50 border-b border-secondary-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white rounded-xl shadow-sm">
+                <span className="text-2xl">🔔</span>
+              </div>
+              <div>
+                <CardTitle className="text-lg text-gray-800">In-App Notifications</CardTitle>
+                <CardDescription className="text-gray-500">
+                  Real-time updates while you browse
+                </CardDescription>
+              </div>
+            </div>
+            <PlayfulToggle
               id="in-app-notifications"
               checked={formData.inApp.enabled}
               onCheckedChange={(checked) =>
                 setFormData(prev => ({
                   ...prev,
-                  inApp: { ...prev.inApp, enabled: checked as boolean },
+                  inApp: { ...prev.inApp, enabled: checked },
                 }))
               }
             />
-            <Label htmlFor="in-app-notifications" className="font-semibold">Enable In-App Notifications</Label>
           </div>
-          
-          <div className="flex items-center space-x-2 pl-6">
-            <Checkbox
-              id="inapp-expiry"
-              checked={formData.inApp.realtimeExpiry}
-              disabled={!formData.inApp.enabled}
-              onCheckedChange={(checked) =>
-                setFormData(prev => ({
-                  ...prev,
-                  inApp: { ...prev.inApp, realtimeExpiry: checked as boolean },
-                }))
-              }
-            />
-            <Label htmlFor="inapp-expiry" className={!formData.inApp.enabled ? "text-gray-400" : ""}>Real-time expiry alerts</Label>
-          </div>
-          <div className="flex items-center space-x-2 pl-6">
-            <Checkbox
-              id="inapp-activity"
-              checked={formData.inApp.memberActivity}
-              disabled={!formData.inApp.enabled}
-              onCheckedChange={(checked) =>
-                setFormData(prev => ({
-                  ...prev,
-                  inApp: { ...prev.inApp, memberActivity: checked as boolean },
-                }))
-              }
-            />
-            <Label htmlFor="inapp-activity" className={!formData.inApp.enabled ? "text-gray-400" : ""}>Member activity (items added/removed)</Label>
-          </div>
-          <div className="flex items-center space-x-2 pl-6">
-            <Checkbox
-              id="inapp-shopping"
-              checked={formData.inApp.shoppingListUpdates}
-              disabled={!formData.inApp.enabled}
-              onCheckedChange={(checked) =>
-                setFormData(prev => ({
-                  ...prev,
-                  inApp: { ...prev.inApp, shoppingListUpdates: checked as boolean },
-                }))
-              }
-            />
-            <Label htmlFor="inapp-shopping" className={!formData.inApp.enabled ? "text-gray-400" : ""}>Shopping list updates</Label>
-          </div>
-          <div className="flex items-center space-x-2 pl-6">
-            <Checkbox
-              id="inapp-recipes"
-              checked={formData.inApp.recipeSuggestions}
-              disabled={!formData.inApp.enabled}
-              onCheckedChange={(checked) =>
-                setFormData(prev => ({
-                  ...prev,
-                  inApp: { ...prev.inApp, recipeSuggestions: checked as boolean },
-                }))
-              }
-            />
-            <Label htmlFor="inapp-recipes" className={!formData.inApp.enabled ? "text-gray-400" : ""}>Recipe suggestions</Label>
-          </div>
+        </CardHeader>
+        <CardContent className="pt-4 space-y-1">
+          <PlayfulCheckbox
+            id="inapp-expiry"
+            checked={formData.inApp.realtimeExpiry}
+            disabled={!formData.inApp.enabled}
+            onCheckedChange={(checked) =>
+              setFormData(prev => ({
+                ...prev,
+                inApp: { ...prev.inApp, realtimeExpiry: checked },
+              }))
+            }
+            label="Real-time expiry alerts"
+            icon={Bell}
+          />
+          <PlayfulCheckbox
+            id="inapp-activity"
+            checked={formData.inApp.memberActivity}
+            disabled={!formData.inApp.enabled}
+            onCheckedChange={(checked) =>
+              setFormData(prev => ({
+                ...prev,
+                inApp: { ...prev.inApp, memberActivity: checked },
+              }))
+            }
+            label="Member activity (items added/removed)"
+            icon={Users}
+          />
+          <PlayfulCheckbox
+            id="inapp-shopping"
+            checked={formData.inApp.shoppingListUpdates}
+            disabled={!formData.inApp.enabled}
+            onCheckedChange={(checked) =>
+              setFormData(prev => ({
+                ...prev,
+                inApp: { ...prev.inApp, shoppingListUpdates: checked },
+              }))
+            }
+            label="Shopping list updates"
+            icon={ShoppingCart}
+          />
+          <PlayfulCheckbox
+            id="inapp-recipes"
+            checked={formData.inApp.recipeSuggestions}
+            disabled={!formData.inApp.enabled}
+            onCheckedChange={(checked) =>
+              setFormData(prev => ({
+                ...prev,
+                inApp: { ...prev.inApp, recipeSuggestions: checked },
+              }))
+            }
+            label="Recipe suggestions"
+            icon={Sparkles}
+          />
         </CardContent>
       </Card>
 
       {/* Telegram Bot */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
-            Telegram Bot
-          </CardTitle>
-          <CardDescription>
-            {settings?.telegram?.linked
-              ? `Connected as ${settings.telegram.username}`
-              : 'Connect your Telegram account to receive notifications on your phone'}
-          </CardDescription>
+      <Card className="mb-6 rounded-3xl border-2 border-fresh-200 shadow-playful hover:shadow-playful-lg transition-all duration-300 overflow-hidden animate-bounce-in" style={{ animationDelay: '0.2s' }}>
+        <CardHeader className="bg-gradient-to-r from-fresh-50 to-fresh-100/50 border-b border-fresh-200">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white rounded-xl shadow-sm">
+              <span className="text-2xl">✈️</span>
+            </div>
+            <div>
+              <CardTitle className="text-lg text-gray-800 flex items-center gap-2">
+                Telegram Bot
+                {settings?.telegram?.linked && (
+                  <span className="px-2 py-0.5 bg-primary-100 text-primary-700 text-xs font-semibold rounded-full">
+                    Connected
+                  </span>
+                )}
+              </CardTitle>
+              <CardDescription className="text-gray-500">
+                {settings?.telegram?.linked
+                  ? `Linked to @${settings.telegram.username}`
+                  : 'Get notifications on your phone instantly!'}
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {settings?.telegram?.linked ? (
-            <div className="text-sm text-muted-foreground">
-              Your Telegram account is connected and will receive notifications.
+            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-primary-50 to-fresh-50 rounded-2xl border border-primary-100">
+              <div className="p-3 bg-white rounded-full shadow-sm">
+                <Bot className="h-8 w-8 text-fresh-500" />
+              </div>
+              <div>
+                <p className="font-medium text-gray-800">You're all set! 🎉</p>
+                <p className="text-sm text-gray-500">
+                  Your Telegram account is connected and ready to receive notifications.
+                </p>
+              </div>
             </div>
           ) : (
-            <Button 
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setTelegramModalOpen(true);
-              }}
-              type="button"
-            >
-              Connect with Telegram
-            </Button>
+            <div className="space-y-4">
+              {/* Playful bot illustration */}
+              <div className="flex justify-center">
+                <div className="relative">
+                  <div className="w-24 h-24 bg-gradient-to-br from-fresh-400 to-fresh-600 rounded-3xl rotate-3 flex items-center justify-center shadow-lg animate-float">
+                    <Bot className="h-12 w-12 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-warning-400 rounded-full flex items-center justify-center shadow-md animate-bounce">
+                    <Send className="h-4 w-4 text-white" />
+                  </div>
+                </div>
+              </div>
+              <p className="text-center text-gray-600 max-w-sm mx-auto">
+                Connect your Telegram account to receive instant notifications wherever you are!
+              </p>
+              <div className="flex justify-center">
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setTelegramModalOpen(true);
+                  }}
+                  type="button"
+                  className="bg-gradient-to-r from-fresh-500 to-fresh-600 hover:from-fresh-600 hover:to-fresh-700 text-white font-semibold px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-200"
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  Connect with Telegram
+                </Button>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
 
       {/* Preferences */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Notification Preferences</CardTitle>
-          <CardDescription>
-            Customize when and how you receive notifications
-          </CardDescription>
+      <Card className="mb-6 rounded-3xl border-2 border-accent-100 shadow-playful hover:shadow-playful-lg transition-all duration-300 overflow-hidden animate-bounce-in" style={{ animationDelay: '0.3s' }}>
+        <CardHeader className="bg-gradient-to-r from-accent-50 to-warning-50 border-b border-accent-100">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white rounded-xl shadow-sm">
+              <span className="text-2xl">⚙️</span>
+            </div>
+            <div>
+              <CardTitle className="text-lg text-gray-800">Preferences</CardTitle>
+              <CardDescription className="text-gray-500">
+                Customize when and how you get notified
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="warning-days">Expiration Warning Days</Label>
-            <Input
-              id="warning-days"
-              type="number"
-              min="1"
-              max="30"
-              value={formData.preferences.expirationWarningDays}
-              onChange={(e) =>
-                setFormData(prev => ({
-                  ...prev,
-                  preferences: {
-                    ...prev.preferences,
-                    expirationWarningDays: parseInt(e.target.value) || 3,
-                  },
-                }))
-              }
-              className="w-32"
-            />
-            <p className="text-sm text-muted-foreground">
-              Get notified when items expire within this many days
+        <CardContent className="pt-6 space-y-6">
+          <div className="space-y-3">
+            <Label htmlFor="warning-days" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-accent-500" />
+              Expiration Warning Days
+            </Label>
+            <div className="flex items-center gap-3">
+              <Input
+                id="warning-days"
+                type="number"
+                min="1"
+                max="30"
+                value={formData.preferences.expirationWarningDays}
+                onChange={(e) =>
+                  setFormData(prev => ({
+                    ...prev,
+                    preferences: {
+                      ...prev.preferences,
+                      expirationWarningDays: parseInt(e.target.value) || 3,
+                    },
+                  }))
+                }
+                className="w-24 rounded-xl border-2 border-gray-200 focus:border-accent-400 focus:ring-accent-400 text-center font-semibold text-lg"
+              />
+              <span className="text-gray-500">days before expiry</span>
+            </div>
+            <p className="text-sm text-gray-400 flex items-center gap-1">
+              <Sparkles className="h-3 w-3" />
+              Get notified when items are about to expire
             </p>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="preferred-time">Preferred Notification Time</Label>
+          <div className="space-y-3">
+            <Label htmlFor="preferred-time" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <Clock className="h-4 w-4 text-accent-500" />
+              Preferred Notification Time
+            </Label>
             <Input
               id="preferred-time"
               type="time"
@@ -435,9 +602,10 @@ export default function NotificationSettingsPage() {
                   },
                 }))
               }
-              className="w-32"
+              className="w-36 rounded-xl border-2 border-gray-200 focus:border-accent-400 focus:ring-accent-400 font-semibold"
             />
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-gray-400 flex items-center gap-1">
+              <Settings className="h-3 w-3" />
               Time for daily summary notifications
             </p>
           </div>
@@ -445,59 +613,88 @@ export default function NotificationSettingsPage() {
       </Card>
 
       {/* Save Button */}
-      <div className="flex justify-end">
+      <div className="flex justify-end animate-slide-up" style={{ animationDelay: '0.4s' }}>
         <Button
           onClick={handleSaveSettings}
           disabled={updateSettings.isPending}
           size="lg"
+          className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-bold px-8 py-4 rounded-2xl shadow-lg shadow-primary-500/30 hover:shadow-xl hover:shadow-primary-500/40 hover:-translate-y-1 transition-all duration-200 text-lg"
         >
           {updateSettings.isPending ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               Saving...
             </>
           ) : (
-            'Save Settings'
+            <>
+              <Check className="mr-2 h-5 w-5" />
+              Save Settings
+            </>
           )}
         </Button>
       </div>
 
       {/* Telegram Link Modal */}
       <Dialog open={telegramModalOpen} onOpenChange={setTelegramModalOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-3xl border-2 border-fresh-200 shadow-playful-xl backdrop-blur-sm bg-white/95">
           <DialogHeader>
-            <DialogTitle>Connect Telegram Account</DialogTitle>
-            <DialogDescription>
-              To connect your Telegram account:
-              <ol className="list-decimal list-inside mt-2 space-y-1">
-                <li>Open Telegram and search for @FridgrBot</li>
-                <li>Start a conversation with the bot</li>
-                <li>Send /link command to get a verification code</li>
-                <li>Enter the verification code below</li>
-              </ol>
+            <div className="flex justify-center mb-4">
+              <div className="p-4 bg-gradient-to-br from-fresh-400 to-fresh-600 rounded-2xl shadow-lg animate-bounce-in">
+                <Bot className="h-10 w-10 text-white" />
+              </div>
+            </div>
+            <DialogTitle className="text-center text-xl font-bold text-gray-800">
+              Connect Telegram Account ✈️
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              Follow these simple steps to link your account:
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="code" className="text-right">
-                Code
-              </Label>
-              <Input
-                id="code"
-                value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value)}
-                className="col-span-3"
-                placeholder="Enter verification code"
-              />
-            </div>
+
+          <div className="py-4">
+            <ol className="space-y-3">
+              {[
+                { step: 1, text: 'Open Telegram and search for @FridgrBot', emoji: '🔍' },
+                { step: 2, text: 'Start a conversation with the bot', emoji: '💬' },
+                { step: 3, text: 'Send /link command to get a code', emoji: '🔗' },
+                { step: 4, text: 'Enter the verification code below', emoji: '✨' },
+              ].map(({ step, text, emoji }) => (
+                <li key={step} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                  <span className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-fresh-400 to-fresh-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                    {step}
+                  </span>
+                  <span className="text-gray-700">{text}</span>
+                  <span className="ml-auto text-lg">{emoji}</span>
+                </li>
+              ))}
+            </ol>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setTelegramModalOpen(false)}>
+
+          <div className="space-y-2">
+            <Label htmlFor="code" className="text-sm font-semibold text-gray-700">
+              Verification Code
+            </Label>
+            <Input
+              id="code"
+              value={verificationCode}
+              onChange={(e) => setVerificationCode(e.target.value)}
+              placeholder="Enter your code here..."
+              className="rounded-xl border-2 border-gray-200 focus:border-fresh-400 focus:ring-fresh-400 text-center text-lg font-mono tracking-wider"
+            />
+          </div>
+
+          <DialogFooter className="gap-3 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setTelegramModalOpen(false)}
+              className="rounded-xl border-2 hover:bg-gray-50 font-semibold"
+            >
               Cancel
             </Button>
             <Button
               onClick={handleLinkTelegram}
               disabled={linkTelegram.isPending || !verificationCode.trim()}
+              className="bg-gradient-to-r from-fresh-500 to-fresh-600 hover:from-fresh-600 hover:to-fresh-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
             >
               {linkTelegram.isPending ? (
                 <>
@@ -505,7 +702,10 @@ export default function NotificationSettingsPage() {
                   Linking...
                 </>
               ) : (
-                'Link Account'
+                <>
+                  <Check className="mr-2 h-4 w-4" />
+                  Link Account
+                </>
               )}
             </Button>
           </DialogFooter>

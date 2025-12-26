@@ -1,6 +1,7 @@
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
 const db = require('./db');
+const { logger } = require('./lib/logger');
 
 // JWT secret (matching authRoutes.js)
 const JWT_SECRET = process.env.JWT_SECRET || 'mock-secret-key-for-development-only';
@@ -20,14 +21,14 @@ function initializeSocket(server) {
     try {
       // Extract token from handshake auth
       const token = socket.handshake.auth.token;
-      
+
       if (!token) {
         return next(new Error('Authentication failed: No token provided'));
       }
 
       // Verify JWT token
       const decoded = jwt.verify(token, JWT_SECRET);
-      
+
       // Find user in database
       const user = db.users.find(u => u.id === decoded.sub);
       if (!user) {
@@ -37,28 +38,31 @@ function initializeSocket(server) {
       // Attach user info to socket
       socket.userId = decoded.sub;
       socket.userEmail = decoded.email;
-      
+
       // Get user's household memberships
       const memberships = db.household_members.filter(m => m.userId === decoded.sub);
       socket.households = memberships.map(m => m.householdId);
-      
+
       next();
     } catch (error) {
-      console.error('WebSocket authentication error:', error.message);
+      logger.warn({ err: error, socketId: socket.id }, 'WebSocket authentication failed');
       next(new Error('Authentication failed: Invalid token'));
     }
   });
 
   // Connection handler
   io.on('connection', (socket) => {
-    console.log(`WebSocket client connected: userId=${socket.userId}, socketId=${socket.id}`);
-    
+    logger.info(
+      { userId: socket.userId, socketId: socket.id, households: socket.households },
+      'WebSocket client connected'
+    );
+
     // Join household rooms
     if (socket.households && socket.households.length > 0) {
       socket.households.forEach(householdId => {
         const room = `household-${householdId}`;
         socket.join(room);
-        console.log(`Socket ${socket.id} joined room: ${room}`);
+        logger.debug({ socketId: socket.id, room, householdId }, 'Socket joined room');
       });
     }
 
@@ -66,13 +70,16 @@ function initializeSocket(server) {
     socket.on('set-household', (householdId) => {
       if (socket.households.includes(householdId)) {
         socket.currentHousehold = householdId;
-        console.log(`Socket ${socket.id} set current household: ${householdId}`);
+        logger.debug({ socketId: socket.id, householdId }, 'Socket set current household');
       }
     });
 
     // Handle disconnect
     socket.on('disconnect', (reason) => {
-      console.log(`WebSocket client disconnected: userId=${socket.userId}, socketId=${socket.id}, reason=${reason}`);
+      logger.info(
+        { userId: socket.userId, socketId: socket.id, reason },
+        'WebSocket client disconnected'
+      );
     });
 
     // Send initial connection success event
@@ -93,7 +100,7 @@ function broadcastToHousehold(io, householdId, eventType, payload) {
     householdId: householdId,
     payload: payload
   });
-  console.log(`Broadcast ${eventType} to room ${room}:`, payload);
+  logger.debug({ eventType, room, householdId, payloadKeys: Object.keys(payload || {}) }, 'Broadcast event to household');
 }
 
 module.exports = {

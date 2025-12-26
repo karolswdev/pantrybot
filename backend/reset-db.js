@@ -1,27 +1,36 @@
-// Reset database module
-const fs = require('fs');
-const path = require('path');
-const db = require('./db');
+// Reset database module - uses Prisma for PostgreSQL
+const { prisma } = require('./repositories');
 
-function resetDatabase() {
-  // Reset the database to initial state
-  // Clear all arrays
-  db.users.length = 0;
-  db.households.length = 0;
-  db.household_members.length = 0;
-  db.validRefreshTokens.clear();
-  db.invitations.length = 0;
-  db.inventoryItems.length = 0;
-  db.itemHistory.length = 0;
-  db.notification_preferences.length = 0;
-  db.shoppingLists.length = 0;
-  db.shoppingListItems.length = 0;
-  
-  console.log('✅ Database reset to initial state');
-  return {
-    success: true,
-    message: 'Database reset successfully'
-  };
+async function resetDatabase() {
+  try {
+    // Truncate all tables in correct order (respecting foreign keys)
+    // Use transaction to ensure all-or-nothing
+    await prisma.$transaction([
+      // First, delete dependent tables
+      prisma.shoppingListItem.deleteMany(),
+      prisma.shoppingList.deleteMany(),
+      prisma.itemHistory.deleteMany(),
+      prisma.inventoryItem.deleteMany(),
+      prisma.invitation.deleteMany(),
+      prisma.notification.deleteMany(),
+      prisma.notificationPreference.deleteMany(),
+      prisma.activityLog.deleteMany(),
+      prisma.householdMember.deleteMany(),
+      prisma.household.deleteMany(),
+      prisma.refreshToken.deleteMany(),
+      // Finally, delete users
+      prisma.user.deleteMany(),
+    ]);
+
+    console.log('✅ Database reset to initial state (Prisma)');
+    return {
+      success: true,
+      message: 'Database reset successfully'
+    };
+  } catch (error) {
+    console.error('❌ Database reset failed:', error.message);
+    throw error;
+  }
 }
 
 module.exports = resetDatabase;

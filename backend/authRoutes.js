@@ -2,7 +2,8 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
-const { users, households, household_members, validRefreshTokens } = require('./db');
+const { userRepository, householdRepository, refreshTokenRepository } = require('./repositories');
+const { logger, maskEmail } = require('./lib/logger');
 
 const router = express.Router();
 
@@ -30,7 +31,7 @@ function generateAccessToken(userId, email) {
   );
 }
 
-function generateRefreshToken(userId) {
+async function generateRefreshToken(userId) {
   const tokenId = uuidv4();
   const token = jwt.sign(
     {
@@ -45,8 +46,11 @@ function generateRefreshToken(userId) {
       audience: JWT_AUDIENCE
     }
   );
-  // Store the token in valid tokens set for validation
-  validRefreshTokens.add(token);
+
+  // Store the token in database
+  const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRY * 1000);
+  await refreshTokenRepository.createToken(userId, token, expiresAt);
+
   return token;
 }
 
@@ -80,7 +84,7 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Password strength check (simplified for mock)
+    // Password strength check
     if (password.length < 8) {
       return res.status(400).json({
         error: 'Bad Request',
@@ -89,7 +93,7 @@ router.post('/register', async (req, res) => {
     }
 
     // Check if email already exists
-    const existingUser = users.find(u => u.email === email.toLowerCase());
+    const existingUser = await userRepository.findByEmail(email);
     if (existingUser) {
       return res.status(409).json({
         error: 'Conflict',
@@ -100,53 +104,31 @@ router.post('/register', async (req, res) => {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Create user
-    const userId = uuidv4();
-    const newUser = {
-      id: userId,
+    // Create user with default household
+    const { user, household } = await userRepository.createWithDefaultHousehold({
       email: email.toLowerCase(),
       passwordHash,
       displayName,
-      timezone: timezone || 'UTC',
-      createdAt: new Date()
-    };
-    users.push(newUser);
-
-    // Create default household for the user
-    const householdId = uuidv4();
-    const newHousehold = {
-      id: householdId,
-      name: `${displayName}'s Home`,
-      description: 'Default household',
-      createdBy: userId,
-      createdAt: new Date()
-    };
-    households.push(newHousehold);
-
-    // Add user as admin of the household
-    household_members.push({
-      householdId,
-      userId,
-      role: 'admin',
-      joinedAt: new Date()
+      timezone: timezone || 'UTC'
     });
 
     // Generate tokens
-    const accessToken = generateAccessToken(userId, newUser.email);
-    const refreshToken = generateRefreshToken(userId);
+    const accessToken = generateAccessToken(user.id, user.email);
+    const refreshToken = await generateRefreshToken(user.id);
 
     // Return response
     res.status(201).json({
-      userId,
-      email: newUser.email,
-      displayName: newUser.displayName,
+      userId: user.id,
+      email: user.email,
+      displayName: user.displayName,
       accessToken,
       refreshToken,
       expiresIn: ACCESS_TOKEN_EXPIRY,
-      defaultHouseholdId: householdId
+      defaultHouseholdId: household.id
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    const log = req.log || logger;
+    log.error({ err: error, email: maskEmail(req.body?.email) }, 'Registration failed');
     res.status(500).json({
       error: 'Internal Server Error',
       message: 'An error occurred during registration'
@@ -168,7 +150,7 @@ router.post('/login', async (req, res) => {
     }
 
     // Find user
-    const user = users.find(u => u.email === email.toLowerCase());
+    const user = await userRepository.findByEmail(email);
     if (!user) {
       return res.status(401).json({
         error: 'Unauthorized',
@@ -186,20 +168,19 @@ router.post('/login', async (req, res) => {
     }
 
     // Get user's households
-    const userHouseholds = household_members
-      .filter(hm => hm.userId === user.id)
-      .map(hm => {
-        const household = households.find(h => h.id === hm.householdId);
-        return {
-          id: hm.householdId,
-          name: household ? household.name : 'Unknown',
-          role: hm.role
-        };
-      });
+    const userHouseholds = await householdRepository.findUserHouseholds(user.id);
+    const householdsResponse = userHouseholds.map(h => ({
+      id: h.id,
+      name: h.name,
+      role: h.role
+    }));
+
+    // Update last login
+    await userRepository.updateLastLogin(user.id);
 
     // Generate tokens
     const accessToken = generateAccessToken(user.id, user.email);
-    const refreshToken = generateRefreshToken(user.id);
+    const refreshToken = await generateRefreshToken(user.id);
 
     // Return response
     res.status(200).json({
@@ -207,10 +188,11 @@ router.post('/login', async (req, res) => {
       accessToken,
       refreshToken,
       expiresIn: ACCESS_TOKEN_EXPIRY,
-      households: userHouseholds
+      households: householdsResponse
     });
   } catch (error) {
-    console.error('Login error:', error);
+    const log = req.log || logger;
+    log.error({ err: error, email: maskEmail(req.body?.email) }, 'Login failed');
     res.status(500).json({
       error: 'Internal Server Error',
       message: 'An error occurred during login'
@@ -231,14 +213,6 @@ router.post('/refresh', async (req, res) => {
       });
     }
 
-    // Check if token is in valid tokens set
-    if (!validRefreshTokens.has(refreshToken)) {
-      return res.status(401).json({
-        error: 'Unauthorized',
-        message: 'Invalid or expired refresh token'
-      });
-    }
-
     // Verify and decode token
     let decoded;
     try {
@@ -247,8 +221,7 @@ router.post('/refresh', async (req, res) => {
         audience: JWT_AUDIENCE
       });
     } catch (err) {
-      // Remove invalid token from set
-      validRefreshTokens.delete(refreshToken);
+      await refreshTokenRepository.revokeToken(refreshToken);
       return res.status(401).json({
         error: 'Unauthorized',
         message: 'Invalid or expired refresh token'
@@ -257,39 +230,75 @@ router.post('/refresh', async (req, res) => {
 
     // Check token type
     if (decoded.type !== 'refresh') {
-      validRefreshTokens.delete(refreshToken);
+      await refreshTokenRepository.revokeToken(refreshToken);
       return res.status(401).json({
         error: 'Unauthorized',
         message: 'Invalid or expired refresh token'
       });
     }
 
-    // Find user
-    const user = users.find(u => u.id === decoded.sub);
-    if (!user) {
-      validRefreshTokens.delete(refreshToken);
+    // Generate new tokens and rotate
+    const newTokenValue = jwt.sign(
+      {
+        sub: decoded.sub,
+        jti: uuidv4(),
+        type: 'refresh'
+      },
+      JWT_SECRET,
+      {
+        expiresIn: REFRESH_TOKEN_EXPIRY,
+        issuer: JWT_ISSUER,
+        audience: JWT_AUDIENCE
+      }
+    );
+
+    const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRY * 1000);
+    const result = await refreshTokenRepository.rotateToken(refreshToken, newTokenValue, expiresAt);
+
+    if (!result) {
       return res.status(401).json({
         error: 'Unauthorized',
         message: 'Invalid or expired refresh token'
       });
     }
 
-    // Rotate refresh token (invalidate old, generate new)
-    validRefreshTokens.delete(refreshToken);
+    const { user } = result;
     const newAccessToken = generateAccessToken(user.id, user.email);
-    const newRefreshToken = generateRefreshToken(user.id);
 
     // Return response
     res.status(200).json({
       accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
+      refreshToken: newTokenValue,
       expiresIn: ACCESS_TOKEN_EXPIRY
     });
   } catch (error) {
-    console.error('Refresh token error:', error);
+    const log = req.log || logger;
+    log.error({ err: error }, 'Token refresh failed');
     res.status(500).json({
       error: 'Internal Server Error',
       message: 'An error occurred during token refresh'
+    });
+  }
+});
+
+// POST /api/v1/auth/logout
+router.post('/logout', async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (refreshToken) {
+      await refreshTokenRepository.revokeToken(refreshToken);
+    }
+
+    res.status(200).json({
+      message: 'Logged out successfully'
+    });
+  } catch (error) {
+    const log = req.log || logger;
+    log.error({ err: error }, 'Logout failed');
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: 'An error occurred during logout'
     });
   }
 });

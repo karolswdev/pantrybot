@@ -1,102 +1,202 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { useAuthStore } from '@/stores/auth.store';
+import { Sparkles, ArrowRight, Package, Bell, BarChart3, Users } from 'lucide-react';
+
+const features = [
+  {
+    icon: Package,
+    title: 'Track Everything',
+    description: 'Keep tabs on all your food items across fridge, freezer, and pantry.',
+    color: 'primary',
+  },
+  {
+    icon: Bell,
+    title: 'Smart Alerts',
+    description: 'Get notified before items expire so nothing goes to waste.',
+    color: 'secondary',
+  },
+  {
+    icon: BarChart3,
+    title: 'Waste Reports',
+    description: 'See how much you save and reduce food waste over time.',
+    color: 'accent',
+  },
+  {
+    icon: Users,
+    title: 'Family Sharing',
+    description: 'Manage your household inventory together with your family.',
+    color: 'fresh',
+  },
+];
+
+const colorStyles: Record<string, { bg: string; icon: string }> = {
+  primary: { bg: 'bg-primary-100', icon: 'text-primary-600' },
+  secondary: { bg: 'bg-secondary-100', icon: 'text-secondary-600' },
+  accent: { bg: 'bg-accent-100', icon: 'text-accent-600' },
+  fresh: { bg: 'bg-fresh-100', icon: 'text-fresh-600' },
+};
+
+export default function LandingPage() {
+  const router = useRouter();
+  const { isAuthenticated, checkAuth } = useAuthStore();
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, router]);
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 overflow-hidden">
+      {/* Decorative blobs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary-200/30 rounded-full blur-3xl" />
+        <div className="absolute top-20 -right-40 w-80 h-80 bg-secondary-200/30 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-accent-200/20 rounded-full blur-3xl" />
+      </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {/* Floating food emojis */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <span className="absolute top-[10%] left-[5%] text-5xl animate-float opacity-40" style={{ animationDelay: '0s' }}>🥑</span>
+        <span className="absolute top-[15%] right-[10%] text-4xl animate-float opacity-30" style={{ animationDelay: '0.5s' }}>🍎</span>
+        <span className="absolute bottom-[25%] left-[8%] text-4xl animate-float opacity-30" style={{ animationDelay: '1s' }}>🥕</span>
+        <span className="absolute bottom-[15%] right-[5%] text-5xl animate-float opacity-40" style={{ animationDelay: '1.5s' }}>🥦</span>
+        <span className="absolute top-[40%] left-[15%] text-3xl animate-float opacity-20" style={{ animationDelay: '2s' }}>🍋</span>
+        <span className="absolute top-[60%] right-[15%] text-3xl animate-float opacity-20" style={{ animationDelay: '2.5s' }}>🧀</span>
+      </div>
+
+      {/* Header */}
+      <header className="relative z-10 py-6 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto flex justify-between items-center">
+          <Link href="/" className="flex items-center gap-2 group">
+            <span className="text-4xl transition-transform group-hover:scale-110">🥦</span>
+            <span className="text-3xl font-extrabold bg-gradient-to-r from-primary-600 to-secondary-500 bg-clip-text text-transparent">
+              Fridgr
+            </span>
+          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/login">
+              <Button variant="ghost" className="font-bold">
+                Sign In
+              </Button>
+            </Link>
+            <Link href="/signup">
+              <Button className="font-bold">
+                Get Started
+              </Button>
+            </Link>
+          </div>
         </div>
+      </header>
+
+      {/* Hero Section */}
+      <main className="relative z-10">
+        <section className="py-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="animate-bounce-in">
+              <span className="text-8xl mb-8 block filter drop-shadow-lg">🥦</span>
+            </div>
+            <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 animate-slide-up">
+              Keep Food Fresh,
+              <br />
+              <span className="bg-gradient-to-r from-primary-500 via-secondary-500 to-accent-500 bg-clip-text text-transparent">
+                Waste Less
+              </span>
+            </h1>
+            <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: '0.1s' }}>
+              Your fun &amp; easy kitchen companion for tracking food, reducing waste, and saving money!
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up" style={{ animationDelay: '0.2s' }}>
+              <Link href="/signup">
+                <Button size="xl" className="w-full sm:w-auto">
+                  <Sparkles className="mr-2 h-5 w-5" />
+                  Start For Free
+                </Button>
+              </Link>
+              <Link href="/login">
+                <Button size="xl" variant="outline" className="w-full sm:w-auto">
+                  I Already Have An Account
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section className="py-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-3xl font-extrabold text-center text-gray-900 mb-12">
+              Everything You Need to
+              <span className="text-primary-500"> Stay Fresh</span>
+            </h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {features.map((feature, index) => {
+                const Icon = feature.icon;
+                const styles = colorStyles[feature.color];
+                return (
+                  <div
+                    key={feature.title}
+                    className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border-2 border-gray-100 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 stagger-item"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className={`w-14 h-14 ${styles.bg} rounded-xl flex items-center justify-center mb-4`}>
+                      <Icon className={`w-7 h-7 ${styles.icon}`} />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">{feature.title}</h3>
+                    <p className="text-gray-500 text-sm">{feature.description}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-gradient-to-r from-primary-500 via-primary-600 to-secondary-500 rounded-3xl p-10 text-center text-white shadow-2xl shadow-primary-500/30">
+              <h2 className="text-3xl font-extrabold mb-4">
+                Ready to reduce food waste?
+              </h2>
+              <p className="text-primary-100 mb-8 max-w-lg mx-auto">
+                Join thousands of households already saving money and reducing waste with Fridgr.
+              </p>
+              <Link href="/signup">
+                <Button size="xl" variant="secondary" className="bg-white text-primary-600 hover:bg-gray-100">
+                  <Sparkles className="mr-2 h-5 w-5" />
+                  Get Started For Free
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      {/* Footer */}
+      <footer className="relative z-10 py-10 px-4 sm:px-6 lg:px-8 border-t border-gray-200">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🥦</span>
+            <span className="font-bold text-gray-600">Fridgr</span>
+          </div>
+          <p className="text-sm text-gray-500">
+            Made with 💚 for fresher food
+          </p>
+          <div className="flex gap-6 text-sm text-gray-500">
+            <Link href="/privacy" className="hover:text-primary-600 transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-primary-600 transition-colors">Terms</Link>
+          </div>
+        </div>
       </footer>
     </div>
   );

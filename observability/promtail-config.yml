@@ -1,0 +1,109 @@
+# Promtail Configuration for Fridgr
+# Ships logs from Docker containers to Loki
+
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Docker container logs
+  - job_name: containers
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: containerlogs
+          __path__: /var/lib/docker/containers/*/*log
+
+    pipeline_stages:
+      # Parse Docker JSON log format
+      - json:
+          expressions:
+            output: log
+            stream: stream
+            attrs: attrs
+
+      # Extract timestamp
+      - json:
+          expressions:
+            time: time
+          source: output
+
+      # Add labels from container attributes
+      - labels:
+          stream:
+
+      # Extract container name from Docker labels
+      - regex:
+          expression: '(?P<container_name>fridgr-[a-z]+)'
+          source: attrs
+
+      # Add container_name label
+      - labels:
+          container_name:
+
+      # Parse JSON logs from Pino (fridgr-backend)
+      - match:
+          selector: '{container_name="fridgr-backend"}'
+          stages:
+            - json:
+                expressions:
+                  level: level
+                  msg: msg
+                  service: service
+                  correlationId: correlationId
+                  userId: userId
+                  method: method
+                  path: path
+                  statusCode: statusCode
+                source: output
+            - labels:
+                level:
+                service:
+                correlationId:
+            - output:
+                source: msg
+
+      # Default output for non-JSON logs
+      - output:
+          source: output
+
+  # Backend service logs (direct scraping)
+  - job_name: fridgr-backend
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        filters:
+          - name: name
+            values: ["fridgr-backend"]
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: 'container'
+      - source_labels: ['__meta_docker_container_log_stream']
+        target_label: 'logstream'
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_service']
+        target_label: 'service'
+    pipeline_stages:
+      # Parse Pino JSON logs
+      - json:
+          expressions:
+            level: level
+            msg: msg
+            correlationId: correlationId
+            userId: userId
+            method: method
+            path: path
+            statusCode: statusCode
+            err: err
+      - labels:
+          level:
+          correlationId:
+      - output:
+          source: msg

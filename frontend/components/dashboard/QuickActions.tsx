@@ -1,66 +1,108 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Plus, Camera, ListChecks, ChefHat } from 'lucide-react';
+import { Plus, Camera, ListChecks, ChefHat, Zap } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
+
+interface ActionItem {
+  label: string;
+  icon: React.ReactNode;
+  href: string;
+  disabled?: boolean;
+  color: string;
+  bgColor: string;
+  hoverBg: string;
+}
 
 export function QuickActions() {
-  const actions = [
+  const actions: ActionItem[] = [
     {
       label: 'Add Item',
-      icon: <Plus className="w-6 h-6" />,
+      icon: <Plus className="w-7 h-7" />,
       href: '/inventory',
-      action: 'add'
+      color: 'text-primary-600',
+      bgColor: 'bg-primary-100',
+      hoverBg: 'hover:bg-primary-200',
     },
     {
       label: 'Scan Barcode',
-      icon: <Camera className="w-6 h-6" />,
+      icon: <Camera className="w-7 h-7" />,
       href: '/scan',
-      disabled: true
+      disabled: true,
+      color: 'text-secondary-600',
+      bgColor: 'bg-secondary-100',
+      hoverBg: 'hover:bg-secondary-200',
     },
     {
       label: 'Shopping List',
-      icon: <ListChecks className="w-6 h-6" />,
-      href: '/shopping-list',
-      disabled: true
+      icon: <ListChecks className="w-7 h-7" />,
+      href: '/shopping',
+      color: 'text-accent-600',
+      bgColor: 'bg-accent-100',
+      hoverBg: 'hover:bg-accent-200',
     },
     {
       label: 'Recipe Ideas',
-      icon: <ChefHat className="w-6 h-6" />,
+      icon: <ChefHat className="w-7 h-7" />,
       href: '/recipes',
-      disabled: true
-    }
+      disabled: true,
+      color: 'text-fresh-600',
+      bgColor: 'bg-fresh-100',
+      hoverBg: 'hover:bg-fresh-200',
+    },
   ];
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Quick Actions</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <div className="p-1.5 bg-secondary-100 rounded-lg">
+            <Zap className="h-5 w-5 text-secondary-600" />
+          </div>
+          Quick Actions
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {actions.map((action) => (
-            <Button
-              key={action.label}
-              variant="outline"
-              className="h-24 flex flex-col gap-2 hover:bg-gray-50"
-              disabled={action.disabled}
-              asChild={!action.disabled}
-            >
-              {action.disabled ? (
-                <div className="flex flex-col items-center justify-center">
-                  {action.icon}
-                  <span className="text-sm">{action.label}</span>
-                </div>
-              ) : (
-                <Link href={action.href}>
-                  <div className="flex flex-col items-center justify-center">
-                    {action.icon}
-                    <span className="text-sm">{action.label}</span>
-                  </div>
-                </Link>
+          {actions.map((action, index) => {
+            const content = (
+              <div className={cn(
+                "flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border-2 border-transparent transition-all duration-300 stagger-item",
+                action.disabled
+                  ? "bg-gray-100 cursor-not-allowed opacity-50"
+                  : cn(action.bgColor, action.hoverBg, "cursor-pointer hover:border-2 hover:shadow-lg hover:-translate-y-1 active:scale-95")
               )}
-            </Button>
-          ))}
+              style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <div className={cn(
+                  "p-3 rounded-xl bg-white shadow-sm",
+                  action.color
+                )}>
+                  {action.icon}
+                </div>
+                <span className={cn(
+                  "font-bold text-sm",
+                  action.disabled ? "text-gray-400" : "text-gray-700"
+                )}>
+                  {action.label}
+                </span>
+                {action.disabled && (
+                  <span className="text-xs font-medium text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full">
+                    Coming Soon
+                  </span>
+                )}
+              </div>
+            );
+
+            if (action.disabled) {
+              return <div key={action.label}>{content}</div>;
+            }
+
+            return (
+              <Link key={action.label} href={action.href}>
+                {content}
+              </Link>
+            );
+          })}
         </div>
       </CardContent>
     </Card>

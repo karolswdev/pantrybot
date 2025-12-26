@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UserPlus, Settings, Users, Shield, Eye } from 'lucide-react';
+import { UserPlus, Settings, Users, Shield, Eye, Trash2, LogOut, Crown, Sparkles, PartyPopper, AlertTriangle, Calendar, Home } from 'lucide-react';
 
 interface HouseholdMember {
   id: string;
@@ -24,6 +24,20 @@ const mockMembers: HouseholdMember[] = [
   { id: '3', name: 'Bob Johnson', email: 'bob@example.com', role: 'member', joinedAt: '2024-01-15' },
   { id: '4', name: 'Alice Brown', email: 'alice@example.com', role: 'viewer', joinedAt: '2024-02-01' },
 ];
+
+// Avatar colors for members
+const avatarColors = [
+  'from-primary-400 to-primary-600',
+  'from-secondary-400 to-secondary-600',
+  'from-accent-400 to-accent-600',
+  'from-fresh-400 to-fresh-600',
+  'from-warning-400 to-warning-600',
+  'from-danger-400 to-danger-500',
+];
+
+function getAvatarColor(index: number): string {
+  return avatarColors[index % avatarColors.length];
+}
 
 export default function HouseholdSettingsPage() {
   const { currentHouseholdId, households, user } = useAuthStore();
@@ -43,106 +57,184 @@ export default function HouseholdSettingsPage() {
     setInviteRole('member');
   };
 
-  const getRoleBadgeColor = (role: string) => {
+  const getRoleBadgeStyle = (role: string) => {
     switch (role) {
       case 'admin':
-        return 'bg-red-100 text-red-800';
+        return 'bg-gradient-to-r from-primary-100 to-primary-200 text-primary-700 border border-primary-300 shadow-sm';
       case 'member':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-gradient-to-r from-secondary-100 to-secondary-200 text-secondary-700 border border-secondary-300 shadow-sm';
       case 'viewer':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-600 border border-gray-300 shadow-sm';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-600';
     }
   };
 
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'admin':
-        return <Shield className="h-4 w-4" />;
+        return <Crown className="h-3.5 w-3.5" />;
       case 'member':
-        return <Users className="h-4 w-4" />;
+        return <Users className="h-3.5 w-3.5" />;
       case 'viewer':
-        return <Eye className="h-4 w-4" />;
+        return <Eye className="h-3.5 w-3.5" />;
       default:
-        return <Users className="h-4 w-4" />;
+        return <Users className="h-3.5 w-3.5" />;
+    }
+  };
+
+  const getRoleEmoji = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return '👑';
+      case 'member':
+        return '🏠';
+      case 'viewer':
+        return '👀';
+      default:
+        return '👤';
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Household Settings</h1>
-          <p className="text-gray-600 mt-1">{currentHousehold?.name || 'No household selected'}</p>
+    <div className="space-y-6 max-w-4xl mx-auto p-6">
+      {/* Header with gradient */}
+      <div className="flex justify-between items-start animate-slide-down">
+        <div className="flex items-center gap-4">
+          <div className="p-4 bg-gradient-to-br from-primary-400 to-primary-600 rounded-3xl shadow-glow-primary animate-float">
+            <span className="text-4xl">🏠</span>
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 via-primary-500 to-accent-500 bg-clip-text text-transparent">
+              Household Settings
+            </h1>
+            <p className="text-gray-500 mt-1 flex items-center gap-2">
+              <Home className="h-4 w-4" />
+              {currentHousehold?.name || 'No household selected'}
+            </p>
+          </div>
         </div>
         {isAdmin && (
-          <Button className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
+          <Button className="bg-gradient-to-r from-secondary-500 to-secondary-600 hover:from-secondary-600 hover:to-secondary-700 text-white font-semibold px-5 py-2.5 rounded-2xl shadow-lg shadow-secondary-500/30 hover:shadow-xl hover:-translate-y-1 transition-all duration-200">
+            <Settings className="h-4 w-4 mr-2" />
             Manage Household
           </Button>
         )}
       </div>
 
       {/* Members List */}
-      <Card>
-        <CardHeader>
+      <Card className="rounded-3xl border-2 border-primary-100 shadow-playful hover:shadow-playful-lg transition-all duration-300 overflow-hidden animate-bounce-in">
+        <CardHeader className="bg-gradient-to-r from-primary-50 to-secondary-50 border-b border-primary-100">
           <div className="flex justify-between items-center">
-            <div>
-              <CardTitle>Members</CardTitle>
-              <CardDescription>
-                {mockMembers.length} members in this household
-              </CardDescription>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white rounded-xl shadow-sm">
+                <span className="text-2xl">👥</span>
+              </div>
+              <div>
+                <CardTitle className="text-lg text-gray-800">Members</CardTitle>
+                <CardDescription className="text-gray-500 flex items-center gap-1">
+                  <Sparkles className="h-3 w-3" />
+                  {mockMembers.length} awesome people in this household
+                </CardDescription>
+              </div>
             </div>
             {/* Only show invite button for admins */}
             {isAdmin && (
               <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
                 <DialogTrigger asChild>
-                  <Button 
-                    className="flex items-center gap-2"
+                  <Button
+                    className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold px-5 py-2.5 rounded-2xl shadow-lg shadow-primary-500/30 hover:shadow-xl hover:-translate-y-1 transition-all duration-200"
                     data-testid="invite-member-button"
                   >
-                    <UserPlus className="h-4 w-4" />
+                    <UserPlus className="h-4 w-4 mr-2" />
                     Invite Member
                   </Button>
                 </DialogTrigger>
-                <DialogContent data-testid="invite-member-modal">
+                <DialogContent
+                  data-testid="invite-member-modal"
+                  className="rounded-3xl border-2 border-primary-200 shadow-playful-xl backdrop-blur-sm bg-white/95"
+                >
                   <DialogHeader>
-                    <DialogTitle>Invite New Member</DialogTitle>
-                    <DialogDescription>
-                      Send an invitation to join your household.
+                    <div className="flex justify-center mb-4">
+                      <div className="relative">
+                        <div className="p-4 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl shadow-lg animate-bounce-in">
+                          <UserPlus className="h-10 w-10 text-white" />
+                        </div>
+                        <div className="absolute -top-2 -right-2 animate-bounce">
+                          <PartyPopper className="h-6 w-6 text-warning-500" />
+                        </div>
+                      </div>
+                    </div>
+                    <DialogTitle className="text-center text-xl font-bold text-gray-800">
+                      Invite New Member 🎉
+                    </DialogTitle>
+                    <DialogDescription className="text-center">
+                      Grow your household family! Send an invitation to a new member.
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="space-y-4 py-4">
+                  <div className="space-y-5 py-4">
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email Address</Label>
+                      <Label htmlFor="email" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <span>📧</span>
+                        Email Address
+                      </Label>
                       <Input
                         id="email"
                         type="email"
-                        placeholder="member@example.com"
+                        placeholder="friend@example.com"
                         value={inviteEmail}
                         onChange={(e) => setInviteEmail(e.target.value)}
+                        className="rounded-xl border-2 border-gray-200 focus:border-primary-400 focus:ring-primary-400"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="role">Role</Label>
-                      <select
-                        id="role"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        value={inviteRole}
-                        onChange={(e) => setInviteRole(e.target.value as 'admin' | 'member' | 'viewer')}
-                      >
-                        <option value="admin">Admin - Full access</option>
-                        <option value="member">Member - Can add/edit items</option>
-                        <option value="viewer">Viewer - Read-only access</option>
-                      </select>
+                      <Label htmlFor="role" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <span>🎭</span>
+                        Role
+                      </Label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { value: 'admin', label: 'Admin', emoji: '👑', desc: 'Full access', color: 'primary' },
+                          { value: 'member', label: 'Member', emoji: '🏠', desc: 'Add/edit', color: 'secondary' },
+                          { value: 'viewer', label: 'Viewer', emoji: '👀', desc: 'Read-only', color: 'gray' },
+                        ].map((role) => (
+                          <button
+                            key={role.value}
+                            type="button"
+                            onClick={() => setInviteRole(role.value as 'admin' | 'member' | 'viewer')}
+                            className={`
+                              p-3 rounded-xl border-2 transition-all duration-200
+                              ${inviteRole === role.value
+                                ? role.color === 'primary'
+                                  ? 'border-primary-500 bg-primary-50 shadow-glow-primary'
+                                  : role.color === 'secondary'
+                                  ? 'border-secondary-500 bg-secondary-50 shadow-glow-secondary'
+                                  : 'border-gray-400 bg-gray-50'
+                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                              }
+                            `}
+                          >
+                            <div className="text-2xl mb-1">{role.emoji}</div>
+                            <div className="text-sm font-semibold text-gray-800">{role.label}</div>
+                            <div className="text-xs text-gray-500">{role.desc}</div>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsInviteModalOpen(false)}>
+                  <DialogFooter className="gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsInviteModalOpen(false)}
+                      className="rounded-xl border-2 hover:bg-gray-50 font-semibold"
+                    >
                       Cancel
                     </Button>
-                    <Button onClick={handleInviteMember}>
+                    <Button
+                      onClick={handleInviteMember}
+                      className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                    >
+                      <PartyPopper className="h-4 w-4 mr-2" />
                       Send Invitation
                     </Button>
                   </DialogFooter>
@@ -151,33 +243,40 @@ export default function HouseholdSettingsPage() {
             )}
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4" data-testid="members-list">
-            {mockMembers.map((member) => (
+        <CardContent className="pt-4">
+          <div className="space-y-3" data-testid="members-list">
+            {mockMembers.map((member, index) => (
               <div
                 key={member.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                className="flex items-center justify-between p-4 rounded-2xl border-2 border-gray-100 hover:border-primary-200 hover:bg-gradient-to-r hover:from-primary-50/50 hover:to-secondary-50/50 transition-all duration-200 hover:-translate-y-0.5 group"
                 data-testid={`member-${member.id}`}
               >
                 <div className="flex items-center space-x-4">
-                  <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center">
-                    <span className="text-primary-700 font-medium">
+                  <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${getAvatarColor(index)} flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-200`}>
+                    <span className="text-white font-bold text-lg">
                       {member.name.split(' ').map(n => n[0]).join('')}
                     </span>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{member.name}</p>
+                    <p className="font-semibold text-gray-800 flex items-center gap-2">
+                      {member.name}
+                      {member.role === 'admin' && <span className="text-sm">👑</span>}
+                    </p>
                     <p className="text-sm text-gray-500">{member.email}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
-                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(member.role)}`}>
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${getRoleBadgeStyle(member.role)}`}>
                     {getRoleIcon(member.role)}
-                    {member.role}
+                    <span className="capitalize">{member.role}</span>
                   </span>
                   {isAdmin && member.id !== user?.id && (
-                    <Button variant="ghost" size="sm">
-                      Manage
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200"
+                    >
+                      <Settings className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
@@ -188,35 +287,58 @@ export default function HouseholdSettingsPage() {
       </Card>
 
       {/* Household Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Household Information</CardTitle>
-          <CardDescription>
-            General information about your household
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Household Name</dt>
-              <dd className="mt-1 text-sm text-gray-900">{currentHousehold?.name || 'Not set'}</dd>
+      <Card className="rounded-3xl border-2 border-secondary-100 shadow-playful hover:shadow-playful-lg transition-all duration-300 overflow-hidden animate-bounce-in" style={{ animationDelay: '0.1s' }}>
+        <CardHeader className="bg-gradient-to-r from-secondary-50 to-accent-50 border-b border-secondary-100">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white rounded-xl shadow-sm">
+              <span className="text-2xl">📋</span>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500">Your Role</dt>
+              <CardTitle className="text-lg text-gray-800">Household Information</CardTitle>
+              <CardDescription className="text-gray-500">
+                General information about your household
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="p-4 bg-gradient-to-br from-primary-50 to-primary-100/50 rounded-2xl border border-primary-100">
+              <dt className="text-sm font-medium text-gray-500 flex items-center gap-2 mb-1">
+                <Home className="h-4 w-4 text-primary-500" />
+                Household Name
+              </dt>
+              <dd className="text-lg font-semibold text-gray-800">{currentHousehold?.name || 'Not set'}</dd>
+            </div>
+            <div className="p-4 bg-gradient-to-br from-secondary-50 to-secondary-100/50 rounded-2xl border border-secondary-100">
+              <dt className="text-sm font-medium text-gray-500 flex items-center gap-2 mb-1">
+                <Shield className="h-4 w-4 text-secondary-500" />
+                Your Role
+              </dt>
               <dd className="mt-1">
-                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(currentHousehold?.role || 'viewer')}`}>
+                <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold ${getRoleBadgeStyle(currentHousehold?.role || 'viewer')}`}>
+                  <span>{getRoleEmoji(currentHousehold?.role || 'viewer')}</span>
                   {getRoleIcon(currentHousehold?.role || 'viewer')}
-                  {currentHousehold?.role || 'Unknown'}
+                  <span className="capitalize">{currentHousehold?.role || 'Unknown'}</span>
                 </span>
               </dd>
             </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Total Members</dt>
-              <dd className="mt-1 text-sm text-gray-900">{mockMembers.length}</dd>
+            <div className="p-4 bg-gradient-to-br from-accent-50 to-warning-50 rounded-2xl border border-accent-100">
+              <dt className="text-sm font-medium text-gray-500 flex items-center gap-2 mb-1">
+                <Users className="h-4 w-4 text-accent-500" />
+                Total Members
+              </dt>
+              <dd className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                {mockMembers.length}
+                <span className="text-sm font-normal text-gray-500">awesome people</span>
+              </dd>
             </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Created</dt>
-              <dd className="mt-1 text-sm text-gray-900">January 1, 2024</dd>
+            <div className="p-4 bg-gradient-to-br from-fresh-50 to-fresh-100/50 rounded-2xl border border-fresh-200">
+              <dt className="text-sm font-medium text-gray-500 flex items-center gap-2 mb-1">
+                <Calendar className="h-4 w-4 text-fresh-500" />
+                Created
+              </dt>
+              <dd className="text-lg font-semibold text-gray-800">January 1, 2024</dd>
             </div>
           </dl>
         </CardContent>
@@ -224,25 +346,69 @@ export default function HouseholdSettingsPage() {
 
       {/* Danger Zone - Only for Admins */}
       {isAdmin && (
-        <Card className="border-red-200">
-          <CardHeader>
-            <CardTitle className="text-red-600">Danger Zone</CardTitle>
-            <CardDescription>
-              Irreversible actions for this household
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <Button variant="outline" className="text-red-600 border-red-300 hover:bg-red-50">
-                Leave Household
-              </Button>
-              <Button variant="outline" className="text-red-600 border-red-300 hover:bg-red-50 ml-3">
-                Delete Household
-              </Button>
+        <Card className="rounded-3xl border-2 border-danger-200 shadow-playful hover:shadow-playful-lg transition-all duration-300 overflow-hidden animate-bounce-in bg-gradient-to-br from-white to-danger-50/30" style={{ animationDelay: '0.2s' }}>
+          <CardHeader className="bg-gradient-to-r from-danger-50 to-danger-100/50 border-b border-danger-200">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white rounded-xl shadow-sm border border-danger-200">
+                <AlertTriangle className="h-5 w-5 text-danger-500" />
+              </div>
+              <div>
+                <CardTitle className="text-lg text-danger-600 flex items-center gap-2">
+                  Danger Zone
+                  <span className="text-sm">⚠️</span>
+                </CardTitle>
+                <CardDescription className="text-danger-400">
+                  Careful! These actions cannot be undone
+                </CardDescription>
+              </div>
             </div>
-            <p className="text-sm text-gray-500 mt-2">
-              Warning: Deleting a household will permanently remove all data associated with it.
-            </p>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 rounded-2xl border-2 border-danger-100 bg-white hover:border-danger-200 transition-all duration-200">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-danger-100 rounded-xl">
+                    <LogOut className="h-5 w-5 text-danger-500" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-800">Leave Household</p>
+                    <p className="text-sm text-gray-500">Remove yourself from this household</p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  className="text-danger-600 border-2 border-danger-200 hover:bg-danger-50 hover:border-danger-300 rounded-xl font-semibold transition-all duration-200 hover:-translate-y-0.5"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Leave
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between p-4 rounded-2xl border-2 border-danger-200 bg-danger-50/50 hover:border-danger-300 transition-all duration-200">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-danger-200 rounded-xl">
+                    <Trash2 className="h-5 w-5 text-danger-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-danger-700">Delete Household</p>
+                    <p className="text-sm text-danger-500">Permanently delete this household and all its data</p>
+                  </div>
+                </div>
+                <Button
+                  className="bg-gradient-to-r from-danger-500 to-danger-600 hover:from-danger-600 hover:to-danger-700 text-white font-semibold rounded-xl shadow-lg shadow-danger-500/30 hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              </div>
+            </div>
+
+            <div className="mt-4 p-3 bg-warning-50 rounded-xl border border-warning-200 flex items-start gap-2">
+              <span className="text-lg">💡</span>
+              <p className="text-sm text-warning-700">
+                <strong>Tip:</strong> Deleting a household will permanently remove all inventory items, shopping lists, and member data. Make sure to export any important information first!
+              </p>
+            </div>
           </CardContent>
         </Card>
       )}

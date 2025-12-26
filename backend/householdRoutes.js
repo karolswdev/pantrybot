@@ -1,7 +1,7 @@
 const express = require('express');
-const { v4: uuidv4 } = require('uuid');
 const authMiddleware = require('./authMiddleware');
-const { users, households, household_members, invitations } = require('./db');
+const { userRepository, householdRepository, invitationRepository, activityLogRepository } = require('./repositories');
+const { logger, maskEmail } = require('./lib/logger');
 
 const router = express.Router();
 
@@ -9,38 +9,30 @@ const router = express.Router();
 router.use(authMiddleware);
 
 // GET /api/v1/households - List user's households
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Find all household memberships for the user
-    const userMemberships = household_members.filter(hm => hm.userId === userId);
+    const userHouseholds = await householdRepository.findUserHouseholds(userId);
 
-    // Get full household details for each membership
-    const userHouseholds = userMemberships.map(membership => {
-      const household = households.find(h => h.id === membership.householdId);
-      
-      // Count members and items (mocked)
-      const memberCount = household_members.filter(hm => hm.householdId === membership.householdId).length;
-      
-      return {
-        id: household.id,
-        name: household.name,
-        description: household.description || '',
-        role: membership.role,
-        memberCount: memberCount,
-        itemCount: Math.floor(Math.random() * 200), // Mock data
-        expiringItemCount: Math.floor(Math.random() * 10), // Mock data
-        createdAt: household.createdAt.toISOString()
-      };
-    });
+    const response = userHouseholds.map(h => ({
+      id: h.id,
+      name: h.name,
+      description: h.description || '',
+      role: h.role,
+      memberCount: h.memberCount,
+      itemCount: h.itemCount,
+      expiringItemCount: 0, // Will be calculated when we have inventory data
+      createdAt: h.createdAt.toISOString()
+    }));
 
     res.status(200).json({
-      households: userHouseholds,
-      total: userHouseholds.length
+      households: response,
+      total: response.length
     });
   } catch (error) {
-    console.error('List households error:', error);
+    const log = req.log || logger;
+    log.error({ err: error, userId: req.user?.id }, 'Failed to list households');
     res.status(500).json({
       error: 'Internal Server Error',
       message: 'An error occurred while fetching households'
@@ -49,7 +41,7 @@ router.get('/', (req, res) => {
 });
 
 // POST /api/v1/households - Create new household
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const userId = req.user.id;
     const { name, description, timezone } = req.body;
@@ -62,37 +54,52 @@ router.post('/', (req, res) => {
       });
     }
 
-    // Create new household
-    const householdId = uuidv4();
-    const newHousehold = {
-      id: householdId,
-      name,
-      description: description || '',
-      timezone: timezone || 'UTC',
-      createdBy: userId,
-      createdAt: new Date()
-    };
-    households.push(newHousehold);
+    // Create household with user as admin
+    const household = await householdRepository.prisma.$transaction(async (tx) => {
+      const newHousehold = await tx.household.create({
+        data: {
+          name,
+          description: description || '',
+          timezone: timezone || 'UTC',
+          createdBy: userId
+        }
+      });
 
-    // Add user as admin of the new household
-    household_members.push({
-      householdId,
-      userId,
-      role: 'admin',
-      joinedAt: new Date()
+      await tx.householdMember.create({
+        data: {
+          householdId: newHousehold.id,
+          userId,
+          role: 'admin'
+        }
+      });
+
+      return newHousehold;
     });
 
-    // Return created household
+    // Log activity
+    await activityLogRepository.log({
+      householdId: household.id,
+      userId,
+      action: 'household.created',
+      entityType: 'household',
+      entityId: household.id,
+      entityName: household.name,
+      metadata: { timezone: household.timezone },
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent']
+    });
+
     res.status(201).json({
-      id: householdId,
-      name: newHousehold.name,
-      description: newHousehold.description,
-      timezone: newHousehold.timezone,
-      createdAt: newHousehold.createdAt.toISOString(),
+      id: household.id,
+      name: household.name,
+      description: household.description || '',
+      timezone: household.timezone || 'UTC',
+      createdAt: household.createdAt.toISOString(),
       createdBy: userId
     });
   } catch (error) {
-    console.error('Create household error:', error);
+    const log = req.log || logger;
+    log.error({ err: error, userId: req.user?.id }, 'Failed to create household');
     res.status(500).json({
       error: 'Internal Server Error',
       message: 'An error occurred while creating household'
@@ -101,13 +108,13 @@ router.post('/', (req, res) => {
 });
 
 // GET /api/v1/households/:id - Get household details
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
     const userId = req.user.id;
     const householdId = req.params.id;
 
-    // Find the household
-    const household = households.find(h => h.id === householdId);
+    // Find the household with members
+    const household = await householdRepository.findByIdWithMembers(householdId);
     if (!household) {
       return res.status(404).json({
         error: 'Not Found',
@@ -116,10 +123,7 @@ router.get('/:id', (req, res) => {
     }
 
     // Check if user is a member of the household
-    const membership = household_members.find(
-      hm => hm.householdId === householdId && hm.userId === userId
-    );
-    
+    const membership = await householdRepository.getUserMembership(householdId, userId);
     if (!membership) {
       return res.status(403).json({
         error: 'Forbidden',
@@ -127,27 +131,17 @@ router.get('/:id', (req, res) => {
       });
     }
 
-    // Get all members of the household
-    const householdMemberships = household_members.filter(hm => hm.householdId === householdId);
-    const members = householdMemberships.map(hm => {
-      const user = users.find(u => u.id === hm.userId);
-      return {
-        userId: hm.userId,
-        email: user ? user.email : '',
-        displayName: user ? user.displayName : '',
-        role: hm.role,
-        joinedAt: hm.joinedAt.toISOString()
-      };
-    });
+    // Format members
+    const members = household.members.map(m => ({
+      userId: m.userId,
+      email: m.user.email,
+      displayName: m.user.displayName,
+      role: m.role,
+      joinedAt: m.joinedAt.toISOString()
+    }));
 
-    // Mock statistics
-    const statistics = {
-      totalItems: 127,
-      expiringItems: 3,
-      expiredItems: 1,
-      consumedThisMonth: 45,
-      wastedThisMonth: 5
-    };
+    // Get statistics
+    const statistics = await householdRepository.getStatistics(householdId);
 
     res.status(200).json({
       id: household.id,
@@ -159,7 +153,8 @@ router.get('/:id', (req, res) => {
       createdAt: household.createdAt.toISOString()
     });
   } catch (error) {
-    console.error('Get household details error:', error);
+    const log = req.log || logger;
+    log.error({ err: error, householdId: req.params.id, userId: req.user?.id }, 'Failed to get household details');
     res.status(500).json({
       error: 'Internal Server Error',
       message: 'An error occurred while fetching household details'
@@ -168,13 +163,13 @@ router.get('/:id', (req, res) => {
 });
 
 // GET /api/v1/households/:id/statistics - Get household statistics
-router.get('/:id/statistics', (req, res) => {
+router.get('/:id/statistics', async (req, res) => {
   try {
     const userId = req.user.id;
     const householdId = req.params.id;
 
     // Find the household
-    const household = households.find(h => h.id === householdId);
+    const household = await householdRepository.findById(householdId);
     if (!household) {
       return res.status(404).json({
         error: 'Not Found',
@@ -183,10 +178,7 @@ router.get('/:id/statistics', (req, res) => {
     }
 
     // Check if user is a member of the household
-    const membership = household_members.find(
-      hm => hm.householdId === householdId && hm.userId === userId
-    );
-    
+    const membership = await householdRepository.getUserMembership(householdId, userId);
     if (!membership) {
       return res.status(403).json({
         error: 'Forbidden',
@@ -194,52 +186,12 @@ router.get('/:id/statistics', (req, res) => {
       });
     }
 
-    // Import required data
-    const { inventoryItems, itemHistory } = require('./db');
-
-    // Calculate statistics from in-memory data
-    const householdItems = inventoryItems.filter(item => item.householdId === householdId);
-    
-    // Count total items
-    const totalItems = householdItems.length;
-    
-    // Count expiring items (within 3 days)
-    const now = new Date();
-    const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
-    const expiringItems = householdItems.filter(item => {
-      if (!item.expirationDate) return false;
-      const expDate = new Date(item.expirationDate);
-      return expDate > now && expDate <= threeDaysFromNow;
-    }).length;
-    
-    // Count expired items
-    const expiredItems = householdItems.filter(item => {
-      if (!item.expirationDate) return false;
-      const expDate = new Date(item.expirationDate);
-      return expDate < now;
-    }).length;
-    
-    // Calculate consumed and wasted this month
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const monthHistory = itemHistory.filter(h => 
-      h.householdId === householdId && 
-      new Date(h.timestamp) >= startOfMonth
-    );
-    
-    const consumedThisMonth = monthHistory.filter(h => h.action === 'consumed').length;
-    const wastedThisMonth = monthHistory.filter(h => h.action === 'wasted').length;
-
-    const statistics = {
-      totalItems,
-      expiringItems,
-      expiredItems,
-      consumedThisMonth,
-      wastedThisMonth
-    };
+    const statistics = await householdRepository.getStatistics(householdId);
 
     res.status(200).json({ statistics });
   } catch (error) {
-    console.error('Get household statistics error:', error);
+    const log = req.log || logger;
+    log.error({ err: error, householdId: req.params.id, userId: req.user?.id }, 'Failed to get household statistics');
     res.status(500).json({
       error: 'Internal Server Error',
       message: 'An error occurred while fetching household statistics'
@@ -248,14 +200,14 @@ router.get('/:id/statistics', (req, res) => {
 });
 
 // PUT /api/v1/households/:id - Update household
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const userId = req.user.id;
     const householdId = req.params.id;
     const { name, description, timezone } = req.body;
 
     // Find the household
-    const household = households.find(h => h.id === householdId);
+    const household = await householdRepository.findById(householdId);
     if (!household) {
       return res.status(404).json({
         error: 'Not Found',
@@ -264,10 +216,7 @@ router.put('/:id', (req, res) => {
     }
 
     // Check if user is an admin of the household
-    const membership = household_members.find(
-      hm => hm.householdId === householdId && hm.userId === userId
-    );
-    
+    const membership = await householdRepository.getUserMembership(householdId, userId);
     if (!membership) {
       return res.status(403).json({
         error: 'Forbidden',
@@ -282,23 +231,38 @@ router.put('/:id', (req, res) => {
       });
     }
 
-    // Update household fields
-    if (name !== undefined) household.name = name;
-    if (description !== undefined) household.description = description;
-    if (timezone !== undefined) household.timezone = timezone;
-    household.updatedAt = new Date();
-    household.updatedBy = userId;
+    // Build update data
+    const updateData = { updatedBy: userId };
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (timezone !== undefined) updateData.timezone = timezone;
+
+    const updated = await householdRepository.update(householdId, updateData);
+
+    // Log activity
+    await activityLogRepository.log({
+      householdId: updated.id,
+      userId,
+      action: 'household.updated',
+      entityType: 'household',
+      entityId: updated.id,
+      entityName: updated.name,
+      metadata: { changes: { name, description, timezone } },
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent']
+    });
 
     res.status(200).json({
-      id: household.id,
-      name: household.name,
-      description: household.description || '',
-      timezone: household.timezone || 'UTC',
-      updatedAt: household.updatedAt.toISOString(),
+      id: updated.id,
+      name: updated.name,
+      description: updated.description || '',
+      timezone: updated.timezone || 'UTC',
+      updatedAt: updated.updatedAt.toISOString(),
       updatedBy: userId
     });
   } catch (error) {
-    console.error('Update household error:', error);
+    const log = req.log || logger;
+    log.error({ err: error, householdId: req.params.id, userId: req.user?.id }, 'Failed to update household');
     res.status(500).json({
       error: 'Internal Server Error',
       message: 'An error occurred while updating household'
@@ -306,20 +270,24 @@ router.put('/:id', (req, res) => {
   }
 });
 
-// POST /api/v1/households/:householdId/invitations/:invitationId/accept - Accept invitation (mock endpoint for testing)
-router.post('/:householdId/invitations/:invitationId/accept', (req, res) => {
+// POST /api/v1/households/:householdId/invitations/:invitationId/accept - Accept invitation
+router.post('/:householdId/invitations/:invitationId/accept', async (req, res) => {
   try {
     const userId = req.user.id;
     const { householdId, invitationId } = req.params;
 
-    // Find the invitation
-    const invitation = invitations.find(
-      inv => inv.invitationId === invitationId && 
-             inv.householdId === householdId &&
-             inv.status === 'pending'
-    );
+    // Get current user
+    const currentUser = await userRepository.findById(userId);
+    if (!currentUser) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'User not found'
+      });
+    }
 
-    if (!invitation) {
+    // Find the invitation
+    const invitation = await invitationRepository.findById(invitationId);
+    if (!invitation || invitation.householdId !== householdId || invitation.status !== 'pending') {
       return res.status(404).json({
         error: 'Not Found',
         message: 'Invitation not found or expired'
@@ -327,8 +295,7 @@ router.post('/:householdId/invitations/:invitationId/accept', (req, res) => {
     }
 
     // Check if the invitation is for the current user
-    const currentUser = users.find(u => u.id === userId);
-    if (currentUser.email !== invitation.email) {
+    if (currentUser.normalizedEmail !== invitation.email.toLowerCase()) {
       return res.status(403).json({
         error: 'Forbidden',
         message: 'This invitation is not for you'
@@ -336,10 +303,7 @@ router.post('/:householdId/invitations/:invitationId/accept', (req, res) => {
     }
 
     // Check if user is already a member
-    const existingMembership = household_members.find(
-      hm => hm.householdId === householdId && hm.userId === userId
-    );
-
+    const existingMembership = await householdRepository.getUserMembership(householdId, userId);
     if (existingMembership) {
       return res.status(409).json({
         error: 'Conflict',
@@ -347,18 +311,11 @@ router.post('/:householdId/invitations/:invitationId/accept', (req, res) => {
       });
     }
 
-    // Add user to household
-    household_members.push({
-      householdId,
-      userId,
-      role: invitation.role,
-      joinedAt: new Date()
-    });
+    // Accept the invitation (adds user to household)
+    const household = await invitationRepository.acceptInvitation(invitationId, userId);
 
-    // Mark invitation as accepted
-    invitation.status = 'accepted';
-    invitation.acceptedAt = new Date();
-    invitation.acceptedBy = userId;
+    // Log activity
+    await activityLogRepository.logMemberJoined(household, currentUser, invitation.role, invitation.invitedBy, req);
 
     res.status(200).json({
       message: 'Successfully joined household',
@@ -366,7 +323,8 @@ router.post('/:householdId/invitations/:invitationId/accept', (req, res) => {
       role: invitation.role
     });
   } catch (error) {
-    console.error('Accept invitation error:', error);
+    const log = req.log || logger;
+    log.error({ err: error, householdId: req.params.householdId, invitationId: req.params.invitationId, userId: req.user?.id }, 'Failed to accept invitation');
     res.status(500).json({
       error: 'Internal Server Error',
       message: 'An error occurred while accepting invitation'
@@ -375,7 +333,7 @@ router.post('/:householdId/invitations/:invitationId/accept', (req, res) => {
 });
 
 // POST /api/v1/households/:id/members - Invite member to household
-router.post('/:id/members', (req, res) => {
+router.post('/:id/members', async (req, res) => {
   try {
     const userId = req.user.id;
     const householdId = req.params.id;
@@ -398,7 +356,7 @@ router.post('/:id/members', (req, res) => {
     }
 
     // Find the household
-    const household = households.find(h => h.id === householdId);
+    const household = await householdRepository.findById(householdId);
     if (!household) {
       return res.status(404).json({
         error: 'Not Found',
@@ -407,10 +365,7 @@ router.post('/:id/members', (req, res) => {
     }
 
     // Check if user is an admin of the household
-    const membership = household_members.find(
-      hm => hm.householdId === householdId && hm.userId === userId
-    );
-    
+    const membership = await householdRepository.getUserMembership(householdId, userId);
     if (!membership) {
       return res.status(403).json({
         error: 'Forbidden',
@@ -425,15 +380,10 @@ router.post('/:id/members', (req, res) => {
       });
     }
 
-    // Check if the email corresponds to an existing user
-    const invitedUser = users.find(u => u.email === email);
-    
-    // If user exists, check if they're already a member
+    // Check if the email corresponds to an existing user who is already a member
+    const invitedUser = await userRepository.findByEmail(email);
     if (invitedUser) {
-      const existingMembership = household_members.find(
-        hm => hm.householdId === householdId && hm.userId === invitedUser.id
-      );
-      
+      const existingMembership = await householdRepository.getUserMembership(householdId, invitedUser.id);
       if (existingMembership) {
         return res.status(409).json({
           error: 'Conflict',
@@ -442,14 +392,9 @@ router.post('/:id/members', (req, res) => {
       }
     }
 
-    // Check if there's already a pending invitation for this email
-    const existingInvitation = invitations.find(
-      inv => inv.householdId === householdId && 
-             inv.email === email && 
-             inv.status === 'pending' &&
-             inv.expiresAt > new Date()
-    );
-
+    // Check for existing pending invitation
+    const pendingInvitations = await invitationRepository.findPendingByEmail(email);
+    const existingInvitation = pendingInvitations.find(inv => inv.householdId === householdId);
     if (existingInvitation) {
       return res.status(409).json({
         error: 'Conflict',
@@ -458,39 +403,23 @@ router.post('/:id/members', (req, res) => {
     }
 
     // Create invitation
-    const invitationId = uuidv4();
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // Expires in 7 days
+    const invitation = await invitationRepository.createInvitation(householdId, email, role, userId);
 
-    const invitation = {
-      invitationId,
-      householdId,
-      email,
-      role,
-      status: 'pending',
-      createdBy: userId,
-      createdAt: new Date(),
-      expiresAt
-    };
-
-    invitations.push(invitation);
-
-    // Return invitation details
     res.status(201).json({
-      invitationId,
-      email,
-      role,
-      status: 'pending',
-      expiresAt: expiresAt.toISOString()
+      invitationId: invitation.id,
+      email: invitation.email,
+      role: invitation.role,
+      status: invitation.status,
+      expiresAt: invitation.expiresAt.toISOString()
     });
   } catch (error) {
-    console.error('Invite member error:', error);
+    const log = req.log || logger;
+    log.error({ err: error, householdId: req.params.id, email: maskEmail(req.body?.email), userId: req.user?.id }, 'Failed to invite member to household');
     res.status(500).json({
       error: 'Internal Server Error',
       message: 'An error occurred while inviting member'
     });
   }
 });
-
 
 module.exports = router;

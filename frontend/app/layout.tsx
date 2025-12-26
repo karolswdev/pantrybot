@@ -1,19 +1,28 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Nunito } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/providers/Providers";
 
-const inter = Inter({
+const nunito = Nunito({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-nunito",
+  weight: ["400", "500", "600", "700", "800"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: "#10b981",
+};
+
 export const metadata: Metadata = {
-  title: "Fridgr - Food Inventory Management",
-  description: "Keep your food fresh, waste less",
+  title: "Fridgr - Keep Food Fresh, Waste Less",
+  description: "Your fun & easy kitchen companion for tracking food, reducing waste, and saving money!",
   manifest: "/manifest.json",
-  themeColor: "#22c55e",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
@@ -22,10 +31,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${inter.variable} font-sans antialiased`}
-      >
+    <html lang="en" className={nunito.variable}>
+      <body className="font-sans antialiased bg-gradient-to-b from-gray-50 to-white min-h-screen">
         <Providers>{children}</Providers>
       </body>
     </html>

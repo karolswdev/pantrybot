@@ -65,7 +65,7 @@ describe('CreateHousehold - TC-INT-2.3', () => {
     cy.visit('http://localhost:3003/dashboard');
     
     // Wait for page to load
-    cy.contains('Welcome back', { timeout: 10000 }).should('be.visible');
+    cy.contains('Test User', { timeout: 10000 }).should('be.visible');
     
     // Create a new household via direct API call
     // In a real implementation, this would be triggered by a UI component

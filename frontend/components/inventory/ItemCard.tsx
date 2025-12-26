@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { MoreVertical, Package, Calendar, AlertTriangle } from "lucide-react";
+import { MoreVertical, Calendar, AlertTriangle, Sparkles, Utensils, Trash2, Pencil } from "lucide-react";
 
 export type ExpirationStatus = "expired" | "critical" | "warning" | "fresh" | "no-date";
 
@@ -31,13 +31,91 @@ interface ItemCardProps {
   viewMode?: "grid" | "list";
 }
 
+// Food emoji mapping based on category and common food names
+function getFoodEmoji(item: InventoryItem): string {
+  const name = item.name.toLowerCase();
+  const category = item.category?.toLowerCase() || "";
+
+  // Check specific food names first
+  if (name.includes("milk")) return "🥛";
+  if (name.includes("cheese")) return "🧀";
+  if (name.includes("yogurt")) return "🥣";
+  if (name.includes("butter")) return "🧈";
+  if (name.includes("egg")) return "🥚";
+  if (name.includes("bread")) return "🍞";
+  if (name.includes("apple")) return "🍎";
+  if (name.includes("banana")) return "🍌";
+  if (name.includes("orange")) return "🍊";
+  if (name.includes("grape")) return "🍇";
+  if (name.includes("strawberry") || name.includes("berry")) return "🍓";
+  if (name.includes("lemon")) return "🍋";
+  if (name.includes("watermelon") || name.includes("melon")) return "🍉";
+  if (name.includes("peach")) return "🍑";
+  if (name.includes("cherry")) return "🍒";
+  if (name.includes("avocado")) return "🥑";
+  if (name.includes("tomato")) return "🍅";
+  if (name.includes("carrot")) return "🥕";
+  if (name.includes("corn")) return "🌽";
+  if (name.includes("broccoli")) return "🥦";
+  if (name.includes("cucumber")) return "🥒";
+  if (name.includes("lettuce") || name.includes("salad")) return "🥬";
+  if (name.includes("potato")) return "🥔";
+  if (name.includes("onion")) return "🧅";
+  if (name.includes("garlic")) return "🧄";
+  if (name.includes("pepper")) return "🌶️";
+  if (name.includes("mushroom")) return "🍄";
+  if (name.includes("chicken")) return "🍗";
+  if (name.includes("beef") || name.includes("steak")) return "🥩";
+  if (name.includes("bacon")) return "🥓";
+  if (name.includes("fish") || name.includes("salmon") || name.includes("tuna")) return "🐟";
+  if (name.includes("shrimp") || name.includes("prawn")) return "🦐";
+  if (name.includes("pizza")) return "🍕";
+  if (name.includes("burger")) return "🍔";
+  if (name.includes("hot dog") || name.includes("sausage")) return "🌭";
+  if (name.includes("sandwich")) return "🥪";
+  if (name.includes("taco")) return "🌮";
+  if (name.includes("pasta") || name.includes("spaghetti") || name.includes("noodle")) return "🍝";
+  if (name.includes("rice")) return "🍚";
+  if (name.includes("soup")) return "🍲";
+  if (name.includes("ice cream")) return "🍨";
+  if (name.includes("cake")) return "🍰";
+  if (name.includes("cookie")) return "🍪";
+  if (name.includes("chocolate")) return "🍫";
+  if (name.includes("candy")) return "🍬";
+  if (name.includes("honey")) return "🍯";
+  if (name.includes("coffee")) return "☕";
+  if (name.includes("tea")) return "🍵";
+  if (name.includes("juice")) return "🧃";
+  if (name.includes("water")) return "💧";
+  if (name.includes("wine")) return "🍷";
+  if (name.includes("beer")) return "🍺";
+
+  // Category-based fallbacks
+  if (category.includes("dairy")) return "🥛";
+  if (category.includes("produce") || category.includes("vegetable")) return "🥬";
+  if (category.includes("fruit")) return "🍎";
+  if (category.includes("meat")) return "🥩";
+  if (category.includes("seafood")) return "🐟";
+  if (category.includes("bakery")) return "🥖";
+  if (category.includes("frozen")) return "🧊";
+  if (category.includes("beverage") || category.includes("drink")) return "🥤";
+  if (category.includes("snack")) return "🍿";
+  if (category.includes("condiment") || category.includes("sauce")) return "🧂";
+  if (category.includes("grain") || category.includes("cereal")) return "🌾";
+  if (category.includes("dessert")) return "🍰";
+  if (category.includes("prepared")) return "🍱";
+
+  // Default emoji
+  return "🍴";
+}
+
 function getExpirationStatus(item: InventoryItem): {
   status: ExpirationStatus;
   daysUntil: number | null;
   displayText: string;
 } {
   const dateToCheck = item.expirationDate || item.bestBeforeDate;
-  
+
   if (!dateToCheck) {
     return { status: "no-date", daysUntil: null, displayText: "No expiry date" };
   }
@@ -46,179 +124,248 @@ function getExpirationStatus(item: InventoryItem): {
   today.setHours(0, 0, 0, 0);
   const expiryDate = new Date(dateToCheck);
   expiryDate.setHours(0, 0, 0, 0);
-  
+
   const diffTime = expiryDate.getTime() - today.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
   if (diffDays < 0) {
-    return { 
-      status: "expired", 
-      daysUntil: diffDays, 
-      displayText: `Expired ${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? 's' : ''} ago` 
+    return {
+      status: "expired",
+      daysUntil: diffDays,
+      displayText: `Expired ${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? 's' : ''} ago`
     };
   } else if (diffDays === 0) {
-    return { status: "critical", daysUntil: 0, displayText: "Expires today" };
+    return { status: "critical", daysUntil: 0, displayText: "Expires today!" };
   } else if (diffDays === 1) {
-    return { status: "critical", daysUntil: 1, displayText: "Tomorrow" };
+    return { status: "critical", daysUntil: 1, displayText: "Tomorrow!" };
   } else if (diffDays <= 3) {
-    return { status: "warning", daysUntil: diffDays, displayText: `In ${diffDays} days` };
+    return { status: "warning", daysUntil: diffDays, displayText: `${diffDays} days left` };
   } else {
-    return { status: "fresh", daysUntil: diffDays, displayText: `In ${diffDays} days` };
+    return { status: "fresh", daysUntil: diffDays, displayText: `${diffDays} days left` };
   }
 }
 
-function getStatusColors(status: ExpirationStatus) {
+function getStatusStyles(status: ExpirationStatus) {
   switch (status) {
     case "expired":
       return {
-        border: "border-danger-500",
-        bg: "bg-danger-50",
-        text: "text-danger-600",
-        icon: "text-danger-500"
+        card: "border-danger-300 bg-gradient-to-br from-danger-50 to-white",
+        badge: "bg-danger-500 text-white",
+        badgeIcon: "text-white",
+        shadow: "shadow-danger-500/20",
       };
     case "critical":
       return {
-        border: "border-danger-400",
-        bg: "bg-danger-50",
-        text: "text-danger-600",
-        icon: "text-danger-500"
+        card: "border-danger-300 bg-gradient-to-br from-danger-50 to-white",
+        badge: "bg-danger-500 text-white animate-pulse-soft",
+        badgeIcon: "text-white",
+        shadow: "shadow-danger-500/20",
       };
     case "warning":
       return {
-        border: "border-warning-400",
-        bg: "bg-warning-50",
-        text: "text-warning-600",
-        icon: "text-warning-500"
+        card: "border-warning-300 bg-gradient-to-br from-warning-50 to-white",
+        badge: "bg-warning-500 text-white",
+        badgeIcon: "text-white",
+        shadow: "shadow-warning-500/20",
       };
     case "fresh":
       return {
-        border: "border-gray-200",
-        bg: "bg-gray-50",
-        text: "text-gray-600",
-        icon: "text-gray-400"
+        card: "border-primary-200 bg-gradient-to-br from-primary-50 to-white",
+        badge: "bg-primary-500 text-white",
+        badgeIcon: "text-white",
+        shadow: "shadow-primary-500/20",
       };
     case "no-date":
       return {
-        border: "border-gray-200",
-        bg: "bg-gray-50",
-        text: "text-gray-500",
-        icon: "text-gray-400"
+        card: "border-gray-200 bg-gradient-to-br from-gray-50 to-white",
+        badge: "bg-gray-400 text-white",
+        badgeIcon: "text-white",
+        shadow: "shadow-gray-500/10",
       };
   }
 }
 
-export function ItemCard({ 
-  item, 
-  onEdit, 
-  onConsume, 
-  onWaste, 
+export function ItemCard({
+  item,
+  onEdit,
+  onConsume,
+  onWaste,
   onDelete,
-  viewMode = "grid" 
+  viewMode = "grid"
 }: ItemCardProps) {
   const [showActions, setShowActions] = useState(false);
   const expiration = getExpirationStatus(item);
-  const colors = getStatusColors(expiration.status);
+  const styles = getStatusStyles(expiration.status);
+  const emoji = getFoodEmoji(item);
 
   // Grid view
   if (viewMode === "grid") {
     return (
-      <Card 
+      <Card
         data-testid="item-card"
-        className={cn("relative transition-all hover:shadow-md", colors.border)}>
-        <CardContent className="p-4">
+        className={cn(
+          "relative rounded-2xl border-2 transition-all duration-300",
+          "hover:-translate-y-1 hover:shadow-playful-lg",
+          "animate-scale-in cursor-pointer group",
+          styles.card,
+          `shadow-lg ${styles.shadow}`
+        )}
+      >
+        <CardContent className="p-4 pt-5">
           {/* Action menu button */}
           <button
-            onClick={() => setShowActions(!showActions)}
-            className="absolute top-2 right-2 p-1 rounded hover:bg-gray-100 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowActions(!showActions);
+            }}
+            className={cn(
+              "absolute top-2 right-2 p-1.5 rounded-xl transition-all duration-200",
+              "hover:bg-gray-100 hover:scale-110",
+              "opacity-0 group-hover:opacity-100"
+            )}
           >
             <MoreVertical className="h-4 w-4 text-gray-500" />
           </button>
 
-          {/* Item icon/emoji or image */}
+          {/* Food emoji with playful background */}
           <div className="flex justify-center mb-3">
-            <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center">
+            <div className={cn(
+              "w-20 h-20 rounded-2xl flex items-center justify-center",
+              "bg-gradient-to-br from-white to-gray-50",
+              "border-2 border-gray-100",
+              "shadow-inner transition-transform duration-300",
+              "group-hover:scale-105 group-hover:rotate-2"
+            )}>
               {item.imageUrl ? (
-                <Image 
-                  src={item.imageUrl} 
-                  alt={item.name} 
+                <Image
+                  src={item.imageUrl}
+                  alt={item.name}
                   width={64}
                   height={64}
-                  className="w-full h-full object-cover rounded-lg" 
+                  className="w-16 h-16 object-cover rounded-xl"
                 />
               ) : (
-                <Package className="w-8 h-8 text-gray-400" />
+                <span className="text-4xl" role="img" aria-label={item.name}>
+                  {emoji}
+                </span>
               )}
             </div>
           </div>
 
           {/* Item name */}
-          <h3 className="font-semibold text-gray-900 text-center mb-1 line-clamp-2">
+          <h3 className="font-bold text-gray-800 text-center mb-1 line-clamp-2 text-sm">
             {item.name}
           </h3>
 
-          {/* Quantity */}
-          <p className="text-sm text-gray-600 text-center mb-3">
+          {/* Quantity with playful styling */}
+          <p className="text-sm text-gray-500 text-center mb-3 font-medium">
             {item.quantity} {item.unit}
           </p>
 
-          {/* Expiration status */}
-          <div className={cn("rounded-md px-2 py-1 text-xs text-center font-medium", colors.bg, colors.text)}>
+          {/* Expiration badge - colorful and rounded */}
+          <div className={cn(
+            "rounded-xl px-3 py-1.5 text-xs text-center font-bold",
+            "flex items-center justify-center gap-1.5",
+            "shadow-sm",
+            styles.badge
+          )}>
             {expiration.status === "critical" || expiration.status === "expired" ? (
-              <span className="flex items-center justify-center gap-1">
-                <AlertTriangle className="h-3 w-3" />
-                {expiration.displayText}
-              </span>
+              <AlertTriangle className={cn("h-3.5 w-3.5", styles.badgeIcon)} />
+            ) : expiration.status === "fresh" ? (
+              <Sparkles className={cn("h-3.5 w-3.5", styles.badgeIcon)} />
             ) : (
-              <span className="flex items-center justify-center gap-1">
-                <Calendar className="h-3 w-3" />
-                {expiration.displayText}
-              </span>
+              <Calendar className={cn("h-3.5 w-3.5", styles.badgeIcon)} />
             )}
+            {expiration.displayText}
           </div>
         </CardContent>
 
-        {/* Action buttons */}
+        {/* Action buttons with playful styling */}
         <CardFooter className="p-3 pt-0 grid grid-cols-2 gap-2">
           <Button
             size="sm"
-            variant="outline"
-            onClick={() => onConsume?.(item)}
-            className="text-xs"
+            onClick={(e) => {
+              e.stopPropagation();
+              onConsume?.(item);
+            }}
+            className={cn(
+              "text-xs font-bold rounded-xl h-9",
+              "bg-primary-500 hover:bg-primary-600 text-white",
+              "shadow-md hover:shadow-lg transition-all duration-200",
+              "hover:-translate-y-0.5"
+            )}
           >
+            <Utensils className="h-3.5 w-3.5 mr-1" />
             Use
           </Button>
           <Button
             size="sm"
             variant="outline"
-            onClick={() => onEdit?.(item)}
-            className="text-xs"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit?.(item);
+            }}
+            className={cn(
+              "text-xs font-bold rounded-xl h-9",
+              "border-2 border-gray-200 hover:border-secondary-300",
+              "hover:bg-secondary-50 hover:text-secondary-700",
+              "transition-all duration-200 hover:-translate-y-0.5"
+            )}
           >
+            <Pencil className="h-3.5 w-3.5 mr-1" />
             Edit
           </Button>
         </CardFooter>
 
-        {/* Dropdown action menu (shown on click) */}
+        {/* Dropdown action menu */}
         {showActions && (
-          <div className="absolute top-8 right-2 z-10 bg-white rounded-md shadow-lg border border-gray-200 py-1">
+          <div
+            className={cn(
+              "absolute top-10 right-2 z-20",
+              "bg-white rounded-2xl shadow-playful-lg",
+              "border-2 border-gray-100 py-2 min-w-[160px]",
+              "animate-scale-in"
+            )}
+          >
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 onWaste?.(item);
                 setShowActions(false);
               }}
-              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              className={cn(
+                "w-full text-left px-4 py-2.5 text-sm font-medium",
+                "text-warning-700 hover:bg-warning-50",
+                "flex items-center gap-2 transition-colors"
+              )}
             >
+              <AlertTriangle className="h-4 w-4" />
               Mark as Wasted
             </button>
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 onDelete?.(item);
                 setShowActions(false);
               }}
-              className="block w-full text-left px-4 py-2 text-sm text-danger-600 hover:bg-danger-50"
+              className={cn(
+                "w-full text-left px-4 py-2.5 text-sm font-medium",
+                "text-danger-600 hover:bg-danger-50",
+                "flex items-center gap-2 transition-colors"
+              )}
             >
-              Delete
+              <Trash2 className="h-4 w-4" />
+              Delete Item
             </button>
           </div>
+        )}
+
+        {/* Click outside to close menu */}
+        {showActions && (
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setShowActions(false)}
+          />
         )}
       </Card>
     );
@@ -226,81 +373,153 @@ export function ItemCard({
 
   // List view
   return (
-    <div 
+    <div
       data-testid="item-card"
       className={cn(
-        "flex items-center justify-between p-4 bg-white rounded-lg border transition-all hover:shadow-sm",
-        colors.border
-      )}>
+        "flex items-center justify-between p-4",
+        "bg-white rounded-2xl border-2 transition-all duration-300",
+        "hover:-translate-y-0.5 hover:shadow-playful-lg",
+        "animate-slide-up group",
+        styles.card,
+        `shadow-lg ${styles.shadow}`
+      )}
+    >
       <div className="flex items-center gap-4 flex-1">
-        {/* Item icon */}
-        <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+        {/* Food emoji */}
+        <div className={cn(
+          "w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0",
+          "bg-gradient-to-br from-white to-gray-50",
+          "border-2 border-gray-100 shadow-inner",
+          "transition-transform duration-300 group-hover:scale-105"
+        )}>
           {item.imageUrl ? (
-            <Image 
-              src={item.imageUrl} 
+            <Image
+              src={item.imageUrl}
               alt={item.name}
               width={48}
-              height={48} 
-              className="w-full h-full object-cover rounded-lg" 
+              height={48}
+              className="w-12 h-12 object-cover rounded-lg"
             />
           ) : (
-            <Package className="w-6 h-6 text-gray-400" />
+            <span className="text-2xl" role="img" aria-label={item.name}>
+              {emoji}
+            </span>
           )}
         </div>
 
         {/* Item details */}
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 truncate">{item.name}</h3>
-          <p className="text-sm text-gray-600">
-            {item.quantity} {item.unit} {item.category && `• ${item.category}`}
+          <h3 className="font-bold text-gray-800 truncate">{item.name}</h3>
+          <p className="text-sm text-gray-500 font-medium">
+            {item.quantity} {item.unit}
+            {item.category && (
+              <span className="ml-2 px-2 py-0.5 bg-gray-100 rounded-full text-xs">
+                {item.category}
+              </span>
+            )}
           </p>
         </div>
 
-        {/* Expiration status */}
-        <div className={cn("rounded-md px-3 py-1 text-sm font-medium whitespace-nowrap", colors.bg, colors.text)}>
+        {/* Expiration badge */}
+        <div className={cn(
+          "rounded-xl px-4 py-2 text-sm font-bold whitespace-nowrap",
+          "flex items-center gap-2 shadow-sm",
+          styles.badge
+        )}>
+          {expiration.status === "critical" || expiration.status === "expired" ? (
+            <AlertTriangle className="h-4 w-4" />
+          ) : expiration.status === "fresh" ? (
+            <Sparkles className="h-4 w-4" />
+          ) : (
+            <Calendar className="h-4 w-4" />
+          )}
           {expiration.displayText}
         </div>
       </div>
 
       {/* Actions */}
       <div className="flex items-center gap-2 ml-4">
-        <Button size="sm" variant="outline" onClick={() => onConsume?.(item)}>
+        <Button
+          size="sm"
+          onClick={() => onConsume?.(item)}
+          className={cn(
+            "font-bold rounded-xl",
+            "bg-primary-500 hover:bg-primary-600 text-white",
+            "shadow-md hover:shadow-lg transition-all duration-200"
+          )}
+        >
+          <Utensils className="h-4 w-4 mr-1" />
           Use
         </Button>
-        <Button size="sm" variant="outline" onClick={() => onEdit?.(item)}>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => onEdit?.(item)}
+          className={cn(
+            "font-bold rounded-xl border-2",
+            "hover:border-secondary-300 hover:bg-secondary-50"
+          )}
+        >
+          <Pencil className="h-4 w-4 mr-1" />
           Edit
         </Button>
-        <button
-          onClick={() => setShowActions(!showActions)}
-          className="p-2 rounded hover:bg-gray-100 transition-colors relative"
-        >
-          <MoreVertical className="h-4 w-4 text-gray-500" />
-          
+        <div className="relative">
+          <button
+            onClick={() => setShowActions(!showActions)}
+            className={cn(
+              "p-2 rounded-xl transition-all duration-200",
+              "hover:bg-gray-100 hover:scale-110"
+            )}
+          >
+            <MoreVertical className="h-4 w-4 text-gray-500" />
+          </button>
+
           {showActions && (
-            <div className="absolute top-8 right-0 z-10 bg-white rounded-md shadow-lg border border-gray-200 py-1">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onWaste?.(item);
-                  setShowActions(false);
-                }}
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 whitespace-nowrap"
-              >
-                Mark as Wasted
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete?.(item);
-                  setShowActions(false);
-                }}
-                className="block w-full text-left px-4 py-2 text-sm text-danger-600 hover:bg-danger-50 whitespace-nowrap"
-              >
-                Delete
-              </button>
-            </div>
+            <>
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setShowActions(false)}
+              />
+              <div className={cn(
+                "absolute top-10 right-0 z-20",
+                "bg-white rounded-2xl shadow-playful-lg",
+                "border-2 border-gray-100 py-2 min-w-[160px]",
+                "animate-scale-in"
+              )}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onWaste?.(item);
+                    setShowActions(false);
+                  }}
+                  className={cn(
+                    "w-full text-left px-4 py-2.5 text-sm font-medium",
+                    "text-warning-700 hover:bg-warning-50",
+                    "flex items-center gap-2 transition-colors"
+                  )}
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                  Mark as Wasted
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete?.(item);
+                    setShowActions(false);
+                  }}
+                  className={cn(
+                    "w-full text-left px-4 py-2.5 text-sm font-medium",
+                    "text-danger-600 hover:bg-danger-50",
+                    "flex items-center gap-2 transition-colors"
+                  )}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete Item
+                </button>
+              </div>
+            </>
           )}
-        </button>
+        </div>
       </div>
     </div>
   );

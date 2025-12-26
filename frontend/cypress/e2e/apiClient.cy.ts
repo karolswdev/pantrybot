@@ -8,7 +8,7 @@ describe('API Client Integration', () => {
     }).then((response) => {
       expect(response.status).to.equal(201);
       const { accessToken, defaultHouseholdId } = response.body;
-      
+
       // Test direct API call to household endpoint
       cy.request({
         method: 'GET',
@@ -20,9 +20,10 @@ describe('API Client Integration', () => {
         expect(householdResponse.status).to.equal(200);
         expect(householdResponse.body).to.have.property('id', defaultHouseholdId);
         expect(householdResponse.body).to.have.property('name', "API Test User's Home");
-        expect(householdResponse.body.statistics).to.have.property('totalItems', 127);
-        expect(householdResponse.body.statistics).to.have.property('expiringItems', 3);
-        
+        // New users start with empty inventory
+        expect(householdResponse.body.statistics).to.have.property('totalItems', 0);
+        expect(householdResponse.body.statistics).to.have.property('expiringItems', 0);
+
         cy.log('✓ Mock backend is accessible and returning expected data');
         cy.log(`Household ID: ${defaultHouseholdId}`);
         cy.log(`Total Items: ${householdResponse.body.statistics.totalItems}`);

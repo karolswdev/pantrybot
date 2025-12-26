@@ -63,9 +63,9 @@ describe('InviteMember - TC-INT-2.4', () => {
   it('should send a member invitation via the mock backend', () => {
     // Navigate to dashboard first
     cy.visit('http://localhost:3003/dashboard');
-    
-    // Wait for page to load
-    cy.contains('Welcome back', { timeout: 10000 }).should('be.visible');
+
+    // Wait for page to load - use household name which is more reliable
+    cy.contains("Admin User's Home", { timeout: 10000 }).should('be.visible');
     
     // Since the UI for inviting members might not be fully implemented,
     // we'll test the API directly

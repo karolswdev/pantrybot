@@ -4,13 +4,13 @@ describe('Real-time Inventory Synchronization', () => {
   let userId: string;
 
   beforeEach(() => {
-    // Reset database before each test
-    cy.request('POST', 'http://localhost:8080/api/v1/test/reset-db');
-    
+    // Use unique email to avoid conflicts
+    const uniqueEmail = `invsync-${Date.now()}@example.com`;
+
     // Register and login
     cy.request('POST', 'http://localhost:8080/api/v1/auth/register', {
-      email: 'test@example.com',
-      password: 'Test123456',  // Use simpler password without special chars
+      email: uniqueEmail,
+      password: 'Test123456',
       displayName: 'Test User'
     }).then((response) => {
       const { accessToken, refreshToken, userId: uid, defaultHouseholdId, displayName, email } = response.body;

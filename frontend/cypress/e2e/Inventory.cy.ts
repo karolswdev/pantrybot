@@ -1,68 +1,92 @@
 describe("Inventory E2E Tests", () => {
   let householdId: string;
-  
+  let accessToken: string;
+
   beforeEach(() => {
-    // Reset backend state and login with real backend
-    cy.request('POST', 'http://localhost:8080/debug/reset-state');
-    
-    // Register a test user first and capture the household ID
+    // Clear localStorage first
+    cy.clearLocalStorage();
+
+    // Register a test user with unique email
+    const uniqueEmail = `inventory-test-${Date.now()}@example.com`;
+
     cy.request({
       method: 'POST',
       url: 'http://localhost:8080/api/v1/auth/register',
       body: {
-        email: 'jane.doe@example.com',
+        email: uniqueEmail,
         password: 'password123',
         displayName: 'Jane Doe',
         timezone: 'UTC',
         defaultHouseholdName: 'Test Household'
-      },
-      failOnStatusCode: false
+      }
     }).then((response) => {
       householdId = response.body.defaultHouseholdId;
+      accessToken = response.body.accessToken;
+
       // Store householdId for use in tests
       cy.wrap(householdId).as('householdId');
-    });
-    
-    // Now login with the registered user
-    cy.login('jane.doe@example.com', 'password123');
-    // Wait for auth to propagate
-    cy.wait(500);
-    
-    // Also seed some initial inventory items for tests that expect them
-    cy.get('@householdId').then((hId) => {
+      cy.wrap(accessToken).as('accessToken');
+
+      // Set up authentication in localStorage
       cy.window().then((win) => {
-        const token = win.localStorage.getItem('access_token');
-        // Add a few default items
-        cy.request({
-          method: 'POST',
-          url: `http://localhost:8080/api/v1/households/${hId}/items`,
-          headers: {
-            'Authorization': `Bearer ${token}`
+        win.localStorage.setItem('access_token', accessToken);
+        win.localStorage.setItem('refresh_token', response.body.refreshToken);
+        win.localStorage.setItem('token_expiry', (Date.now() + 900000).toString());
+
+        const authState = {
+          state: {
+            user: {
+              id: response.body.userId,
+              email: uniqueEmail,
+              displayName: 'Jane Doe',
+              activeHouseholdId: householdId,
+              defaultHouseholdId: householdId
+            },
+            households: [{
+              id: householdId,
+              name: "Test Household",
+              role: 'admin'
+            }],
+            currentHouseholdId: householdId,
+            isAuthenticated: true,
+            isLoading: false,
+            error: null
           },
-          body: {
-            name: "Milk",
-            quantity: 1,
-            unit: "gallon",
-            location: "fridge",
-            category: "Dairy",
-            expirationDate: new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]
-          }
-        });
-        cy.request({
-          method: 'POST',
-          url: `http://localhost:8080/api/v1/households/${hId}/items`,
-          headers: {
-            'Authorization': `Bearer ${token}`
-          },
-          body: {
-            name: "Bread",
-            quantity: 1,
-            unit: "loaf",
-            location: "fridge",
-            category: "Bakery",
-            expirationDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]
-          }
-        });
+          version: 0
+        };
+        win.localStorage.setItem('auth-storage', JSON.stringify(authState));
+      });
+
+      // Seed some initial inventory items
+      cy.request({
+        method: 'POST',
+        url: `http://localhost:8080/api/v1/households/${householdId}/items`,
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: {
+          name: "Milk",
+          quantity: 1,
+          unit: "gallon",
+          location: "fridge",
+          category: "Dairy",
+          expirationDate: new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]
+        }
+      });
+      cy.request({
+        method: 'POST',
+        url: `http://localhost:8080/api/v1/households/${householdId}/items`,
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: {
+          name: "Bread",
+          quantity: 1,
+          unit: "loaf",
+          location: "fridge",
+          category: "Bakery",
+          expirationDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]
+        }
       });
     });
   });

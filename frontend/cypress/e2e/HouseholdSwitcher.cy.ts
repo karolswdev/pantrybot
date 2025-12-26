@@ -65,7 +65,7 @@ describe('HouseholdSwitcher', () => {
     cy.visit('http://localhost:3003/dashboard');
     
     // Wait for the page to load
-    cy.contains('Welcome back', { timeout: 10000 }).should('be.visible');
+    cy.contains('Test User', { timeout: 10000 }).should('be.visible');
     
     // Act: Click the household switcher in the header
     // The household switcher should be visible with the current household name

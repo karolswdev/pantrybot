@@ -65,21 +65,25 @@ describe('Mobile Layout', () => {
       }
     });
     
-    // Verify all 5 tabs are present
-    cy.get('nav[class*="fixed bottom-0"] a, nav[class*="fixed bottom-0"] button').should('have.length', 5);
-    
-    // Verify tab labels
+    // Verify all 5 tabs are present (4 links + 1 button)
+    cy.get('nav[class*="fixed bottom-0"]').within(() => {
+      cy.get('a').should('have.length', 4);
+      cy.get('button[aria-label="Add"]').should('exist');
+    });
+
+    // Verify tab labels (Add button has no visible text, only aria-label)
     cy.get('nav[class*="fixed bottom-0"]').within(() => {
       cy.contains('Home').should('be.visible');
       cy.contains('Inventory').should('be.visible');
+      cy.get('button[aria-label="Add"]').should('be.visible');
       cy.contains('Shopping').should('be.visible');
       cy.contains('Settings').should('be.visible');
     });
-    
-    // Verify the Add button is styled differently (has rounded background)
+
+    // Verify the Add button is styled differently (has gradient background)
     cy.get('nav[class*="fixed bottom-0"] button[aria-label="Add"]')
-      .find('div[class*="rounded-full"]')
-      .should('have.class', 'bg-primary-500');
+      .find('div[class*="rounded-2xl"]')
+      .should('exist');
   });
 
   it('should hide the bottom tab bar on desktop viewport', () => {

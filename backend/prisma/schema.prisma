@@ -1,0 +1,288 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== USERS ====================
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  normalizedEmail String    @map("normalized_email")
+  passwordHash    String    @map("password_hash")
+  displayName     String?   @map("display_name")
+  timezone        String    @default("UTC")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime? @updatedAt @map("updated_at")
+  lastLoginAt     DateTime? @map("last_login_at")
+
+  // Relations
+  householdsCreated          Household[]             @relation("HouseholdCreator")
+  householdMemberships       HouseholdMember[]
+  inventoryItemsCreated      InventoryItem[]         @relation("ItemCreator")
+  inventoryItemsUpdated      InventoryItem[]         @relation("ItemUpdater")
+  itemHistories              ItemHistory[]
+  shoppingListsCreated       ShoppingList[]          @relation("ShoppingListCreator")
+  shoppingListItemsAdded     ShoppingListItem[]      @relation("ShoppingListItemAdder")
+  shoppingListItemsCompleted ShoppingListItem[]      @relation("ShoppingListItemCompleter")
+  notificationPreference     NotificationPreference?
+  notifications              Notification[]
+  activityLogs               ActivityLog[]
+  invitationsSent            Invitation[]            @relation("InvitationSender")
+  refreshTokens              RefreshToken[]
+
+  @@index([normalizedEmail])
+  @@map("users")
+}
+
+// ==================== REFRESH TOKENS ====================
+model RefreshToken {
+  id        String    @id @default(uuid())
+  token     String    @unique
+  userId    String    @map("user_id")
+  expiresAt DateTime  @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  revokedAt DateTime? @map("revoked_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// ==================== HOUSEHOLDS ====================
+model Household {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  timezone    String    @default("UTC")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  createdBy   String    @map("created_by")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+
+  creator        User                     @relation("HouseholdCreator", fields: [createdBy], references: [id])
+  members        HouseholdMember[]
+  inventoryItems InventoryItem[]
+  itemHistories  ItemHistory[]
+  shoppingLists  ShoppingList[]
+  notifications  Notification[]
+  activityLogs   ActivityLog[]
+  invitations    Invitation[]
+
+  @@index([createdBy])
+  @@map("households")
+}
+
+// ==================== HOUSEHOLD MEMBERS ====================
+model HouseholdMember {
+  householdId String   @map("household_id")
+  userId      String   @map("user_id")
+  role        String   @default("member") // admin, member, viewer
+  joinedAt    DateTime @default(now()) @map("joined_at")
+
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([householdId, userId])
+  @@index([userId])
+  @@map("household_members")
+}
+
+// ==================== INVITATIONS ====================
+model Invitation {
+  id          String    @id @default(uuid())
+  householdId String    @map("household_id")
+  email       String
+  role        String    @default("member")
+  status      String    @default("pending") // pending, accepted, declined, expired
+  invitedBy   String    @map("invited_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  expiresAt   DateTime  @map("expires_at")
+  acceptedAt  DateTime? @map("accepted_at")
+  acceptedBy  String?   @map("accepted_by")
+
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  inviter   User      @relation("InvitationSender", fields: [invitedBy], references: [id])
+
+  @@index([householdId])
+  @@index([email])
+  @@map("invitations")
+}
+
+// ==================== INVENTORY ITEMS ====================
+model InventoryItem {
+  id             String    @id @default(uuid())
+  householdId    String    @map("household_id")
+  name           String
+  quantity       Decimal   @default(1) @db.Decimal(10, 3)
+  unit           String
+  location       String    @default("unspecified")
+  category       String    @default("uncategorized")
+  expirationDate DateTime? @map("expiration_date") @db.Date
+  bestBeforeDate DateTime? @map("best_before_date") @db.Date
+  purchaseDate   DateTime? @map("purchase_date") @db.Date
+  price          Decimal?  @db.Decimal(10, 2)
+  notes          String?
+  rowVersion     Int       @default(1) @map("row_version")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  createdBy      String    @map("created_by")
+  updatedAt      DateTime? @updatedAt @map("updated_at")
+  updatedBy      String?   @map("updated_by")
+
+  household Household     @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  creator   User          @relation("ItemCreator", fields: [createdBy], references: [id])
+  updater   User?         @relation("ItemUpdater", fields: [updatedBy], references: [id])
+  histories ItemHistory[]
+
+  @@index([householdId])
+  @@index([householdId, location])
+  @@index([householdId, expirationDate])
+  @@index([householdId, category])
+  @@map("inventory_items")
+}
+
+// ==================== ITEM HISTORY ====================
+model ItemHistory {
+  id               String   @id @default(uuid())
+  itemId           String   @map("item_id")
+  householdId      String   @map("household_id")
+  action           String // created, updated, consumed, wasted, moved, deleted
+  quantity         Decimal? @db.Decimal(10, 3)
+  reason           String?
+  notes            String?
+  previousLocation String?  @map("previous_location")
+  newLocation      String?  @map("new_location")
+  userId           String   @map("user_id")
+  timestamp        DateTime @default(now())
+
+  item      InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  household Household     @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id])
+
+  @@index([itemId])
+  @@index([householdId])
+  @@index([householdId, timestamp(sort: Desc)])
+  @@map("item_history")
+}
+
+// ==================== NOTIFICATION PREFERENCES ====================
+model NotificationPreference {
+  userId                String   @id @map("user_id")
+  emailEnabled          Boolean  @default(true) @map("email_enabled")
+  emailAddress          String?  @map("email_address")
+  inAppEnabled          Boolean  @default(true) @map("in_app_enabled")
+  telegramEnabled       Boolean  @default(false) @map("telegram_enabled")
+  telegramLinked        Boolean  @default(false) @map("telegram_linked")
+  telegramChatId        String?  @map("telegram_chat_id")
+  telegramUsername      String?  @map("telegram_username")
+  expirationWarningDays Int      @default(3) @map("expiration_warning_days")
+  notificationTypes     String[] @default(["expiration", "lowStock", "shoppingReminder"]) @map("notification_types")
+  preferredTime         String   @default("09:00") @map("preferred_time")
+  timezone              String   @default("UTC")
+  updatedAt             DateTime @default(now()) @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([telegramUsername])
+  @@map("notification_preferences")
+}
+
+// ==================== NOTIFICATIONS ====================
+model Notification {
+  id           String    @id @default(uuid())
+  userId       String    @map("user_id")
+  householdId  String?   @map("household_id")
+  type         String // item_expiring, item_expired, low_stock, member_joined, etc.
+  channel      String // email, in_app, telegram
+  title        String
+  message      String
+  metadata     Json      @default("{}")
+  status       String    @default("pending") // pending, sent, failed, read
+  scheduledFor DateTime? @map("scheduled_for")
+  sentAt       DateTime? @map("sent_at")
+  readAt       DateTime? @map("read_at")
+  error        String?
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  household Household? @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, readAt])
+  @@index([status])
+  @@index([scheduledFor])
+  @@map("notifications")
+}
+
+// ==================== SHOPPING LISTS ====================
+model ShoppingList {
+  id          String   @id @default(uuid())
+  householdId String   @map("household_id")
+  name        String
+  notes       String?
+  createdBy   String   @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  lastUpdated DateTime @default(now()) @map("last_updated")
+
+  household Household          @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  creator   User               @relation("ShoppingListCreator", fields: [createdBy], references: [id])
+  items     ShoppingListItem[]
+
+  @@index([householdId])
+  @@map("shopping_lists")
+}
+
+// ==================== SHOPPING LIST ITEMS ====================
+model ShoppingListItem {
+  id          String    @id @default(uuid())
+  listId      String    @map("list_id")
+  householdId String    @map("household_id")
+  name        String
+  quantity    Decimal?  @db.Decimal(10, 3)
+  unit        String?
+  category    String?
+  notes       String?
+  completed   Boolean   @default(false)
+  completedBy String?   @map("completed_by")
+  completedAt DateTime? @map("completed_at")
+  addedBy     String    @map("added_by")
+  addedAt     DateTime  @default(now()) @map("added_at")
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  shoppingList ShoppingList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  adder        User         @relation("ShoppingListItemAdder", fields: [addedBy], references: [id])
+  completer    User?        @relation("ShoppingListItemCompleter", fields: [completedBy], references: [id])
+
+  @@index([listId])
+  @@index([householdId])
+  @@map("shopping_list_items")
+}
+
+// ==================== ACTIVITY LOG ====================
+model ActivityLog {
+  id          String   @id @default(uuid())
+  householdId String   @map("household_id")
+  userId      String?  @map("user_id")
+  action      String // item.created, member.joined, list.created, etc.
+  entityType  String?  @map("entity_type") // user, item, household, shopping_list
+  entityId    String?  @map("entity_id")
+  entityName  String?  @map("entity_name")
+  metadata    Json     @default("{}")
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
+  timestamp   DateTime @default(now())
+
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([householdId])
+  @@index([userId])
+  @@index([householdId, timestamp(sort: Desc)])
+  @@index([entityType, entityId])
+  @@map("activity_logs")
+}

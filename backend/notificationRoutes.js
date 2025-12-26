@@ -1,204 +1,253 @@
 const express = require('express');
 const router = express.Router();
-const { notification_preferences, users } = require('./db');
 const authMiddleware = require('./authMiddleware');
+const { userRepository, notificationRepository } = require('./repositories');
+const { logger } = require('./lib/logger');
 
 // GET /api/v1/notifications/settings
 // Returns the notification settings for the authenticated user
-router.get('/settings', authMiddleware, (req, res) => {
-  const userId = req.user.id;
-  
-  // Find existing preferences for the user
-  let preferences = notification_preferences.find(p => p.userId === userId);
-  
-  // Get user email from users table
-  const user = users.find(u => u.id === userId);
-  const userEmail = user ? user.email : 'user@example.com';
-  
-  // If no preferences exist, return default settings
-  if (!preferences) {
-    preferences = {
-      email: {
-        enabled: true,
-        address: userEmail
-      },
-      inApp: {
-        enabled: true
-      },
-      telegram: {
-        enabled: false,
-        linked: false,
-        username: null
-      },
-      preferences: {
+router.get('/settings', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Get user for email
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Get preferences from database
+    let preferences = await notificationRepository.getPreferences(userId);
+
+    // If no preferences exist, return default settings
+    if (!preferences) {
+      preferences = {
+        emailEnabled: true,
+        emailAddress: user.email,
+        inAppEnabled: true,
+        telegramEnabled: false,
+        telegramLinked: false,
+        telegramUsername: null,
         expirationWarningDays: 3,
-        notificationTypes: ['expiration', 'lowStock', 'shoppingReminder'],
+        lowStockWarningEnabled: true,
         preferredTime: '09:00',
-        timezone: user?.timezone || 'America/New_York'
-      }
-    };
+        timezone: user.timezone || 'America/New_York'
+      };
+    }
+
+    // Return the preferences in a flat structure for compatibility
+    res.status(200).json({
+      emailEnabled: preferences.emailEnabled ?? true,
+      emailAddress: preferences.emailAddress || user.email,
+      pushEnabled: preferences.inAppEnabled ?? true,
+      telegramEnabled: preferences.telegramEnabled ?? false,
+      telegramLinked: preferences.telegramLinked ?? false,
+      telegramUsername: preferences.telegramUsername || null,
+      expirationWarningDays: preferences.expirationWarningDays ?? 3,
+      lowStockWarningEnabled: preferences.lowStockWarningEnabled ?? true,
+      notificationTypes: ['expiration', 'lowStock', 'shoppingReminder'],
+      preferredTime: preferences.preferredTime || '09:00',
+      timezone: preferences.timezone || user.timezone || 'America/New_York'
+    });
+  } catch (error) {
+    const log = req.log || logger;
+    log.error({ err: error, userId: req.user?.id }, 'Failed to get notification settings');
+    res.status(500).json({ message: 'An error occurred while fetching notification settings' });
   }
-  
-  // Return the preferences in a flat structure for compatibility
-  const response = {
-    emailEnabled: preferences.email?.enabled || true,
-    emailAddress: preferences.email?.address || userEmail,
-    pushEnabled: preferences.inApp?.enabled || true,
-    telegramEnabled: preferences.telegram?.enabled || false,
-    telegramLinked: preferences.telegram?.linked || false,
-    telegramUsername: preferences.telegram?.username || null,
-    expirationWarningDays: preferences.preferences?.expirationWarningDays || 3,
-    lowStockWarningEnabled: preferences.preferences?.notificationTypes?.includes('lowStock') !== false,
-    notificationTypes: preferences.preferences?.notificationTypes || ['expiration', 'lowStock', 'shoppingReminder'],
-    preferredTime: preferences.preferences?.preferredTime || '09:00',
-    timezone: preferences.preferences?.timezone || 'America/New_York'
-  };
-  
-  res.status(200).json(response);
 });
 
 // PUT /api/v1/notifications/settings
 // Updates the notification settings for the authenticated user
-router.put('/settings', authMiddleware, (req, res) => {
-  const userId = req.user.id;
-  const updatedSettings = req.body;
-  
-  // Find existing preferences index
-  const existingIndex = notification_preferences.findIndex(p => p.userId === userId);
-  
-  // Get user for email address
-  const user = users.find(u => u.id === userId);
-  const userEmail = user ? user.email : 'user@example.com';
-  
-  // Prepare the preferences object (support both flat and nested structures)
-  const preferencesObj = {
-    userId: userId,
-    email: {
-      enabled: updatedSettings.emailEnabled !== undefined ? updatedSettings.emailEnabled : (updatedSettings.email?.enabled || true),
-      address: userEmail
-    },
-    inApp: {
-      enabled: updatedSettings.pushEnabled !== undefined ? updatedSettings.pushEnabled : (updatedSettings.inApp?.enabled || true)
-    },
-    telegram: {
-      enabled: updatedSettings.telegramEnabled !== undefined ? updatedSettings.telegramEnabled : (updatedSettings.telegram?.enabled || false),
-      linked: updatedSettings.telegram?.linked || false,
-      username: updatedSettings.telegram?.username || null
-    },
-    preferences: {
-      expirationWarningDays: updatedSettings.expirationWarningDays !== undefined ? updatedSettings.expirationWarningDays : (updatedSettings.preferences?.expirationWarningDays || 3),
-      notificationTypes: updatedSettings.lowStockWarningEnabled === false ? 
-        ['expiration', 'shoppingReminder'] : 
-        (updatedSettings.notificationTypes || updatedSettings.preferences?.notificationTypes || ['expiration', 'lowStock', 'shoppingReminder']),
-      preferredTime: updatedSettings.preferredTime || updatedSettings.preferences?.preferredTime || '09:00',
-      timezone: updatedSettings.timezone || updatedSettings.preferences?.timezone || user?.timezone || 'America/New_York'
-    },
-    updatedAt: new Date().toISOString()
-  };
-  
-  // Ensure email address is always set from the user's email
-  if (preferencesObj.email) {
-    preferencesObj.email.address = userEmail;
-  }
-  
-  // Update or create preferences
-  if (existingIndex !== -1) {
-    // Preserve telegram linked status if it exists
-    const existing = notification_preferences[existingIndex];
-    if (existing.telegram && existing.telegram.linked) {
-      preferencesObj.telegram.linked = existing.telegram.linked;
-      preferencesObj.telegram.username = existing.telegram.username;
+router.put('/settings', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const updatedSettings = req.body;
+
+    // Get user for email
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
     }
-    notification_preferences[existingIndex] = preferencesObj;
-  } else {
-    notification_preferences.push(preferencesObj);
+
+    // Build update data
+    const updateData = {
+      emailEnabled: updatedSettings.emailEnabled ?? true,
+      emailAddress: user.email, // Always use user's email
+      inAppEnabled: updatedSettings.pushEnabled ?? updatedSettings.inAppEnabled ?? true,
+      telegramEnabled: updatedSettings.telegramEnabled ?? false,
+      expirationWarningDays: updatedSettings.expirationWarningDays ?? 3,
+      lowStockWarningEnabled: updatedSettings.lowStockWarningEnabled ?? true,
+      preferredTime: updatedSettings.preferredTime || '09:00',
+      timezone: updatedSettings.timezone || user.timezone || 'America/New_York'
+    };
+
+    // Upsert preferences
+    await notificationRepository.upsertPreferences(userId, updateData);
+
+    res.status(200).json({
+      message: 'Notification settings updated',
+      updatedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    const log = req.log || logger;
+    log.error({ err: error, userId: req.user?.id }, 'Failed to update notification settings');
+    res.status(500).json({ message: 'An error occurred while updating notification settings' });
   }
-  
-  // Return success response
-  res.status(200).json({
-    message: 'Notification settings updated',
-    updatedAt: preferencesObj.updatedAt
-  });
 });
 
 // POST /api/v1/notifications/telegram/link
 // Links a Telegram account to the user's notification settings
-router.post('/telegram/link', authMiddleware, (req, res) => {
-  const userId = req.user.id;
-  const { verificationCode } = req.body;
-  
-  // Validate verification code presence
-  if (!verificationCode) {
-    return res.status(400).json({
-      error: 'Invalid verification code',
-      message: 'Verification code is required'
-    });
-  }
-  
-  // Mock validation - accept codes of 6-10 characters for testing
-  if (verificationCode.length < 6 || verificationCode.length > 10) {
-    return res.status(400).json({
-      error: 'Invalid verification code',
-      message: 'Verification code must be 6-10 characters'
-    });
-  }
-  
-  // Check if already linked (mock check)
-  const existingPrefs = notification_preferences.find(p => p.userId === userId);
-  if (existingPrefs && existingPrefs.telegram && existingPrefs.telegram.linked) {
-    return res.status(409).json({
-      error: 'Already linked to another account',
-      message: 'Telegram account is already linked'
-    });
-  }
-  
-  // Mock successful link
-  const telegramUsername = '@user' + verificationCode.toLowerCase();
-  const linkedAt = new Date().toISOString();
-  
-  // Update or create preferences with Telegram link
-  const prefIndex = notification_preferences.findIndex(p => p.userId === userId);
-  if (prefIndex !== -1) {
-    notification_preferences[prefIndex].telegram = {
-      enabled: true,
-      linked: true,
-      username: telegramUsername
-    };
-    notification_preferences[prefIndex].updatedAt = linkedAt;
-  } else {
+router.post('/telegram/link', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { verificationCode } = req.body;
+
+    // Validate verification code presence
+    if (!verificationCode) {
+      return res.status(400).json({
+        error: 'Invalid verification code',
+        message: 'Verification code is required'
+      });
+    }
+
+    // Mock validation - accept codes of 6-10 characters for testing
+    if (verificationCode.length < 6 || verificationCode.length > 10) {
+      return res.status(400).json({
+        error: 'Invalid verification code',
+        message: 'Verification code must be 6-10 characters'
+      });
+    }
+
+    // Check if already linked
+    const existingPrefs = await notificationRepository.getPreferences(userId);
+    if (existingPrefs && existingPrefs.telegramLinked) {
+      return res.status(409).json({
+        error: 'Already linked to another account',
+        message: 'Telegram account is already linked'
+      });
+    }
+
     // Get user for default settings
-    const user = users.find(u => u.id === userId);
-    notification_preferences.push({
-      userId: userId,
-      email: {
-        enabled: true,
-        address: user ? user.email : 'user@example.com'
-      },
-      inApp: {
-        enabled: true
-      },
-      telegram: {
-        enabled: true,
-        linked: true,
-        username: telegramUsername
-      },
-      preferences: {
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Mock successful link
+    const telegramUsername = '@user' + verificationCode.toLowerCase();
+    const telegramChatId = 'chat_' + verificationCode;
+    const linkedAt = new Date().toISOString();
+
+    // Ensure preferences exist first
+    if (!existingPrefs) {
+      await notificationRepository.upsertPreferences(userId, {
+        emailEnabled: true,
+        emailAddress: user.email,
+        inAppEnabled: true,
+        telegramEnabled: true,
         expirationWarningDays: 3,
-        notificationTypes: ['expiration', 'lowStock', 'shoppingReminder'],
+        lowStockWarningEnabled: true,
         preferredTime: '09:00',
-        timezone: user?.timezone || 'America/New_York'
-      },
-      updatedAt: linkedAt
+        timezone: user.timezone || 'America/New_York'
+      });
+    }
+
+    // Link Telegram
+    await notificationRepository.linkTelegram(userId, telegramChatId, telegramUsername);
+
+    res.status(200).json({
+      success: true,
+      linked: true,
+      telegramUsername: telegramUsername,
+      linkedAt: linkedAt
     });
+  } catch (error) {
+    const log = req.log || logger;
+    log.error({ err: error, userId: req.user?.id }, 'Failed to link Telegram account');
+    res.status(500).json({ message: 'An error occurred while linking Telegram' });
   }
-  
-  // Return success response
-  res.status(200).json({
-    success: true,
-    linked: true,
-    telegramUsername: telegramUsername,
-    linkedAt: linkedAt
-  });
+});
+
+// GET /api/v1/notifications
+// Get user's notification history
+router.get('/', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { limit = 50, offset = 0, unreadOnly } = req.query;
+
+    const result = await notificationRepository.findUserNotifications(userId, {
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      unreadOnly: unreadOnly === 'true'
+    });
+
+    res.json({
+      notifications: result.notifications.map(n => ({
+        id: n.id,
+        type: n.type,
+        title: n.title,
+        message: n.message,
+        channel: n.channel,
+        read: !!n.readAt,
+        readAt: n.readAt?.toISOString() || null,
+        createdAt: n.createdAt.toISOString()
+      })),
+      total: result.total,
+      hasMore: result.total > parseInt(offset) + result.notifications.length
+    });
+  } catch (error) {
+    const log = req.log || logger;
+    log.error({ err: error, userId: req.user?.id }, 'Failed to get notifications');
+    res.status(500).json({ message: 'An error occurred while fetching notifications' });
+  }
+});
+
+// GET /api/v1/notifications/unread-count
+// Get count of unread notifications
+router.get('/unread-count', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const count = await notificationRepository.getUnreadCount(userId);
+
+    res.json({ count });
+  } catch (error) {
+    const log = req.log || logger;
+    log.error({ err: error, userId: req.user?.id }, 'Failed to get unread notification count');
+    res.status(500).json({ message: 'An error occurred while fetching unread count' });
+  }
+});
+
+// POST /api/v1/notifications/:id/read
+// Mark a notification as read
+router.post('/:id/read', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+
+    await notificationRepository.markAsRead(id, userId);
+
+    res.json({ message: 'Notification marked as read' });
+  } catch (error) {
+    const log = req.log || logger;
+    log.error({ err: error, userId: req.user?.id, notificationId: req.params.id }, 'Failed to mark notification as read');
+    res.status(500).json({ message: 'An error occurred while marking notification as read' });
+  }
+});
+
+// POST /api/v1/notifications/read-all
+// Mark all notifications as read
+router.post('/read-all', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    await notificationRepository.markAllAsRead(userId);
+
+    res.json({ message: 'All notifications marked as read' });
+  } catch (error) {
+    const log = req.log || logger;
+    log.error({ err: error, userId: req.user?.id }, 'Failed to mark all notifications as read');
+    res.status(500).json({ message: 'An error occurred while marking notifications as read' });
+  }
 });
 
 module.exports = router;
