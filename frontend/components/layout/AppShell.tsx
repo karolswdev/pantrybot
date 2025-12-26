@@ -21,6 +21,7 @@ import {
   Warehouse,
   LayoutGrid,
 } from "lucide-react";
+import { ChatInput } from "@/components/chat";
 
 // Protected routes that require authentication
 const PROTECTED_ROUTES = ["/dashboard", "/inventory", "/shopping", "/reports", "/settings"];
@@ -265,11 +266,16 @@ export default function AppShell({ children }: AppShellProps) {
       </aside>
 
       {/* Main Content Area */}
-      <main className="pt-16 transition-all duration-300 ease-in-out md:pl-64 pb-20 md:pb-8">
+      <main className="pt-16 transition-all duration-300 ease-in-out md:pl-64 pb-32 md:pb-24">
         <div className="px-4 sm:px-6 lg:px-8 py-6">
           {children}
         </div>
       </main>
+
+      {/* Floating Chat Input */}
+      <div className="md:pl-64">
+        <ChatInput className="mb-16 md:mb-0" />
+      </div>
 
       {/* Mobile Tab Bar - Only visible on mobile */}
       <MobileTabBar />

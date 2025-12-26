@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useNotificationSettings } from '@/hooks/queries/useNotificationSettings';
 import { useUpdateNotificationSettings } from '@/hooks/mutations/useUpdateNotificationSettings';
-import { useLinkTelegram } from '@/hooks/mutations/useLinkTelegram';
+import { useGenerateTelegramLinkCode, useTelegramLinkStatus, useUnlinkTelegram } from '@/hooks/mutations/useTelegramIntegration';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -120,7 +120,9 @@ function PlayfulCheckbox({
 export default function NotificationSettingsPage() {
   const { data: settings, isLoading, error } = useNotificationSettings();
   const updateSettings = useUpdateNotificationSettings();
-  const linkTelegram = useLinkTelegram();
+  const generateLinkCode = useGenerateTelegramLinkCode();
+  const { data: telegramLinkStatus } = useTelegramLinkStatus();
+  const unlinkTelegram = useUnlinkTelegram();
   const { showToast } = useNotificationStore();
 
   const [formData, setFormData] = useState({
@@ -146,7 +148,8 @@ export default function NotificationSettingsPage() {
   });
 
   const [telegramModalOpen, setTelegramModalOpen] = useState(false);
-  const [verificationCode, setVerificationCode] = useState('');
+  const [linkCode, setLinkCode] = useState<string | null>(null);
+  const [linkCodeExpiresAt, setLinkCodeExpiresAt] = useState<string | null>(null);
 
   useEffect(() => {
     if (settings) {
@@ -216,30 +219,45 @@ export default function NotificationSettingsPage() {
     }
   };
 
-  const handleLinkTelegram = async () => {
-    if (!verificationCode.trim()) {
+  const handleGenerateLinkCode = async () => {
+    try {
+      const result = await generateLinkCode.mutateAsync();
+      setLinkCode(result.code);
+      setLinkCodeExpiresAt(result.expiresAt);
+      setTelegramModalOpen(true);
+    } catch {
       showToast({
         type: 'error',
         title: 'Error',
-        message: 'Please enter a verification code.',
+        message: 'Failed to generate link code. Please try again.',
       });
-      return;
     }
+  };
 
+  const handleUnlinkTelegram = async () => {
     try {
-      await linkTelegram.mutateAsync({ verificationCode });
-      setTelegramModalOpen(false);
-      setVerificationCode('');
+      await unlinkTelegram.mutateAsync();
       showToast({
         type: 'success',
         title: 'Success',
-        message: 'Your Telegram account has been linked.',
+        message: 'Telegram account has been unlinked.',
       });
     } catch {
       showToast({
         type: 'error',
         title: 'Error',
-        message: 'Invalid verification code. Please try again.',
+        message: 'Failed to unlink Telegram. Please try again.',
+      });
+    }
+  };
+
+  const copyLinkCode = () => {
+    if (linkCode) {
+      navigator.clipboard.writeText(`/link ${linkCode}`);
+      showToast({
+        type: 'success',
+        title: 'Copied!',
+        message: 'Link command copied to clipboard.',
       });
     }
   };
@@ -476,31 +494,50 @@ export default function NotificationSettingsPage() {
             <div>
               <CardTitle className="text-lg text-gray-800 flex items-center gap-2">
                 Telegram Bot
-                {settings?.telegram?.linked && (
+                {telegramLinkStatus?.linked && (
                   <span className="px-2 py-0.5 bg-primary-100 text-primary-700 text-xs font-semibold rounded-full">
                     Connected
                   </span>
                 )}
               </CardTitle>
               <CardDescription className="text-gray-500">
-                {settings?.telegram?.linked
-                  ? `Linked to @${settings.telegram.username}`
-                  : 'Get notifications on your phone instantly!'}
+                {telegramLinkStatus?.linked
+                  ? 'Manage your inventory with natural language!'
+                  : 'Get notifications and manage inventory via chat!'}
               </CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="pt-6">
-          {settings?.telegram?.linked ? (
-            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-primary-50 to-fresh-50 rounded-2xl border border-primary-100">
-              <div className="p-3 bg-white rounded-full shadow-sm">
-                <Bot className="h-8 w-8 text-fresh-500" />
+          {telegramLinkStatus?.linked ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-primary-50 to-fresh-50 rounded-2xl border border-primary-100">
+                <div className="p-3 bg-white rounded-full shadow-sm">
+                  <Bot className="h-8 w-8 text-fresh-500" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-800">You&apos;re all set! 🎉</p>
+                  <p className="text-sm text-gray-500">
+                    Chat with @PantrybotBot to manage your inventory with natural language.
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="font-medium text-gray-800">You're all set! 🎉</p>
-                <p className="text-sm text-gray-500">
-                  Your Telegram account is connected and ready to receive notifications.
-                </p>
+              <div className="flex justify-center">
+                <Button
+                  onClick={handleUnlinkTelegram}
+                  variant="outline"
+                  disabled={unlinkTelegram.isPending}
+                  className="text-danger-600 border-danger-200 hover:bg-danger-50 rounded-xl"
+                >
+                  {unlinkTelegram.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Unlinking...
+                    </>
+                  ) : (
+                    'Unlink Telegram'
+                  )}
+                </Button>
               </div>
             </div>
           ) : (
@@ -517,20 +554,26 @@ export default function NotificationSettingsPage() {
                 </div>
               </div>
               <p className="text-center text-gray-600 max-w-sm mx-auto">
-                Connect your Telegram account to receive instant notifications wherever you are!
+                Connect your Telegram to manage your inventory with natural language - just say &quot;I bought milk and eggs&quot;!
               </p>
               <div className="flex justify-center">
                 <Button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setTelegramModalOpen(true);
-                  }}
+                  onClick={handleGenerateLinkCode}
+                  disabled={generateLinkCode.isPending}
                   type="button"
                   className="bg-gradient-to-r from-fresh-500 to-fresh-600 hover:from-fresh-600 hover:to-fresh-700 text-white font-semibold px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-200"
                 >
-                  <Send className="h-4 w-4 mr-2" />
-                  Connect with Telegram
+                  {generateLinkCode.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Connect with Telegram
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
@@ -656,8 +699,7 @@ export default function NotificationSettingsPage() {
               {[
                 { step: 1, text: 'Open Telegram and search for @PantrybotBot', emoji: '🔍' },
                 { step: 2, text: 'Start a conversation with the bot', emoji: '💬' },
-                { step: 3, text: 'Send /link command to get a code', emoji: '🔗' },
-                { step: 4, text: 'Enter the verification code below', emoji: '✨' },
+                { step: 3, text: 'Send the command below to link your account', emoji: '🔗' },
               ].map(({ step, text, emoji }) => (
                 <li key={step} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
                   <span className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-fresh-400 to-fresh-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
@@ -670,43 +712,52 @@ export default function NotificationSettingsPage() {
             </ol>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="code" className="text-sm font-semibold text-gray-700">
-              Verification Code
-            </Label>
-            <Input
-              id="code"
-              value={verificationCode}
-              onChange={(e) => setVerificationCode(e.target.value)}
-              placeholder="Enter your code here..."
-              className="rounded-xl border-2 border-gray-200 focus:border-fresh-400 focus:ring-fresh-400 text-center text-lg font-mono tracking-wider"
-            />
-          </div>
+          {linkCode && (
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold text-gray-700">
+                Your Link Command
+              </Label>
+              <div
+                onClick={copyLinkCode}
+                className="flex items-center justify-between p-4 bg-gradient-to-r from-fresh-50 to-primary-50 rounded-xl border-2 border-fresh-200 cursor-pointer hover:border-fresh-400 transition-colors group"
+              >
+                <code className="text-lg font-mono font-bold text-gray-800">
+                  /link {linkCode}
+                </code>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-fresh-600 hover:text-fresh-700 hover:bg-fresh-100"
+                >
+                  Copy
+                </Button>
+              </div>
+              {linkCodeExpiresAt && (
+                <p className="text-xs text-gray-500 text-center">
+                  Code expires in 10 minutes
+                </p>
+              )}
+            </div>
+          )}
 
           <DialogFooter className="gap-3 mt-4">
             <Button
               variant="outline"
-              onClick={() => setTelegramModalOpen(false)}
-              className="rounded-xl border-2 hover:bg-gray-50 font-semibold"
+              onClick={() => {
+                setTelegramModalOpen(false);
+                setLinkCode(null);
+              }}
+              className="rounded-xl border-2 hover:bg-gray-50 font-semibold flex-1"
             >
-              Cancel
+              Close
             </Button>
             <Button
-              onClick={handleLinkTelegram}
-              disabled={linkTelegram.isPending || !verificationCode.trim()}
-              className="bg-gradient-to-r from-fresh-500 to-fresh-600 hover:from-fresh-600 hover:to-fresh-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+              onClick={copyLinkCode}
+              disabled={!linkCode}
+              className="bg-gradient-to-r from-fresh-500 to-fresh-600 hover:from-fresh-600 hover:to-fresh-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex-1"
             >
-              {linkTelegram.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Linking...
-                </>
-              ) : (
-                <>
-                  <Check className="mr-2 h-4 w-4" />
-                  Link Account
-                </>
-              )}
+              <Check className="mr-2 h-4 w-4" />
+              Copy Command
             </Button>
           </DialogFooter>
         </DialogContent>
