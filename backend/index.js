@@ -23,6 +23,7 @@ const inventoryRoutes = require('./inventoryRoutes');
 const dashboardRoutes = require('./dashboardRoutes');
 const notificationRoutes = require('./notificationRoutes');
 const shoppingListRoutes = require('./shoppingListRoutes');
+const llmRoutes = require('./llmRoutes');
 const { initializeSocket } = require('./socket');
 const { prisma } = require('./repositories');
 
@@ -99,6 +100,9 @@ app.use('/api/v1/households', (req, res, next) => {
   req.io = io;
   next();
 }, shoppingListRoutes);
+
+// LLM routes for conversational inventory management
+app.use('/api/v1/llm', llmRoutes);
 
 // Test utilities (only in non-production)
 if (process.env.NODE_ENV !== 'production') {

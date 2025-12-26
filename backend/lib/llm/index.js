@@ -26,6 +26,11 @@ const {
   getProviderInfo,
   resetProvider,
 } = require('./provider-factory');
+const {
+  InventoryIntentProcessor,
+  buildInventorySummary,
+  INVENTORY_TOOLS,
+} = require('./inventory-processor');
 
 module.exports = {
   // Base class
@@ -43,4 +48,9 @@ module.exports = {
   isLLMConfigured,
   getProviderInfo,
   resetProvider,
+
+  // Inventory processing
+  InventoryIntentProcessor,
+  buildInventorySummary,
+  INVENTORY_TOOLS,
 };
