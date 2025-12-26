@@ -2,8 +2,8 @@ const jwt = require('jsonwebtoken');
 
 // JWT configuration (should match authRoutes.js)
 const JWT_SECRET = process.env.JWT_SECRET || 'mock-secret-key-for-development-only';
-const JWT_ISSUER = 'fridgr.app';
-const JWT_AUDIENCE = 'fridgr.app';
+const JWT_ISSUER = 'pantrybot.app';
+const JWT_AUDIENCE = 'pantrybot.app';
 
 /**
  * Authentication middleware to verify JWT tokens

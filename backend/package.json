@@ -1,7 +1,7 @@
 {
-  "name": "fridgr-backend",
+  "name": "pantrybot-backend",
   "version": "1.0.0",
-  "description": "Fridgr - Node.js/Express backend API",
+  "description": "Pantrybot - Node.js/Express backend API",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -14,11 +14,11 @@
     "express",
     "nodejs"
   ],
-  "author": "Fridgr Team",
+  "author": "Pantrybot Team",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/KaShaSoft/food-ventory.git"
+    "url": "https://github.com/karolswdev/pantrybot.git"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

@@ -505,7 +505,7 @@ FOR VALUES FROM ('2024-01-01') TO ('2024-02-01');
 ### Connection Pooling
 ```csharp
 // Entity Framework configuration
-services.AddDbContext<FridgrDbContext>(options =>
+services.AddDbContext<PantrybotDbContext>(options =>
     options.UseNpgsql(connectionString, npgsqlOptions =>
     {
         npgsqlOptions.EnableRetryOnFailure(3);
@@ -525,10 +525,10 @@ services.AddDbContext<FridgrDbContext>(options =>
 ### Backup Commands
 ```bash
 # Full backup
-pg_dump -h localhost -U fridgr -d fridgr -F c -b -v -f fridgr_backup_$(date +%Y%m%d).backup
+pg_dump -h localhost -U pantrybot -d pantrybot -F c -b -v -f pantrybot_backup_$(date +%Y%m%d).backup
 
 # Restore
-pg_restore -h localhost -U fridgr -d fridgr -v fridgr_backup_20240130.backup
+pg_restore -h localhost -U pantrybot -d pantrybot -v pantrybot_backup_20240130.backup
 ```
 
 ## Security Considerations

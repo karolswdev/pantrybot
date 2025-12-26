@@ -1,6 +1,6 @@
 {
-  "name": "Fridgr - Food Inventory Management",
-  "short_name": "Fridgr",
+  "name": "Pantrybot - Food Inventory Management",
+  "short_name": "Pantrybot",
   "description": "Keep your food fresh, waste less",
   "start_url": "/",
   "display": "standalone",

@@ -220,10 +220,10 @@ jobs:
         run: |
           echo "🔍 Docker Image Analysis"
           echo "========================"
-          docker images | grep -E "fridgr|backend"
+          docker images | grep -E "pantrybot|backend"
           echo ""
           echo "📊 Image sizes:"
-          docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}" | grep -E "fridgr|backend"
+          docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}" | grep -E "pantrybot|backend"
 
   # ============================================
   # 📈 Final Report
@@ -243,7 +243,7 @@ jobs:
           DOCKER_STATUS: ${{ needs.docker.result }}
         run: |
           echo "========================================="
-          echo "🚀 FRIDGR CI PIPELINE REPORT"
+          echo "🚀 PANTRYBOT CI PIPELINE REPORT"
           echo "========================================="
           echo ""
           
@@ -305,7 +305,7 @@ jobs:
           fi
           
           echo ""
-          echo "Built with ❤️ by Fridgr Team"
+          echo "Built with ❤️ by Pantrybot Team"
           
           # Exit with failure if any job failed
           if [ "$QUALITY_STATUS" != "success" ] || \

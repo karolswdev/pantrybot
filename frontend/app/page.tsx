@@ -80,7 +80,7 @@ export default function LandingPage() {
           <Link href="/" className="flex items-center gap-2 group">
             <span className="text-4xl transition-transform group-hover:scale-110">🥦</span>
             <span className="text-3xl font-extrabold bg-gradient-to-r from-primary-600 to-secondary-500 bg-clip-text text-transparent">
-              Fridgr
+              Pantrybot
             </span>
           </Link>
           <div className="flex items-center gap-3">
@@ -169,7 +169,7 @@ export default function LandingPage() {
                 Ready to reduce food waste?
               </h2>
               <p className="text-primary-100 mb-8 max-w-lg mx-auto">
-                Join thousands of households already saving money and reducing waste with Fridgr.
+                Join thousands of households already saving money and reducing waste with Pantrybot.
               </p>
               <Link href="/signup">
                 <Button size="xl" variant="secondary" className="bg-white text-primary-600 hover:bg-gray-100">
@@ -187,7 +187,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="text-2xl">🥦</span>
-            <span className="font-bold text-gray-600">Fridgr</span>
+            <span className="font-bold text-gray-600">Pantrybot</span>
           </div>
           <p className="text-sm text-gray-500">
             Made with 💚 for fresher food

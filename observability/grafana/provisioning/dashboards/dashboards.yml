@@ -4,10 +4,10 @@
 apiVersion: 1
 
 providers:
-  - name: 'Fridgr Dashboards'
+  - name: 'Pantrybot Dashboards'
     orgId: 1
-    folder: 'Fridgr'
-    folderUid: 'fridgr'
+    folder: 'Pantrybot'
+    folderUid: 'pantrybot'
     type: file
     disableDeletion: false
     updateIntervalSeconds: 30

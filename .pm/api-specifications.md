@@ -2,7 +2,7 @@
 
 ## API Overview
 
-Base URL: `https://api.fridgr.app/api/v1`
+Base URL: `https://api.pantrybot.app/api/v1`
 
 ### Authentication
 All authenticated endpoints require a Bearer token in the Authorization header:
@@ -903,7 +903,7 @@ Response: 201 Created
 
 ### Connection
 ```javascript
-const socket = new WebSocket('wss://api.fridgr.app/ws');
+const socket = new WebSocket('wss://api.pantrybot.app/ws');
 
 socket.onopen = () => {
   socket.send(JSON.stringify({

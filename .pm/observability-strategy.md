@@ -50,7 +50,7 @@ public class CorrelationIdMiddleware
 // Program.cs - OpenTelemetry Setup
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource => resource
-        .AddService("Fridgr.API")
+        .AddService("Pantrybot.API")
         .AddAttributes(new Dictionary<string, object>
         {
             ["deployment.environment"] = builder.Environment.EnvironmentName,
@@ -68,7 +68,7 @@ builder.Services.AddOpenTelemetry()
             options.SetDbStatementForText = true;
             options.SetDbStatementForStoredProcedure = true;
         })
-        .AddSource("Fridgr.Application")
+        .AddSource("Pantrybot.Application")
         .AddOtlpExporter(options =>
         {
             options.Endpoint = new Uri("http://otel-collector:4317");
@@ -77,7 +77,7 @@ builder.Services.AddOpenTelemetry()
 // Custom Activity Source for Business Operations
 public class InventoryService
 {
-    private static readonly ActivitySource ActivitySource = new("Fridgr.Application");
+    private static readonly ActivitySource ActivitySource = new("Pantrybot.Application");
     
     public async Task<ItemDto> AddItemAsync(CreateItemRequest request)
     {
@@ -112,14 +112,14 @@ builder.Services.AddOpenTelemetry()
         .AddAspNetCoreInstrumentation()
         .AddHttpClientInstrumentation()
         .AddRuntimeInstrumentation()
-        .AddMeter("Fridgr.Metrics")
+        .AddMeter("Pantrybot.Metrics")
         .AddOtlpExporter(options =>
         {
             options.Endpoint = new Uri("http://otel-collector:4317");
         }));
 
 // Custom Business Metrics
-public class FridgrMetrics
+public class PantrybotMetrics
 {
     private readonly Meter _meter;
     private readonly Counter<long> _itemsAdded;
@@ -128,23 +128,23 @@ public class FridgrMetrics
     private readonly Histogram<double> _apiResponseTime;
     private readonly UpDownCounter<long> _activeUsers;
     
-    public FridgrMetrics(IMeterFactory meterFactory)
+    public PantrybotMetrics(IMeterFactory meterFactory)
     {
-        _meter = meterFactory.Create("Fridgr.Metrics");
+        _meter = meterFactory.Create("Pantrybot.Metrics");
         
-        _itemsAdded = _meter.CreateCounter<long>("fridgr.items.added", 
+        _itemsAdded = _meter.CreateCounter<long>("pantrybot.items.added",
             description: "Number of items added to inventory");
-            
-        _itemsConsumed = _meter.CreateCounter<long>("fridgr.items.consumed",
+
+        _itemsConsumed = _meter.CreateCounter<long>("pantrybot.items.consumed",
             description: "Number of items consumed from inventory");
-            
-        _itemsExpired = _meter.CreateCounter<long>("fridgr.items.expired",
+
+        _itemsExpired = _meter.CreateCounter<long>("pantrybot.items.expired",
             description: "Number of items that expired");
-            
-        _apiResponseTime = _meter.CreateHistogram<double>("fridgr.api.response_time",
+
+        _apiResponseTime = _meter.CreateHistogram<double>("pantrybot.api.response_time",
             unit: "ms", description: "API response time in milliseconds");
-            
-        _activeUsers = _meter.CreateUpDownCounter<long>("fridgr.users.active",
+
+        _activeUsers = _meter.CreateUpDownCounter<long>("pantrybot.users.active",
             description: "Number of currently active users");
     }
     
@@ -234,7 +234,7 @@ app.MapHealthChecks("/health/startup", new HealthCheckOptions
 public class PerformanceTrackingMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly FridgrMetrics _metrics;
+    private readonly PantrybotMetrics _metrics;
     private readonly ILogger<PerformanceTrackingMiddleware> _logger;
     
     public async Task InvokeAsync(HttpContext context)
@@ -389,7 +389,7 @@ services:
    ```yaml
    # prometheus-alerts.yml
    groups:
-     - name: fridgr
+     - name: pantrybot
        rules:
          - alert: HighErrorRate
            expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05

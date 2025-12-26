@@ -2,7 +2,7 @@
 
 ## Overview
 
-The authentication store manages the global authentication state for the Fridgr application using Zustand with persistence. It handles user sessions, household management, and authentication flows.
+The authentication store manages the global authentication state for the Pantrybot application using Zustand with persistence. It handles user sessions, household management, and authentication flows.
 
 ## Store Structure
 

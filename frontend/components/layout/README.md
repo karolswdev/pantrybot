@@ -1,6 +1,6 @@
 # Layout Components
 
-This directory contains the main layout components for the Fridgr application.
+This directory contains the main layout components for the Pantrybot application.
 
 ## AppShell Component
 
@@ -53,7 +53,7 @@ Currently, the component checks for an `accessToken` in localStorage to determin
 
 ### Customization
 
-The component uses Tailwind CSS classes for styling. Colors reference the custom Fridgr palette defined in globals.css:
+The component uses Tailwind CSS classes for styling. Colors reference the custom Pantrybot palette defined in globals.css:
 - Primary colors (green) for active states
 - Gray colors for default states
 - Hover effects on all interactive elements

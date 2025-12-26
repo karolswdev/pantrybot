@@ -14,8 +14,8 @@ describe('Project Setup', () => {
       // Fetch and verify the manifest file
       cy.request('/manifest.json').then((response) => {
         expect(response.status).to.equal(200)
-        expect(response.body).to.have.property('name', 'Fridgr - Food Inventory Management')
-        expect(response.body).to.have.property('short_name', 'Fridgr')
+        expect(response.body).to.have.property('name', 'Pantrybot - Food Inventory Management')
+        expect(response.body).to.have.property('short_name', 'Pantrybot')
         expect(response.body).to.have.property('start_url', '/')
         expect(response.body).to.have.property('display', 'standalone')
         expect(response.body).to.have.property('background_color', '#ffffff')

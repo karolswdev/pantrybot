@@ -17,7 +17,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Fridgr - Keep Food Fresh, Waste Less",
+  title: "Pantrybot - Keep Food Fresh, Waste Less",
   description: "Your fun & easy kitchen companion for tracking food, reducing waste, and saving money!",
   manifest: "/manifest.json",
   icons: {

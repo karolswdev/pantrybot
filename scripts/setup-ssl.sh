@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to set up SSL certificates for Fridgr application using Let's Encrypt
+# Script to set up SSL certificates for Pantrybot application using Let's Encrypt
 # Usage: ./setup-ssl.sh <domain> <email>
 # Example: ./setup-ssl.sh pantrybot.app admin@pantrybot.app
 

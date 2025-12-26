@@ -407,7 +407,7 @@ function NotificationSettings() {
 
 **Location:** `useLinkTelegram.ts`
 
-**Description:** Links a Telegram account to the user's Fridgr account using a verification code.
+**Description:** Links a Telegram account to the user's Pantrybot account using a verification code.
 
 **Parameters:**
 ```typescript

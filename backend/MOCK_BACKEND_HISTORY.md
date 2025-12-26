@@ -1,6 +1,6 @@
-# Fridgr Mock Backend
+# Pantrybot Mock Backend
 
-A comprehensive mock backend server for the Fridgr application, providing all necessary endpoints for frontend development and testing.
+A comprehensive mock backend server for the Pantrybot application, providing all necessary endpoints for frontend development and testing.
 
 ## Quick Start
 

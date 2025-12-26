@@ -1,5 +1,5 @@
 /**
- * Centralized Pino logger configuration for Fridgr backend
+ * Centralized Pino logger configuration for Pantrybot backend
  *
  * Features:
  * - JSON structured logging
@@ -32,7 +32,7 @@ const logger = pino({
 
   // Add base context to all logs
   base: {
-    service: 'fridgr-backend',
+    service: 'pantrybot-backend',
     environment: process.env.NODE_ENV || 'development',
     version: process.env.APP_VERSION || '1.0.0',
   },

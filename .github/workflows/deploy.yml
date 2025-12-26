@@ -110,10 +110,10 @@ jobs:
       - name: 🏃 Smoke tests
         run: |
           echo "Running smoke tests..."
-          docker run -d -p 3000:3000 --name fridgr-test ${{ needs.build-and-push.outputs.image-tag }}
+          docker run -d -p 3000:3000 --name pantrybot-test ${{ needs.build-and-push.outputs.image-tag }}
           sleep 10
           curl -f http://localhost:3000 || exit 1
-          docker stop fridgr-test
+          docker stop pantrybot-test
           echo "✅ Smoke tests passed!"
 
   # ============================================
@@ -126,7 +126,7 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'staging'
     environment:
       name: staging
-      url: https://staging.fridgr.app
+      url: https://staging.pantrybot.app
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -148,7 +148,7 @@ jobs:
         run: |
           echo "Checking deployment health..."
           sleep 30
-          curl -f https://staging.fridgr.app/health || exit 1
+          curl -f https://staging.pantrybot.app/health || exit 1
           echo "✅ Staging deployment healthy!"
 
       - name: 📊 Deployment Summary
@@ -156,7 +156,7 @@ jobs:
           echo "### 🌍 Staging Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Environment:** Staging" >> $GITHUB_STEP_SUMMARY
-          echo "**URL:** [https://staging.fridgr.app](https://staging.fridgr.app)" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** [https://staging.pantrybot.app](https://staging.pantrybot.app)" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** \`${{ needs.build-and-push.outputs.image-tag }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Status:** ✅ Healthy" >> $GITHUB_STEP_SUMMARY
 
@@ -183,7 +183,7 @@ jobs:
       - name: 🎭 Run E2E tests against staging
         working-directory: ./frontend
         env:
-          CYPRESS_BASE_URL: https://staging.fridgr.app
+          CYPRESS_BASE_URL: https://staging.pantrybot.app
         run: |
           npm run test:e2e:headless
           echo "✅ Staging E2E tests passed!"
@@ -198,7 +198,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.environment == 'production'
     environment:
       name: production
-      url: https://fridgr.app
+      url: https://pantrybot.app
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -220,7 +220,7 @@ jobs:
         run: |
           echo "Verifying production deployment..."
           sleep 60
-          curl -f https://fridgr.app/health || exit 1
+          curl -f https://pantrybot.app/health || exit 1
           echo "✅ Production is healthy!"
 
       - name: 📊 Production Summary
@@ -228,7 +228,7 @@ jobs:
           echo "### 🚀 Production Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Environment:** Production" >> $GITHUB_STEP_SUMMARY
-          echo "**URL:** [https://fridgr.app](https://fridgr.app)" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** [https://pantrybot.app](https://pantrybot.app)" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** \`${{ needs.build-and-push.outputs.image-tag }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Status:** ✅ Live" >> $GITHUB_STEP_SUMMARY
 
@@ -236,7 +236,7 @@ jobs:
         uses: 8398a7/action-slack@v3
         with:
           status: success
-          text: '🚀 Fridgr v${{ github.ref_name }} deployed to production!'
+          text: '🚀 Pantrybot v${{ github.ref_name }} deployed to production!'
           webhook_url: ${{ secrets.SLACK_WEBHOOK }}
         if: success()
 
@@ -259,17 +259,17 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           body: |
-            ## 🚀 Fridgr ${{ github.ref_name }} Released!
-            
+            ## 🚀 Pantrybot ${{ github.ref_name }} Released!
+
             ### What's New
             - See [PR description](https://github.com/${{ github.repository }}/pulls)
-            
+
             ### Deployment Status
             - ✅ Staging: Deployed and tested
-            - ✅ Production: Live at [fridgr.app](https://fridgr.app)
-            
+            - ✅ Production: Live at [pantrybot.app](https://pantrybot.app)
+
             ### Docker Image
             - Registry: `${{ env.REGISTRY }}`
             - Tag: `${{ github.ref_name }}`
-            
-            Built with ❤️ by the Fridgr Team
+
+            Built with ❤️ by the Pantrybot Team

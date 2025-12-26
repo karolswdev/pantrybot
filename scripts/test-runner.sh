@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 🚀 Fridgr Test Runner - Ultimate MVP Testing Experience
+# 🚀 Pantrybot Test Runner - Ultimate MVP Testing Experience
 # ========================================================
 
 # Colors for beautiful output
@@ -37,7 +37,7 @@ print_banner() {
     echo -e "${CYAN}"
     echo "╔══════════════════════════════════════════════════════════════╗"
     echo "║                                                              ║"
-    echo "║        ${WHITE}${BOLD}FRIDGR${CYAN} - Smart Food Inventory Management            ║"
+    echo "║       ${WHITE}${BOLD}PANTRYBOT${CYAN} - Smart Food Inventory Management          ║"
     echo "║                   ${YELLOW}MVP Test Suite Runner${CYAN}                     ║"
     echo "║                                                              ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
@@ -247,7 +247,7 @@ main() {
     echo -e "${GREEN}${CHECK} Cleanup complete${NC}"
     
     echo ""
-    echo -e "${MAGENTA}${BOLD}Built with ❤️ by the Fridgr Team${NC}"
+    echo -e "${MAGENTA}${BOLD}Built with ❤️ by the Pantrybot Team${NC}"
     echo ""
 }
 

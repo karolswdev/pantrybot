@@ -34,8 +34,8 @@ describe('PWA', () => {
       
       // Assert: Manifest should have required fields
       const manifest = response.body;
-      expect(manifest).to.have.property('name', 'Fridgr - Food Inventory Management');
-      expect(manifest).to.have.property('short_name', 'Fridgr');
+      expect(manifest).to.have.property('name', 'Pantrybot - Food Inventory Management');
+      expect(manifest).to.have.property('short_name', 'Pantrybot');
       expect(manifest).to.have.property('start_url', '/');
       expect(manifest).to.have.property('display', 'standalone');
       expect(manifest).to.have.property('theme_color', '#22c55e');
@@ -58,7 +58,7 @@ describe('PWA', () => {
     cy.visit('/dashboard');
     
     // Check for title
-    cy.title().should('include', 'Fridgr');
+    cy.title().should('include', 'Pantrybot');
     
     // Check for viewport meta tag
     cy.get('meta[name="viewport"]').should('exist');

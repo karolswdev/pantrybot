@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Fridgr is a household food inventory management system designed to reduce food waste through intelligent tracking of perishable items. The project has a production-ready MVP with a Next.js frontend and Node.js/Express backend.
+Pantrybot is a household food inventory management system designed to reduce food waste through intelligent tracking of perishable items. The project has a production-ready MVP with a Next.js frontend and Node.js/Express backend.
 
 ## Architecture
 

@@ -1,12 +1,12 @@
 # Progressive Web App (PWA) Configuration
 
 ## Overview
-Fridgr is configured as a Progressive Web App to provide an app-like experience on mobile devices with offline capabilities and installability.
+Pantrybot is configured as a Progressive Web App to provide an app-like experience on mobile devices with offline capabilities and installability.
 
 ## PWA Strategy
 
 ### Core Features
-1. **Installability**: Users can install Fridgr to their home screen
+1. **Installability**: Users can install Pantrybot to their home screen
 2. **Offline Support**: Basic app shell and static assets are cached for offline access
 3. **App-like Experience**: Standalone display mode without browser chrome
 4. **Push Notifications**: Ready for future push notification support
@@ -54,8 +54,8 @@ const withPWA = require("next-pwa")({
 ### Configuration (`/public/manifest.json`)
 ```json
 {
-  "name": "Fridgr - Food Inventory Management",
-  "short_name": "Fridgr",
+  "name": "Pantrybot - Food Inventory Management",
+  "short_name": "Pantrybot",
   "description": "Keep your food fresh, waste less",
   "start_url": "/",
   "display": "standalone",
@@ -123,13 +123,13 @@ All icons use `"purpose": "maskable any"` for adaptive icon support.
 ### Mobile Installation
 
 #### iOS (Safari)
-1. Open Fridgr in Safari
+1. Open Pantrybot in Safari
 2. Tap the Share button
 3. Select "Add to Home Screen"
 4. Name the app and tap "Add"
 
 #### Android (Chrome)
-1. Open Fridgr in Chrome
+1. Open Pantrybot in Chrome
 2. Tap the menu (three dots)
 3. Select "Add to Home screen"
 4. Confirm installation
@@ -138,7 +138,7 @@ All icons use `"purpose": "maskable any"` for adaptive icon support.
 
 #### Chrome/Edge
 1. Look for install icon in address bar
-2. Click "Install Fridgr"
+2. Click "Install Pantrybot"
 3. App opens in standalone window
 
 ## Development & Testing

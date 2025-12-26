@@ -2,13 +2,13 @@
 
 ## Overview
 
-The Fridgr Telegram bot provides users with a convenient way to receive notifications and interact with their household inventory through Telegram messenger. The bot supports both push notifications and interactive commands.
+The Pantrybot Telegram bot provides users with a convenient way to receive notifications and interact with their household inventory through Telegram messenger. The bot supports both push notifications and interactive commands.
 
 ## Bot Configuration
 
 ### Bot Setup
-- **Bot Name**: @FridgrBot
-- **Bot Username**: fridgr_bot
+- **Bot Name**: @PantrybotBot
+- **Bot Username**: pantrybot_bot
 - **Description**: "Manage your household food inventory and receive expiration alerts"
 - **Commands Menu**: Display available commands in Telegram UI
 
@@ -67,12 +67,12 @@ public class VerificationCodeService
 - **Response**: Welcome message with instructions
 - **Example Response**:
 ```
-Welcome to Fridgr Bot! 🏠
+Welcome to Pantrybot Bot! 🏠
 
 I can help you manage your household inventory and send you notifications about expiring items.
 
-To get started, link your Fridgr account:
-1. Go to Settings in the Fridgr app
+To get started, link your Pantrybot account:
+1. Go to Settings in the Pantrybot app
 2. Select "Link Telegram"
 3. Use /link <code> with the code shown
 
@@ -80,7 +80,7 @@ Type /help to see all available commands.
 ```
 
 #### /link `<code>`
-- **Description**: Link Telegram account to Fridgr
+- **Description**: Link Telegram account to Pantrybot
 - **Parameters**: 6-character verification code
 - **Response**: Success/failure message
 - **Example**: `/link ABC123`
@@ -306,7 +306,7 @@ public class TelegramWebhookController : ControllerBase
 curl -X POST https://api.telegram.org/bot{token}/setWebhook \
   -H "Content-Type: application/json" \
   -d '{
-    "url": "https://api.fridgr.app/telegram/webhook",
+    "url": "https://api.pantrybot.app/telegram/webhook",
     "secret_token": "your_secret_token",
     "allowed_updates": ["message", "callback_query"]
   }'

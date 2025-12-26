@@ -44,7 +44,7 @@ A shared layout wrapper for all authentication pages.
 
 **Features:**
 - Centered card design with consistent styling
-- Fridgr logo and tagline
+- Pantrybot logo and tagline
 - Responsive design
 - Clean, minimal aesthetic
 
@@ -470,7 +470,7 @@ A comprehensive form component for managing notification preferences across emai
 The component includes a modal dialog for linking Telegram accounts:
 1. User clicks "Connect with Telegram" button
 2. Modal provides instructions for bot interaction
-3. User enters verification code from @FridgrBot
+3. User enters verification code from @PantrybotBot
 4. System validates and links the account
 
 **Usage:**

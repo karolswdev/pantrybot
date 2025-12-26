@@ -1,4 +1,4 @@
-# Loki Configuration for Fridgr
+# Loki Configuration for Pantrybot
 # Log aggregation and storage
 
 auth_enabled: false

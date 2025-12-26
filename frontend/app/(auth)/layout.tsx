@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Fridgr - Authentication',
+  title: 'Pantrybot - Authentication',
   description: 'Keep your food fresh, waste less',
 };
 
@@ -43,7 +43,7 @@ export default function AuthLayout({
             </div>
           </div>
           <h1 className="text-4xl font-extrabold bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-500 bg-clip-text text-transparent mb-2">
-            Fridgr
+            Pantrybot
           </h1>
           <p className="text-gray-600 font-medium">Keep your food fresh, waste less</p>
         </div>

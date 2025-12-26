@@ -654,7 +654,7 @@ export default function NotificationSettingsPage() {
           <div className="py-4">
             <ol className="space-y-3">
               {[
-                { step: 1, text: 'Open Telegram and search for @FridgrBot', emoji: '🔍' },
+                { step: 1, text: 'Open Telegram and search for @PantrybotBot', emoji: '🔍' },
                 { step: 2, text: 'Start a conversation with the bot', emoji: '💬' },
                 { step: 3, text: 'Send /link command to get a code', emoji: '🔗' },
                 { step: 4, text: 'Enter the verification code below', emoji: '✨' },

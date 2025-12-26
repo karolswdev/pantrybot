@@ -1,7 +1,7 @@
 # Concurrency Control Strategy
 
 ## Overview
-This document defines the concurrency control mechanisms for Fridgr to prevent data corruption and race conditions in our multi-user, real-time collaborative system.
+This document defines the concurrency control mechanisms for Pantrybot to prevent data corruption and race conditions in our multi-user, real-time collaborative system.
 
 ## 1. HTTP API Concurrency (Optimistic Locking with ETags)
 

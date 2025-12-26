@@ -1,7 +1,7 @@
 # Responsive Design Strategy
 
 ## Overview
-Fridgr uses a mobile-first responsive design approach with Tailwind CSS breakpoints to ensure optimal user experience across all device sizes.
+Pantrybot uses a mobile-first responsive design approach with Tailwind CSS breakpoints to ensure optimal user experience across all device sizes.
 
 ## Breakpoints
 

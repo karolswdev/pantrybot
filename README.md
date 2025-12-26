@@ -1,4 +1,4 @@
-# Fridgr - Smart Household Food Inventory Management
+# Pantrybot - Smart Household Food Inventory Management
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -7,7 +7,7 @@
 
 ## Overview
 
-Fridgr is a household food inventory management system designed to reduce food waste through intelligent tracking of perishable items. It enables households to collaboratively manage their food inventory, receive timely expiration notifications, and maintain synchronized shopping lists.
+Pantrybot is a household food inventory management system designed to reduce food waste through intelligent tracking of perishable items. It enables households to collaboratively manage their food inventory, receive timely expiration notifications, and maintain synchronized shopping lists.
 
 ## Key Features
 
@@ -30,8 +30,8 @@ Fridgr is a household food inventory management system designed to reduce food w
 
 ```bash
 # Clone the repository
-git clone https://github.com/KaShaSoft/food-ventory.git
-cd fridgr
+git clone https://github.com/karolswdev/pantrybot.git
+cd pantrybot
 
 # Start all services (includes PostgreSQL)
 docker-compose up -d
@@ -39,7 +39,7 @@ docker-compose up -d
 # Access the application
 # Frontend: http://localhost:3003
 # Backend API: http://localhost:8080
-# Grafana: http://localhost:3001 (admin/fridgr123)
+# Grafana: http://localhost:3001 (admin/pantrybot123)
 # Prometheus: http://localhost:9090
 ```
 
@@ -66,7 +66,7 @@ npm run dev
 ## Project Structure
 
 ```
-fridgr/
+pantrybot/
 ├── frontend/                 # Next.js 14+ React application
 │   ├── app/                 # App router pages
 │   ├── components/          # React components
@@ -150,7 +150,7 @@ docker-compose down               # Stop all services
 
 ### Backend
 ```env
-DATABASE_URL=postgresql://user:pass@localhost:5432/fridgr
+DATABASE_URL=postgresql://user:pass@localhost:5432/pantrybot
 JWT_SECRET=your-secret-key
 PORT=8080
 NODE_ENV=development
@@ -171,7 +171,7 @@ The project includes a complete observability stack:
 - **Loki** (`:3100`) - Log aggregation
 - **Promtail** - Log shipping
 
-Access Grafana at `http://localhost:3001` with credentials `admin/fridgr123`.
+Access Grafana at `http://localhost:3001` with credentials `admin/pantrybot123`.
 
 ## Contributing
 

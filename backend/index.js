@@ -127,7 +127,7 @@ server.listen(PORT, () => {
       nodeEnv: process.env.NODE_ENV || 'development',
       database: process.env.DATABASE_URL ? 'PostgreSQL' : 'In-memory',
     },
-    `Fridgr backend started on port ${PORT}`
+    `Pantrybot backend started on port ${PORT}`
   );
 });
 

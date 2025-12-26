@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Fridgr API client provides a centralized interface for all API communications with automatic token management, request/response interceptors, and typed endpoints.
+The Pantrybot API client provides a centralized interface for all API communications with automatic token management, request/response interceptors, and typed endpoints.
 
 ## Features
 

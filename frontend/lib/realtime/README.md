@@ -2,7 +2,7 @@
 
 ## Overview
 
-The SignalR service provides real-time WebSocket communication between the Fridgr frontend and backend, enabling instant updates across all connected household members.
+The SignalR service provides real-time WebSocket communication between the Pantrybot frontend and backend, enabling instant updates across all connected household members.
 
 ## How It Works
 

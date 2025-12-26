@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 🎬 Fridgr Demo Script - Quick Showcase
+# 🎬 Pantrybot Demo Script - Quick Showcase
 # =======================================
 
 # Colors
@@ -18,12 +18,12 @@ clear
 echo -e "${CYAN}"
 echo "╔════════════════════════════════════════════════════════════════╗"
 echo "║                                                                ║"
-echo "║           🥗 FRIDGR - Smart Food Inventory Demo 🥗            ║"
+echo "║          🥗 PANTRYBOT - Smart Food Inventory Demo 🥗           ║"
 echo "║                                                                ║"
 echo "╚════════════════════════════════════════════════════════════════╝"
 echo -e "${NC}"
 
-echo -e "${WHITE}${BOLD}Welcome to Fridgr!${NC}"
+echo -e "${WHITE}${BOLD}Welcome to Pantrybot!${NC}"
 echo -e "${YELLOW}Let's quickly showcase the MVP features...${NC}"
 echo ""
 
@@ -64,7 +64,7 @@ echo -e "${WHITE}${BOLD}Step 2: Feature Showcase${NC}"
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 
-echo -e "${WHITE}Opening Fridgr in your browser...${NC}"
+echo -e "${WHITE}Opening Pantrybot in your browser...${NC}"
 echo ""
 
 # Feature list
@@ -96,7 +96,7 @@ echo ""
 
 echo -e "${WHITE}Use these credentials to test the app:${NC}"
 echo ""
-echo -e "${CYAN}📧 Email:${NC}    demo@fridgr.app"
+echo -e "${CYAN}📧 Email:${NC}    demo@pantrybot.app"
 echo -e "${CYAN}🔑 Password:${NC} Demo123!"
 echo ""
 echo -e "${YELLOW}Or create a new account to explore!${NC}"
@@ -156,7 +156,7 @@ echo -e "${WHITE}${BOLD}Demo Complete!${NC}"
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 
-echo -e "${GREEN}${BOLD}🎉 Fridgr MVP is ready for exploration!${NC}"
+echo -e "${GREEN}${BOLD}🎉 Pantrybot MVP is ready for exploration!${NC}"
 echo ""
 echo -e "${WHITE}Quick Links:${NC}"
 echo -e "  🌐 Frontend: ${CYAN}http://localhost:3003${NC}"
@@ -167,7 +167,7 @@ echo ""
 echo -e "${YELLOW}To stop the services, run:${NC} ${WHITE}docker-compose down${NC}"
 echo ""
 
-echo -e "${CYAN}${BOLD}Thank you for trying Fridgr!${NC}"
+echo -e "${CYAN}${BOLD}Thank you for trying Pantrybot!${NC}"
 echo -e "${WHITE}Built with ❤️ to reduce food waste${NC}"
 echo ""
 

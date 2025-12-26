@@ -238,7 +238,7 @@ export default function LoginPage() {
       </div>
 
       <div className="mt-8 text-center text-sm">
-        <span className="text-gray-500">New to Fridgr? </span>
+        <span className="text-gray-500">New to Pantrybot? </span>
         <Link
           href="/signup"
           className="font-bold text-primary-600 hover:text-primary-700 transition-colors"

@@ -1,7 +1,7 @@
 # Privacy & GDPR Compliance Strategy
 
 ## Overview
-This document defines the privacy implementation for Fridgr, ensuring proper GDPR compliance with true anonymization, not pseudonymization.
+This document defines the privacy implementation for Pantrybot, ensuring proper GDPR compliance with true anonymization, not pseudonymization.
 
 ## 1. User Data Deletion & Anonymization
 
@@ -483,7 +483,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.Cookie.SameSite = SameSiteMode.Strict;
-    options.Cookie.Name = "fridgr_session";
+    options.Cookie.Name = "pantrybot_session";
     options.ExpireTimeSpan = TimeSpan.FromMinutes(15);
     options.SlidingExpiration = true;
 });

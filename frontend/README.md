@@ -1,6 +1,6 @@
-# Fridgr Frontend
+# Pantrybot Frontend
 
-This is the Next.js frontend application for Fridgr - a household food inventory management system.
+This is the Next.js frontend application for Pantrybot - a household food inventory management system.
 
 ## Technology Stack
 
@@ -239,8 +239,8 @@ npm run start
 
 Build and run with Docker:
 ```bash
-docker build -t fridgr-frontend .
-docker run -p 3000:3000 fridgr-frontend
+docker build -t pantrybot-frontend .
+docker run -p 3000:3000 pantrybot-frontend
 ```
 
 ## PWA Features

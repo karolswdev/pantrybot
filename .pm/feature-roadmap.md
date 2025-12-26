@@ -1,7 +1,7 @@
 # Feature Roadmap
 
 ## Overview
-This document outlines the phased development approach for Fridgr, progressing from MVP to a fully-featured household inventory management system.
+This document outlines the phased development approach for Pantrybot, progressing from MVP to a fully-featured household inventory management system.
 
 ## Development Phases
 

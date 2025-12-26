@@ -4,19 +4,19 @@ services:
   # PostgreSQL Database Service
   postgres:
     image: postgres:15-alpine
-    container_name: fridgr-postgres
+    container_name: pantrybot-postgres
     environment:
-      POSTGRES_DB: fridgr
-      POSTGRES_USER: fridgr_user
-      POSTGRES_PASSWORD: fridgr_password
+      POSTGRES_DB: pantrybot
+      POSTGRES_USER: pantrybot_user
+      POSTGRES_PASSWORD: pantrybot_password
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - fridgr-network
+      - pantrybot-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fridgr_user -d fridgr"]
+      test: ["CMD-SHELL", "pg_isready -U pantrybot_user -d pantrybot"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -24,13 +24,13 @@ services:
   # Redis Cache Service
   redis:
     image: redis:7-alpine
-    container_name: fridgr-redis
+    container_name: pantrybot-redis
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     networks:
-      - fridgr-network
+      - pantrybot-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -42,11 +42,11 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: fridgr-backend
+    container_name: pantrybot-backend
     environment:
       PORT: 8080
       NODE_ENV: development
-      DATABASE_URL: postgresql://fridgr_user:fridgr_password@postgres:5432/fridgr?schema=public
+      DATABASE_URL: postgresql://pantrybot_user:pantrybot_password@postgres:5432/pantrybot?schema=public
       JWT_SECRET: development-secret-key-change-in-production
     ports:
       - "8080:8080"
@@ -54,7 +54,7 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - fridgr-network
+      - pantrybot-network
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:8080/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"]
       interval: 10s
@@ -66,7 +66,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: fridgr-frontend
+    container_name: pantrybot-frontend
     environment:
       # API URL pointing to localhost for browser access (integration testing)
       NEXT_PUBLIC_API_URL: http://localhost:8080/api/v1
@@ -81,7 +81,7 @@ services:
     depends_on:
       - backend
     networks:
-      - fridgr-network
+      - pantrybot-network
     # volumes:
     #   # Mount source code for development with hot reload (uncomment for development)
     #   - ./frontend:/app
@@ -97,7 +97,7 @@ services:
   # Prometheus - Metrics Collection
   prometheus:
     image: prom/prometheus:v2.48.0
-    container_name: fridgr-prometheus
+    container_name: pantrybot-prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -110,16 +110,16 @@ services:
       - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     networks:
-      - fridgr-network
+      - pantrybot-network
     restart: unless-stopped
 
   # Grafana - Visualization & Dashboards
   grafana:
     image: grafana/grafana:10.2.2
-    container_name: fridgr-grafana
+    container_name: pantrybot-grafana
     environment:
       GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: fridgr123
+      GF_SECURITY_ADMIN_PASSWORD: pantrybot123
       GF_USERS_ALLOW_SIGN_UP: false
       GF_SERVER_ROOT_URL: http://localhost:3001
     ports:
@@ -131,13 +131,13 @@ services:
       - prometheus
       - loki
     networks:
-      - fridgr-network
+      - pantrybot-network
     restart: unless-stopped
 
   # Loki - Log Aggregation
   loki:
     image: grafana/loki:2.9.2
-    container_name: fridgr-loki
+    container_name: pantrybot-loki
     command: -config.file=/etc/loki/local-config.yaml
     ports:
       - "3100:3100"
@@ -145,13 +145,13 @@ services:
       - ./observability/loki-config.yml:/etc/loki/local-config.yaml:ro
       - loki_data:/loki
     networks:
-      - fridgr-network
+      - pantrybot-network
     restart: unless-stopped
 
   # Promtail - Log Shipper
   promtail:
     image: grafana/promtail:2.9.2
-    container_name: fridgr-promtail
+    container_name: pantrybot-promtail
     command: -config.file=/etc/promtail/config.yml
     volumes:
       - ./observability/promtail-config.yml:/etc/promtail/config.yml:ro
@@ -160,12 +160,12 @@ services:
     depends_on:
       - loki
     networks:
-      - fridgr-network
+      - pantrybot-network
     restart: unless-stopped
 
 # Docker Networks
 networks:
-  fridgr-network:
+  pantrybot-network:
     driver: bridge
 
 # Docker Volumes for persistent data

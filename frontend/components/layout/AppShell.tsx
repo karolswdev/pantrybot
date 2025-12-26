@@ -128,7 +128,7 @@ export default function AppShell({ children }: AppShellProps) {
                   <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-6 h-1 bg-primary-500/20 rounded-full blur-sm" />
                 </div>
                 <span className="text-2xl font-extrabold bg-gradient-to-r from-primary-600 to-secondary-500 bg-clip-text text-transparent">
-                  Fridgr
+                  Pantrybot
                 </span>
               </Link>
             </div>

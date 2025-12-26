@@ -1,6 +1,6 @@
-# Contributing to Fridgr
+# Contributing to Pantrybot
 
-First off, thank you for considering contributing to Fridgr! It's people like you that make Fridgr such a great tool for reducing food waste and helping households manage their food inventory better.
+First off, thank you for considering contributing to Pantrybot! It's people like you that make Pantrybot such a great tool for reducing food waste and helping households manage their food inventory better.
 
 ## Code of Conduct
 
@@ -53,13 +53,13 @@ Unsure where to begin? Look for issues labeled:
 1. Fork the repository
 2. Clone your fork:
    ```bash
-   git clone https://github.com/your-username/fridgr.git
-   cd fridgr
+   git clone https://github.com/your-username/pantrybot.git
+   cd pantrybot
    ```
 
 3. Add the upstream repository:
    ```bash
-   git remote add upstream https://github.com/KaShaSoft/food-ventory.git
+   git remote add upstream https://github.com/karolswdev/pantrybot.git
    ```
 
 4. Install dependencies:
@@ -209,8 +209,8 @@ All contributions go through the following review process:
 
 ## Community
 
-- Join our [GitHub Discussions](https://github.com/KaShaSoft/food-ventory/discussions)
-- Report issues on [GitHub Issues](https://github.com/KaShaSoft/food-ventory/issues)
+- Join our [GitHub Discussions](https://github.com/karolswdev/pantrybot/discussions)
+- Report issues on [GitHub Issues](https://github.com/karolswdev/pantrybot/issues)
 - Follow us for updates
 
 ## Recognition
@@ -221,4 +221,4 @@ Contributors will be recognized in our README and release notes. We value every 
 
 Feel free to open an issue with the `question` label or reach out to the maintainers.
 
-Thank you for contributing to Fridgr! Together, we're reducing food waste one household at a time 🌱
+Thank you for contributing to Pantrybot! Together, we're reducing food waste one household at a time 🌱

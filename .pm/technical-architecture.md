@@ -55,30 +55,30 @@ The system follows a **Modular Monolith** architecture with **Ports & Adapters (
 ### Project Structure
 ```
 src/
-├── Fridgr.Domain/              # Core domain (entities, value objects, domain services)
+├── Pantrybot.Domain/              # Core domain (entities, value objects, domain services)
 │   ├── Aggregates/
 │   ├── Events/
 │   ├── Exceptions/
 │   ├── Services/
 │   └── ValueObjects/
-├── Fridgr.Application/          # Application layer (use cases, DTOs, interfaces)
+├── Pantrybot.Application/          # Application layer (use cases, DTOs, interfaces)
 │   ├── Commands/
 │   ├── Queries/
 │   ├── DTOs/
 │   ├── Interfaces/
 │   └── Services/
-├── Fridgr.Infrastructure/       # Infrastructure (adapters, persistence, external services)
+├── Pantrybot.Infrastructure/       # Infrastructure (adapters, persistence, external services)
 │   ├── Persistence/
 │   ├── Identity/
 │   ├── Notifications/
 │   ├── Telegram/
 │   └── Caching/
-├── Fridgr.API/                  # Web API (controllers, middleware, configuration)
+├── Pantrybot.API/                  # Web API (controllers, middleware, configuration)
 │   ├── Controllers/
 │   ├── Middleware/
 │   ├── Filters/
 │   └── Hubs/
-└── Fridgr.Tests/               # Test projects
+└── Pantrybot.Tests/               # Test projects
     ├── Unit/
     ├── Integration/
     └── E2E/
@@ -193,7 +193,7 @@ public class GetExpiringItemsQueryHandler : IRequestHandler<GetExpiringItemsQuer
 ```csharp
 public class EfInventoryRepository : IInventoryRepository
 {
-    private readonly FridgrDbContext _context;
+    private readonly PantrybotDbContext _context;
     
     public async Task<InventoryItem> GetByIdAsync(ItemId id, CancellationToken ct)
     {
@@ -487,22 +487,22 @@ EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["Fridgr.API/Fridgr.API.csproj", "Fridgr.API/"]
-COPY ["Fridgr.Application/Fridgr.Application.csproj", "Fridgr.Application/"]
-COPY ["Fridgr.Domain/Fridgr.Domain.csproj", "Fridgr.Domain/"]
-COPY ["Fridgr.Infrastructure/Fridgr.Infrastructure.csproj", "Fridgr.Infrastructure/"]
-RUN dotnet restore "Fridgr.API/Fridgr.API.csproj"
+COPY ["Pantrybot.API/Pantrybot.API.csproj", "Pantrybot.API/"]
+COPY ["Pantrybot.Application/Pantrybot.Application.csproj", "Pantrybot.Application/"]
+COPY ["Pantrybot.Domain/Pantrybot.Domain.csproj", "Pantrybot.Domain/"]
+COPY ["Pantrybot.Infrastructure/Pantrybot.Infrastructure.csproj", "Pantrybot.Infrastructure/"]
+RUN dotnet restore "Pantrybot.API/Pantrybot.API.csproj"
 COPY . .
-WORKDIR "/src/Fridgr.API"
-RUN dotnet build "Fridgr.API.csproj" -c Release -o /app/build
+WORKDIR "/src/Pantrybot.API"
+RUN dotnet build "Pantrybot.API.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "Fridgr.API.csproj" -c Release -o /app/publish
+RUN dotnet publish "Pantrybot.API.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Fridgr.API.dll"]
+ENTRYPOINT ["dotnet", "Pantrybot.API.dll"]
 ```
 
 ### Docker Compose (MVP)
@@ -513,8 +513,8 @@ services:
   postgres:
     image: postgres:15
     environment:
-      POSTGRES_DB: fridgr
-      POSTGRES_USER: fridgr
+      POSTGRES_DB: pantrybot
+      POSTGRES_USER: pantrybot
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -644,7 +644,7 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddHealthChecks()
-            .AddDbContextCheck<FridgrDbContext>()
+            .AddDbContextCheck<PantrybotDbContext>()
             .AddRedis(Configuration.GetConnectionString("Redis"))
             .AddUrlGroup(new Uri(Configuration["Telegram:WebhookUrl"]), "telegram");
     }

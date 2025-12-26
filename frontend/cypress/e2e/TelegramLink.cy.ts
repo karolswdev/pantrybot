@@ -78,7 +78,7 @@ describe('Telegram Account Linking', () => {
 
     // Verify the modal appears with instructions
     cy.contains('Connect Telegram Account').should('be.visible');
-    cy.contains('Open Telegram and search for @FridgrBot').should('be.visible');
+    cy.contains('Open Telegram and search for @PantrybotBot').should('be.visible');
     cy.contains('Start a conversation with the bot').should('be.visible');
     cy.contains('Send /link command to get a verification code').should('be.visible');
     cy.contains('Enter the verification code below').should('be.visible');

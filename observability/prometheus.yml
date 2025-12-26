@@ -1,4 +1,4 @@
-# Prometheus Configuration for Fridgr
+# Prometheus Configuration for Pantrybot
 # Scrapes metrics from backend service
 
 global:
@@ -8,7 +8,7 @@ global:
   # Attach these labels to any time series or alerts when communicating with
   # external systems (federation, remote storage, Alertmanager).
   external_labels:
-    monitor: 'fridgr-monitor'
+    monitor: 'pantrybot-monitor'
 
 # Alertmanager configuration (optional, uncomment when ready)
 # alerting:
@@ -31,12 +31,12 @@ scrape_configs:
         labels:
           service: 'prometheus'
 
-  # Fridgr Backend API
-  - job_name: 'fridgr-backend'
+  # Pantrybot Backend API
+  - job_name: 'pantrybot-backend'
     static_configs:
       - targets: ['backend:8080']
         labels:
-          service: 'fridgr-backend'
+          service: 'pantrybot-backend'
           environment: 'development'
     metrics_path: '/metrics'
     scrape_interval: 10s

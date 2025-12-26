@@ -2,7 +2,7 @@
 
 ## Overview
 
-The notification store manages all notification-related state in the Fridgr application, including in-app notifications and toast messages. It's built with Zustand and provides real-time notification handling through SignalR integration.
+The notification store manages all notification-related state in the Pantrybot application, including in-app notifications and toast messages. It's built with Zustand and provides real-time notification handling through SignalR integration.
 
 ## Store Location
 

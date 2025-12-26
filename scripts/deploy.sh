@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Fridgr Manual Deployment Script for Staging VPS
+# Pantrybot Manual Deployment Script for Staging VPS
 # This script is intended to be executed manually on the staging VPS
 # It handles Docker registry login, image pulling, and service restart
 
@@ -21,7 +21,7 @@ print_message() {
 
 # Function to check if running on the VPS
 check_environment() {
-    print_message "$YELLOW" "🚀 Starting Fridgr Staging Deployment..."
+    print_message "$YELLOW" "🚀 Starting Pantrybot Staging Deployment..."
     
     # Check if docker is installed
     if ! command -v docker &> /dev/null; then
@@ -161,7 +161,7 @@ verify_deployment() {
 # Main deployment flow
 main() {
     print_message "$GREEN" "==========================================="
-    print_message "$GREEN" "   Fridgr Staging Deployment Script"
+    print_message "$GREEN" "   Pantrybot Staging Deployment Script"
     print_message "$GREEN" "==========================================="
     echo ""
     
