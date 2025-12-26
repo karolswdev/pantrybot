@@ -24,7 +24,7 @@ describe('AddItemModal', () => {
     render(<AddEditItemModal {...defaultProps} />);
 
     // Wait for modal to be visible
-    expect(screen.getByText('Add Item to Fridge')).toBeInTheDocument();
+    expect(screen.getByText('Add to Fridge')).toBeInTheDocument();
 
     // Find and click the save button without filling any fields
     const saveButton = screen.getByRole('button', { name: /save item/i });
@@ -136,7 +136,7 @@ describe('AddItemModal', () => {
     render(<AddEditItemModal {...defaultProps} item={editItem} />);
 
     expect(screen.getByText('Edit Item')).toBeInTheDocument();
-    expect(screen.queryByText('Add Item to Fridge')).not.toBeInTheDocument();
+    expect(screen.queryByText('Add to Fridge')).not.toBeInTheDocument();
   });
 
   it('should populate form with item data in edit mode', () => {

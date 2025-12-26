@@ -9,6 +9,7 @@
  * - Sensitive header redaction
  */
 
+const pino = require('pino');
 const pinoHttp = require('pino-http');
 const { v4: uuidv4 } = require('uuid');
 const { logger } = require('../lib/logger');
@@ -136,8 +137,6 @@ const requestLogger = pinoHttp({
   },
 });
 
-// Import pino for serializers reference
-const pino = require('pino');
 
 /**
  * Correlation ID middleware

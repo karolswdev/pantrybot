@@ -200,9 +200,9 @@ describe('Dashboard Component Tests', () => {
 
     render(<DashboardPage />);
 
-    // Verify welcome message
-    expect(screen.getByText(/Welcome back, John!/)).toBeInTheDocument();
-    expect(screen.getByText('Smith Family Household')).toBeInTheDocument();
+    // Verify welcome message - greeting and name are in separate elements
+    expect(screen.getByText(/John! 👋/)).toBeInTheDocument();
+    expect(screen.getByText('Smith Family Household • Let\'s keep things fresh!')).toBeInTheDocument();
 
     // Verify that stat cards are rendered
     const statCards = screen.getAllByTestId('stat-card');

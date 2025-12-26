@@ -17,6 +17,7 @@ jest.mock('@/stores/auth.store', () => ({
     isLoading: false,
     error: null,
     clearError: jest.fn(),
+    isAuthenticated: false,
   })),
 }));
 
@@ -27,6 +28,7 @@ jest.mock('lucide-react', () => ({
   Loader2: () => <div>Loader Icon</div>,
   Check: () => <div>Check Icon</div>,
   X: () => <div>X Icon</div>,
+  Rocket: () => <div>Rocket Icon</div>,
 }));
 
 describe('SignUp Component', () => {
@@ -46,7 +48,7 @@ describe('SignUp Component', () => {
     render(<SignupPage />);
 
     // Find and click the submit button without filling any fields
-    const submitButton = screen.getByRole('button', { name: /create account/i });
+    const submitButton = screen.getByRole('button', { name: /get started/i });
     fireEvent.click(submitButton);
 
     // Wait for validation errors to appear
@@ -87,7 +89,7 @@ describe('SignUp Component', () => {
       const charRequirement = screen.getByText('8+ characters');
       expect(charRequirement).toBeInTheDocument();
       const parentDiv = charRequirement.closest('div');
-      expect(parentDiv).toHaveClass('text-green-600');
+      expect(parentDiv).toHaveClass('text-primary-600');
     });
   });
 
@@ -97,28 +99,28 @@ describe('SignUp Component', () => {
     render(<SignupPage />);
 
     // Fill in other required fields first to isolate email validation
-    const displayNameInput = screen.getByPlaceholderText(/john doe/i);
+    const displayNameInput = screen.getByPlaceholderText(/what should we call you/i);
     fireEvent.change(displayNameInput, { target: { value: 'Test User' } });
-    
+
     const passwordInput = screen.getByPlaceholderText(/create a strong password/i);
     fireEvent.change(passwordInput, { target: { value: 'ValidPass123' } });
-    
-    const householdInput = screen.getByPlaceholderText(/smith family/i);
+
+    const householdInput = screen.getByPlaceholderText(/the smith kitchen/i);
     fireEvent.change(householdInput, { target: { value: 'Test Household' } });
-    
+
     // Check the agree to terms checkbox
     const termsCheckbox = screen.getByRole('checkbox');
     fireEvent.click(termsCheckbox);
-    
+
     // Find the email input and type an invalid email
-    const emailInput = screen.getByPlaceholderText(/john@example.com/i);
+    const emailInput = screen.getByPlaceholderText(/you@example.com/i);
     fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
-    
+
     // Try to blur the field to trigger validation
     fireEvent.blur(emailInput);
-    
+
     // Submit the form
-    const submitButton = screen.getByRole('button', { name: /create account/i });
+    const submitButton = screen.getByRole('button', { name: /get started/i });
     fireEvent.click(submitButton);
 
     // Wait a bit longer and use a more flexible approach
