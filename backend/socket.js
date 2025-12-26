@@ -1,6 +1,6 @@
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
-const db = require('./db');
+const { userRepository, householdRepository } = require('./repositories');
 const { logger } = require('./lib/logger');
 
 // JWT secret (matching authRoutes.js)
@@ -30,7 +30,7 @@ function initializeSocket(server) {
       const decoded = jwt.verify(token, JWT_SECRET);
 
       // Find user in database
-      const user = db.users.find(u => u.id === decoded.sub);
+      const user = await userRepository.findById(decoded.sub);
       if (!user) {
         return next(new Error('Authentication failed: User not found'));
       }
@@ -40,8 +40,8 @@ function initializeSocket(server) {
       socket.userEmail = decoded.email;
 
       // Get user's household memberships
-      const memberships = db.household_members.filter(m => m.userId === decoded.sub);
-      socket.households = memberships.map(m => m.householdId);
+      const userHouseholds = await householdRepository.findUserHouseholds(decoded.sub);
+      socket.households = userHouseholds.map(h => h.id);
 
       next();
     } catch (error) {

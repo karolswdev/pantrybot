@@ -9,10 +9,11 @@ Fridgr is a household food inventory management system designed to reduce food w
 ## Architecture
 
 ### Technology Stack
-- **Backend**: Node.js with Express.js - REST API with WebSocket support
-- **Frontend**: Next.js 15+ with TypeScript, React 19+, Tailwind CSS, Zustand
-- **Database**: In-memory with file persistence (PostgreSQL ready for production)
-- **Real-time**: Socket.io
+- **Backend**: Node.js with Express.js, Prisma ORM, PostgreSQL
+- **Frontend**: Next.js 14+ with TypeScript, React 18+, Tailwind CSS, Zustand
+- **Database**: PostgreSQL 15 with Prisma ORM
+- **Real-time**: Socket.IO
+- **Observability**: Pino logging, Prometheus metrics, Grafana dashboards
 - **Containerization**: Docker & Docker Compose
 
 ### Project Structure
@@ -26,9 +27,17 @@ backend/
 ├── notificationRoutes.js # Notification preferences
 ├── dashboardRoutes.js    # Dashboard/reports endpoints
 ├── socket.js             # WebSocket handlers
-├── db.js                 # In-memory database
 ├── authMiddleware.js     # JWT authentication middleware
-└── tests/                # Regression test scripts
+├── lib/
+│   ├── logger.js         # Pino structured logging
+│   └── metrics.js        # Prometheus metrics
+├── middleware/
+│   ├── requestLogger.js  # HTTP request logging
+│   ├── errorHandler.js   # Global error handling
+│   └── metricsMiddleware.js # HTTP metrics collection
+├── prisma/
+│   └── schema.prisma     # Database schema
+└── repositories/         # Data access layer
 
 frontend/
 ├── app/                  # Next.js app router pages
@@ -37,167 +46,115 @@ frontend/
 ├── stores/               # Zustand state stores
 ├── lib/                  # Utilities and services
 └── cypress/              # E2E tests
+
+observability/            # Prometheus, Grafana, Loki configs
 ```
 
 ## Development Commands
 
 ### Backend (Node.js)
 ```bash
-# Navigate to backend directory
 cd backend
 
-# Install dependencies
-npm install
+npm install              # Install dependencies
+npm start                # Start the server
+npm run dev              # Start with auto-reload
 
-# Start the server
-npm start
-
-# Start with auto-reload (development)
-npm run dev
-
-# Run regression tests
-./final_regression_test.sh
+# Database
+npx prisma migrate dev   # Run migrations
+npx prisma studio        # Database GUI
+npx prisma generate      # Regenerate client
 ```
 
 ### Frontend (Next.js)
 ```bash
-# Navigate to frontend directory
 cd frontend
 
-# Install dependencies
-npm install
-
-# Run development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Run production build
-npm start
-
-# Run tests
-npm test
-
-# Run E2E tests
-npm run test:e2e
-
-# Lint code
-npm run lint
-
-# Type check
-npm run type-check
+npm install              # Install dependencies
+npm run dev              # Development server
+npm run build            # Production build
+npm run test:e2e         # Run Cypress E2E tests
+npm run lint             # Lint code
 ```
 
 ### Docker Commands
 ```bash
-# Start all services (database, backend, frontend)
-docker-compose up -d
-
-# Start only infrastructure services (PostgreSQL, Redis)
-docker-compose up -d postgres redis
-
-# View logs
-docker-compose logs -f [service-name]
-
-# Stop all services
-docker-compose down
-
-# Rebuild containers
-docker-compose build
+docker-compose up -d                    # Start all services
+docker-compose up -d postgres           # Start only PostgreSQL
+docker-compose logs -f backend          # View backend logs
+docker-compose down                     # Stop all services
 ```
 
 ## API Endpoints
 
-Base URL: `http://localhost:8080/api/v1` (development)
+Base URL: `http://localhost:8080/api/v1`
 
 Key endpoints:
 - `/auth/*` - Authentication (register, login, refresh)
 - `/households/*` - Household management
 - `/households/{id}/items/*` - Inventory management
 - `/notifications/*` - Notification preferences
-- `/shopping-lists/*` - Shopping list management
+- `/dashboard/*` - Dashboard statistics and reports
 - `/health` - Health check endpoint
+- `/ready` - Kubernetes readiness probe
+- `/metrics` - Prometheus metrics endpoint
 
 ## Key Architectural Patterns
 
-### REST API Design
-- RESTful endpoints with consistent naming
-- JWT authentication with refresh tokens
-- WebSocket integration for real-time updates
+### Data Access Layer
+- Prisma ORM for type-safe database access
+- Repository pattern for data operations
+- Transaction support for complex operations
 
-### Multi-tenancy
-- HouseholdId-based data isolation
-- Role-based access control per household
+### Observability
+- Structured JSON logging with Pino
+- Request correlation IDs for tracing
+- Prometheus metrics for monitoring
+- Grafana dashboards for visualization
 
 ### Authentication & Authorization
 - JWT tokens with 15-minute access token expiry
 - Refresh tokens with 7-day expiry (rotating)
 - Role-based access control: Admin, Member, Viewer
 
-## Testing Guidelines
-
-### Backend Testing
-- Regression test scripts in `backend/tests/`
-- Run `./final_regression_test.sh` for full test suite
-
-### Frontend Testing
-- Component tests with React Testing Library
-- 25 Cypress E2E test suites for critical user flows
-- Mock API responses for isolated testing
-
-## Real-time Features
-
-Socket.io for:
-- Inventory updates
-- Shopping list synchronization
-- Expiration notifications
-- Household activity feed
-
 ## Environment Variables
 
 Backend:
+- `DATABASE_URL` - PostgreSQL connection string
 - `PORT` - Server port (default: 8080)
 - `NODE_ENV` - Environment (development/production)
 - `JWT_SECRET` - JWT signing secret
+- `LOG_LEVEL` - Logging level (debug/info/warn/error)
 
 Frontend (.env.local):
 - `NEXT_PUBLIC_API_URL` - Backend API URL
 - `NEXT_PUBLIC_WS_URL` - WebSocket URL
 
-## Important Documentation
+## Documentation
 
-Comprehensive project documentation in `.pm/` directory:
-- `technical-architecture.md` - Detailed technical architecture
-- `api-specifications.md` - Complete API documentation
-- `database-schema.md` - Database design and schema
-- `user-stories.md` - User stories with acceptance criteria
-- `telegram-bot-requirements.md` - Telegram bot integration
-- `feature-roadmap.md` - Development phases and roadmap
-- `system/mvp/SRS.md` - System Requirements Specification
+Project specifications in `.pm/` directory:
+- `api-specifications.md` - API documentation
+- `database-schema.md` - Database design
+- `user-stories.md` - User stories
+- `technical-architecture.md` - Architecture overview
+- `feature-roadmap.md` - Development roadmap
 
-## Performance Considerations
+## Testing
 
-- API response time target: <200ms (95th percentile)
-- Support 100 concurrent users per household
-- Real-time updates within 1 second
-- Use caching for frequently accessed data
-- Implement pagination for large result sets
+### E2E Tests
+```bash
+cd frontend
+npm run test:e2e         # Run Cypress tests
+npm run test:e2e:open    # Open Cypress UI
+```
 
-## Security Requirements
+### API Testing
+Use the `/api/v1/test/reset-db` endpoint to reset database state between tests.
 
-- Input validation and sanitization on all endpoints
-- Rate limiting: 100 requests/minute per user
-- Bcrypt password hashing
-- TLS 1.2+ for all communications
-- Never log sensitive data (passwords, tokens)
+## Security
 
-## Future Enhancements
-
-To make the backend production-ready:
-- Add PostgreSQL persistence (replace in-memory DB)
-- Add Redis for session/cache management
-- Add comprehensive input validation
-- Add rate limiting middleware
-- Add structured logging
-- Add health check with dependency status
+- Input validation on all endpoints
+- Password hashing with bcrypt
+- JWT token authentication
+- Sensitive data redaction in logs
+- CORS configuration

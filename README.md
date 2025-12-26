@@ -1,219 +1,192 @@
-# Fridgr - Smart Household Food Inventory Management 🥗
+# Fridgr - Smart Household Food Inventory Management
 
-![Version](https://img.shields.io/badge/version-1.0.0--MVP-blue)
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 ![Docker](https://img.shields.io/badge/docker-ready-blue)
 
-## 🎯 Overview
+## Overview
 
-Fridgr is a comprehensive household food inventory management system designed to reduce food waste through intelligent tracking of perishable items. It enables households to collaboratively manage their food inventory, receive timely expiration notifications, and maintain synchronized shopping lists.
+Fridgr is a household food inventory management system designed to reduce food waste through intelligent tracking of perishable items. It enables households to collaboratively manage their food inventory, receive timely expiration notifications, and maintain synchronized shopping lists.
 
-## ✨ Key Features
+## Key Features
 
-### Current MVP Features
-- 🏠 **Multi-Household Support** - Users can belong to and manage multiple households
-- 📦 **Smart Inventory Tracking** - Track items with expiration dates, quantities, and storage locations
-- ⏰ **Expiration Alerts** - Multi-channel notifications (email, in-app, Telegram)
-- 🛒 **Collaborative Shopping Lists** - Real-time synchronized lists with WebSocket support
-- 👥 **Role-Based Access Control** - Admin, Member, and Viewer roles per household
-- 📱 **Progressive Web App** - Mobile-first responsive design with offline capabilities
-- 📊 **Analytics & Reports** - Track waste patterns and household statistics
-- 🔄 **Real-Time Updates** - Live synchronization across all household members
+- **Multi-Household Support** - Users can belong to and manage multiple households
+- **Smart Inventory Tracking** - Track items with expiration dates, quantities, and storage locations
+- **Expiration Alerts** - Multi-channel notifications (email, in-app, Telegram)
+- **Collaborative Shopping Lists** - Real-time synchronized lists with WebSocket support
+- **Role-Based Access Control** - Admin, Member, and Viewer roles per household
+- **Progressive Web App** - Mobile-first responsive design
+- **Analytics & Reports** - Track waste patterns and household statistics
+- **Real-Time Updates** - Live synchronization across all household members
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Docker & Docker Compose
 - Node.js 18+ (for local development)
-- Git
 
-### 🐳 Start with Docker (Recommended)
+### Start with Docker (Recommended)
 
 ```bash
 # Clone the repository
 git clone https://github.com/KaShaSoft/food-ventory.git
 cd fridgr
 
-# Start all services
+# Start all services (includes PostgreSQL)
 docker-compose up -d
 
 # Access the application
 # Frontend: http://localhost:3003
-# Mock API: http://localhost:8080
+# Backend API: http://localhost:8080
+# Grafana: http://localhost:3001 (admin/fridgr123)
+# Prometheus: http://localhost:9090
 ```
 
-### 💻 Local Development
+### Local Development
 
 ```bash
-# Clone repository
-git clone https://github.com/KaShaSoft/food-ventory.git
-cd fridgr
+# Start PostgreSQL
+docker-compose up -d postgres
 
-# Install frontend dependencies
+# Backend setup
+cd backend
+npm install
+npx prisma migrate dev
+npm start
+
+# Frontend setup (new terminal)
 cd frontend
 npm install
-
-# Start frontend development server
 npm run dev
-
-# In another terminal, start backend
-cd ../backend
-npm install
-npm start
 
 # Access at http://localhost:3000
 ```
 
-## 🏗️ Architecture
+## Project Structure
 
 ```
 fridgr/
 ├── frontend/                 # Next.js 14+ React application
 │   ├── app/                 # App router pages
-│   ├── components/          # Reusable React components
-│   ├── hooks/               # Custom React hooks & queries
+│   ├── components/          # React components
+│   ├── hooks/               # Custom hooks & queries
 │   ├── lib/                 # Utilities and services
 │   └── cypress/             # E2E tests
-├── backend/                 # Node.js API server (Express with WebSocket)
-├── .pm/                     # Project management & documentation
-│   ├── evidence/            # Test execution evidence
-│   ├── execution-plan/      # Development phases
-│   └── system/              # Requirements & architecture docs
+├── backend/                 # Node.js/Express API
+│   ├── lib/                 # Logger, metrics
+│   ├── middleware/          # Express middleware
+│   ├── prisma/              # Database schema & migrations
+│   └── repositories/        # Data access layer
+├── observability/           # Prometheus, Grafana, Loki configs
+├── .pm/                     # Project specifications
 └── docker-compose.yml       # Container orchestration
 ```
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Frontend
 - **Framework**: Next.js 14+ with App Router
 - **Language**: TypeScript
-- **UI Library**: React 18+ with Radix UI
-- **Styling**: Tailwind CSS
-- **State Management**: Zustand
-- **Data Fetching**: TanStack Query (React Query)
-- **Real-time**: Socket.io Client
-- **Forms**: React Hook Form with Zod validation
-- **Testing**: Cypress E2E, Jest
+- **UI**: React 18+, Radix UI, Tailwind CSS
+- **State**: Zustand, TanStack Query
+- **Real-time**: Socket.IO Client
+- **Testing**: Cypress E2E
 
 ### Backend
-- **Runtime**: Node.js
+- **Runtime**: Node.js 18+
 - **Framework**: Express.js
-- **Real-time**: Socket.io
-- **Database**: In-memory with file persistence (PostgreSQL ready)
-- **Authentication**: JWT tokens
+- **Database**: PostgreSQL 15 with Prisma ORM
+- **Real-time**: Socket.IO
+- **Auth**: JWT with refresh tokens
+- **Logging**: Pino (structured JSON)
+- **Metrics**: Prometheus (prom-client)
 
-### DevOps
-- **Containerization**: Docker
+### Infrastructure
+- **Containers**: Docker, Docker Compose
+- **Monitoring**: Prometheus, Grafana
+- **Log Aggregation**: Loki, Promtail
 - **CI/CD**: GitHub Actions
-- **Code Quality**: ESLint, Prettier
 
-## 🧪 Testing
+## API Endpoints
+
+Base URL: `http://localhost:8080/api/v1`
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /auth/register` | User registration |
+| `POST /auth/login` | User login |
+| `POST /auth/refresh` | Refresh access token |
+| `GET /households` | List user's households |
+| `GET /households/:id/items` | List inventory items |
+| `POST /households/:id/items` | Add inventory item |
+| `GET /dashboard/stats` | Dashboard statistics |
+| `GET /notifications` | User notifications |
+
+## Development Commands
 
 ```bash
-# Run frontend E2E tests
+# Backend
+cd backend
+npm start              # Start server
+npm run dev            # Start with hot reload
+npx prisma studio      # Database GUI
+npx prisma migrate dev # Run migrations
+
+# Frontend
 cd frontend
-npm run test:e2e
+npm run dev            # Development server
+npm run build          # Production build
+npm run test:e2e       # Cypress tests
+npm run lint           # ESLint
 
-# Run frontend unit tests
-npm test
-
-# Run linting
-npm run lint
-
-# Type checking
-npm run type-check
+# Docker
+docker-compose up -d              # Start all services
+docker-compose logs -f backend    # View backend logs
+docker-compose down               # Stop all services
 ```
 
-### Test Coverage
-- 25 Cypress E2E test suites
-- 100% integration test coverage
-- Real-time WebSocket testing
-- Authentication flow testing
-- Multi-household scenarios
+## Environment Variables
 
-## 📚 Documentation
+### Backend
+```env
+DATABASE_URL=postgresql://user:pass@localhost:5432/fridgr
+JWT_SECRET=your-secret-key
+PORT=8080
+NODE_ENV=development
+```
 
-Comprehensive documentation available in `.pm/` directory:
-- 📋 [System Requirements](.pm/system/mvp/SRS.md)
-- 👤 [User Stories](.pm/user-stories.md)
-- 🏛️ [Technical Architecture](.pm/technical-architecture.md)
-- 🔌 [API Specifications](.pm/api-specifications.md)
-- 💾 [Database Schema](.pm/database-schema.md)
-- 🤖 [Telegram Bot Setup](.pm/telegram-bot-requirements.md)
-- 🗺️ [Feature Roadmap](.pm/feature-roadmap.md)
+### Frontend
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
+NEXT_PUBLIC_WS_URL=ws://localhost:8080
+```
 
-## 🔒 Security Features
+## Observability
 
-- JWT-based authentication with refresh tokens
-- Password hashing with bcrypt
-- Input validation and sanitization
-- Rate limiting on API endpoints
-- CORS configuration
-- XSS protection
-- CSRF tokens
+The project includes a complete observability stack:
 
-## 🎯 Performance Targets
+- **Prometheus** (`:9090`) - Metrics collection
+- **Grafana** (`:3001`) - Dashboards and visualization
+- **Loki** (`:3100`) - Log aggregation
+- **Promtail** - Log shipping
 
-- API response time: <200ms (p95)
-- Real-time updates: <1 second
-- PWA Lighthouse score: >90
-- Bundle size: <500KB gzipped
-- Time to Interactive: <3 seconds
+Access Grafana at `http://localhost:3001` with credentials `admin/fridgr123`.
 
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+## Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📝 License
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
-
-- Built with ❤️ by the Fridgr team
-- Special thanks to all contributors
-- Powered by open source technologies
-
-## 📞 Support
-
-- 📧 Email: support@fridgr.app
-- 🐛 Issues: [GitHub Issues](https://github.com/KaShaSoft/food-ventory/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/KaShaSoft/food-ventory/discussions)
-
-## 🗺️ Roadmap
-
-### Phase 1: MVP (Complete ✅)
-- Core inventory management
-- Multi-household support
-- Real-time synchronization
-- Shopping lists
-- Notifications
-
-### Phase 2: Enhanced Features (Q2 2024)
-- Barcode scanning
-- Product database integration
-- Recipe suggestions
-- Meal planning
-
-### Phase 3: AI & Automation (Q3 2024)
-- Smart expiration predictions
-- Automated shopping lists
-- Waste reduction insights
-- Voice assistant integration
-
-### Phase 4: Enterprise (Q4 2024)
-- Business accounts
-- Advanced analytics
-- API access
-- White-label options
-
 ---
 
-**Made with 💚 to reduce food waste and help households manage their food better**
+**Made to reduce food waste and help households manage their food better**
