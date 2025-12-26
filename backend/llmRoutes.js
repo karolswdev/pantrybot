@@ -6,7 +6,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { authenticateToken } = require('./authMiddleware');
+const authMiddleware = require('./authMiddleware');
 const { logger } = require('./lib/logger');
 const {
   InventoryIntentProcessor,
@@ -74,7 +74,7 @@ router.get('/status', async (req, res) => {
  *   - householdId: string (required) - Household context
  *   - executeActions: boolean (optional) - Whether to execute parsed actions (default: true)
  */
-router.post('/process', authenticateToken, async (req, res) => {
+router.post('/process', authMiddleware, async (req, res) => {
   try {
     const { message, householdId, executeActions = true } = req.body;
 
@@ -163,18 +163,30 @@ async function executeIntent(intent, householdId, userId) {
             ? new Date(Date.now() + item.expirationDays * 24 * 60 * 60 * 1000)
             : null;
 
-          await prisma.inventoryItem.create({
+          const newItem = await prisma.inventoryItem.create({
             data: {
               name: item.name,
               quantity: item.quantity || 1,
               unit: item.unit || 'item',
               location: item.location || 'fridge',
-              category: item.category,
+              category: item.category || 'uncategorized',
               expirationDate,
               householdId,
-              addedById: userId,
+              createdBy: userId,
             },
           });
+
+          // Log the creation
+          await prisma.itemHistory.create({
+            data: {
+              itemId: newItem.id,
+              householdId,
+              action: 'created',
+              quantity: item.quantity || 1,
+              userId,
+            },
+          });
+
           results.itemsProcessed++;
         } catch (e) {
           logger.warn({ item: item.name, error: e.message }, 'Failed to add item');
@@ -199,8 +211,19 @@ async function executeIntent(intent, householdId, userId) {
             continue;
           }
 
-          const consumeQuantity = item.quantity || inventoryItem.quantity;
-          const remaining = inventoryItem.quantity - consumeQuantity;
+          const consumeQuantity = item.quantity || Number(inventoryItem.quantity);
+          const remaining = Number(inventoryItem.quantity) - consumeQuantity;
+
+          // Log consumption first (before potential deletion)
+          await prisma.itemHistory.create({
+            data: {
+              itemId: inventoryItem.id,
+              householdId,
+              action: 'consumed',
+              quantity: consumeQuantity,
+              userId,
+            },
+          });
 
           if (remaining <= 0) {
             // Delete the item entirely
@@ -214,15 +237,6 @@ async function executeIntent(intent, householdId, userId) {
               data: { quantity: remaining },
             });
           }
-
-          // Log consumption
-          await prisma.consumptionLog.create({
-            data: {
-              itemId: inventoryItem.id,
-              quantity: consumeQuantity,
-              userId,
-            },
-          });
 
           results.itemsProcessed++;
         } catch (e) {
@@ -248,8 +262,20 @@ async function executeIntent(intent, householdId, userId) {
             continue;
           }
 
-          const wasteQuantity = item.quantity || inventoryItem.quantity;
-          const remaining = inventoryItem.quantity - wasteQuantity;
+          const wasteQuantity = item.quantity || Number(inventoryItem.quantity);
+          const remaining = Number(inventoryItem.quantity) - wasteQuantity;
+
+          // Log waste first (before potential deletion)
+          await prisma.itemHistory.create({
+            data: {
+              itemId: inventoryItem.id,
+              householdId,
+              action: 'wasted',
+              quantity: wasteQuantity,
+              reason: item.reason || 'expired',
+              userId,
+            },
+          });
 
           if (remaining <= 0) {
             // Delete the item entirely
@@ -263,16 +289,6 @@ async function executeIntent(intent, householdId, userId) {
               data: { quantity: remaining },
             });
           }
-
-          // Log waste
-          await prisma.wasteLog.create({
-            data: {
-              itemId: inventoryItem.id,
-              quantity: wasteQuantity,
-              reason: item.reason || 'expired',
-              userId,
-            },
-          });
 
           results.itemsProcessed++;
         } catch (e) {
@@ -294,7 +310,7 @@ async function executeIntent(intent, householdId, userId) {
  * Simple chat endpoint for testing/debugging
  * Does NOT execute actions, just returns parsed intent
  */
-router.post('/chat', authenticateToken, async (req, res) => {
+router.post('/chat', authMiddleware, async (req, res) => {
   try {
     const { message, householdId } = req.body;
 

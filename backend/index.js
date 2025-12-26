@@ -24,6 +24,7 @@ const dashboardRoutes = require('./dashboardRoutes');
 const notificationRoutes = require('./notificationRoutes');
 const shoppingListRoutes = require('./shoppingListRoutes');
 const llmRoutes = require('./llmRoutes');
+const telegramRoutes = require('./telegramRoutes');
 const { initializeSocket } = require('./socket');
 const { prisma } = require('./repositories');
 
@@ -103,6 +104,9 @@ app.use('/api/v1/households', (req, res, next) => {
 
 // LLM routes for conversational inventory management
 app.use('/api/v1/llm', llmRoutes);
+
+// Telegram bot routes
+app.use('/api/v1/telegram', telegramRoutes);
 
 // Test utilities (only in non-production)
 if (process.env.NODE_ENV !== 'production') {

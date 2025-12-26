@@ -34,6 +34,7 @@ model User {
   activityLogs               ActivityLog[]
   invitationsSent            Invitation[]            @relation("InvitationSender")
   refreshTokens              RefreshToken[]
+  telegramLinks              TelegramLink[]
 
   @@index([normalizedEmail])
   @@map("users")
@@ -285,4 +286,24 @@ model ActivityLog {
   @@index([householdId, timestamp(sort: Desc)])
   @@index([entityType, entityId])
   @@map("activity_logs")
+}
+
+// ==================== TELEGRAM LINKS ====================
+model TelegramLink {
+  id             String    @id @default(uuid())
+  code           String    @unique
+  userId         String    @map("user_id")
+  telegramId     String?   @map("telegram_id")
+  telegramChatId String?   @map("telegram_chat_id")
+  used           Boolean   @default(false)
+  expiresAt      DateTime  @map("expires_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([code])
+  @@index([userId])
+  @@index([telegramId])
+  @@map("telegram_links")
 }
