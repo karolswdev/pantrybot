@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Mic, Sparkles, ChefHat, ShoppingBag, Trash2, X, Check, AlertCircle } from 'lucide-react';
+import { Send, Sparkles, ChefHat, ShoppingBag, Trash2, X, Check, AlertCircle } from 'lucide-react';
 import { useProcessMessage, useLLMStatus } from '@/hooks/mutations/useLLMChat';
 import { useAuthStore } from '@/stores/auth.store';
 import { cn } from '@/lib/utils';
+import { VoiceInputButton, VoiceRecordingIndicator } from './VoiceInputButton';
 
 interface ChatInputProps {
   className?: string;
@@ -32,6 +33,8 @@ export function ChatInput({ className, onSuccess }: ChatInputProps) {
   const [isFocused, setIsFocused] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [responses, setResponses] = useState<ResponseBubble[]>([]);
+  const [isRecording, setIsRecording] = useState(false);
+  const [interimTranscript, setInterimTranscript] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -66,7 +69,7 @@ export function ChatInput({ className, onSuccess }: ChatInputProps) {
     setResponses(prev => [...prev, { ...response, id }]);
   }, []);
 
-  const handleSubmit = async (text?: string) => {
+  const handleSubmit = useCallback(async (text?: string) => {
     const messageToSend = text || message.trim();
     if (!messageToSend || !currentHouseholdId) return;
 
@@ -127,25 +130,43 @@ export function ChatInput({ className, onSuccess }: ChatInputProps) {
         type: 'error',
       });
     }
-  };
+  }, [message, currentHouseholdId, processMessage, addResponse, onSuccess]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
     }
-  };
+  }, [handleSubmit]);
 
-  const handleSuggestionClick = (suggestion: string) => {
+  const handleSuggestionClick = useCallback((suggestion: string) => {
     setMessage(suggestion);
     inputRef.current?.focus();
     // Auto-submit after a brief moment
     setTimeout(() => handleSubmit(suggestion), 100);
-  };
+  }, [handleSubmit]);
 
   const dismissResponse = (id: string) => {
     setResponses(prev => prev.filter(r => r.id !== id));
   };
+
+  // Voice input handlers
+  const handleVoiceTranscript = useCallback((transcript: string) => {
+    setInterimTranscript('');
+    // Auto-submit the voice transcript
+    handleSubmit(transcript);
+  }, [handleSubmit]);
+
+  const handleRecordingChange = useCallback((recording: boolean) => {
+    setIsRecording(recording);
+    if (!recording) {
+      setInterimTranscript('');
+    }
+  }, []);
+
+  const handleInterimTranscript = useCallback((transcript: string) => {
+    setInterimTranscript(transcript);
+  }, []);
 
   if (!isAvailable) {
     return null; // Don't show if LLM is not configured
@@ -226,8 +247,18 @@ export function ChatInput({ className, onSuccess }: ChatInputProps) {
         ))}
       </div>
 
+      {/* Voice Recording Indicator */}
+      {(isRecording || interimTranscript) && (
+        <div className="absolute bottom-full left-0 right-0 mb-3 px-2">
+          <VoiceRecordingIndicator
+            isRecording={isRecording}
+            transcript={interimTranscript}
+          />
+        </div>
+      )}
+
       {/* Suggestions */}
-      {showSuggestions && (
+      {showSuggestions && !isRecording && (
         <div className="absolute bottom-full left-0 right-0 mb-3 px-2">
           <div className="bg-white/80 backdrop-blur-md rounded-2xl border-2 border-primary-100 shadow-playful-lg p-3 animate-scale-in">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-1">
@@ -278,17 +309,12 @@ export function ChatInput({ className, onSuccess }: ChatInputProps) {
         )}
 
         {/* Microphone Button */}
-        <button
-          type="button"
-          className={cn(
-            'relative flex-shrink-0 p-3 rounded-full transition-all duration-200',
-            'bg-gray-100 text-gray-400 hover:bg-primary-100 hover:text-primary-600',
-            'hover:scale-110 active:scale-95',
-          )}
-          title="Voice input coming soon!"
-        >
-          <Mic className="w-5 h-5" />
-        </button>
+        <VoiceInputButton
+          onTranscript={handleVoiceTranscript}
+          onRecordingChange={handleRecordingChange}
+          onInterimTranscript={handleInterimTranscript}
+          disabled={processMessage.isPending}
+        />
 
         {/* Text Input */}
         <input
