@@ -9,7 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useNotificationStore } from '@/stores/notifications.store';
-import { Loader2, Bell, Mail, Send, Settings, Clock, Calendar, ShoppingCart, Users, Sparkles, Bot, Check } from 'lucide-react';
+import { Loader2, Bell, Mail, Send, Settings, Clock, Calendar, ShoppingCart, Users, Sparkles, Bot, Check, ExternalLink } from 'lucide-react';
+import { TelegramIcon, TelegramBrandIcon } from '@/components/icons';
 import {
   Dialog,
   DialogContent,
@@ -485,17 +486,17 @@ export default function NotificationSettingsPage() {
       </Card>
 
       {/* Telegram Bot */}
-      <Card className="mb-6 rounded-3xl border-2 border-fresh-200 shadow-playful hover:shadow-playful-lg transition-all duration-300 overflow-hidden animate-bounce-in" style={{ animationDelay: '0.2s' }}>
-        <CardHeader className="bg-gradient-to-r from-fresh-50 to-fresh-100/50 border-b border-fresh-200">
+      <Card className="mb-6 rounded-3xl border-2 border-[#2AABEE]/30 shadow-playful hover:shadow-playful-lg transition-all duration-300 overflow-hidden animate-bounce-in" style={{ animationDelay: '0.2s' }}>
+        <CardHeader className="bg-gradient-to-r from-[#2AABEE]/10 to-[#1E96C8]/10 border-b border-[#2AABEE]/20">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white rounded-xl shadow-sm">
-              <span className="text-2xl">✈️</span>
+            <div className="p-2.5 bg-white rounded-xl shadow-sm">
+              <TelegramBrandIcon size={28} />
             </div>
             <div>
               <CardTitle className="text-lg text-gray-800 flex items-center gap-2">
                 Telegram Bot
                 {telegramLinkStatus?.linked && (
-                  <span className="px-2 py-0.5 bg-primary-100 text-primary-700 text-xs font-semibold rounded-full">
+                  <span className="px-2 py-0.5 bg-[#2AABEE]/15 text-[#1E96C8] text-xs font-semibold rounded-full">
                     Connected
                   </span>
                 )}
@@ -511,16 +512,24 @@ export default function NotificationSettingsPage() {
         <CardContent className="pt-6">
           {telegramLinkStatus?.linked ? (
             <div className="space-y-4">
-              <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-primary-50 to-fresh-50 rounded-2xl border border-primary-100">
+              <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-[#2AABEE]/10 to-[#1E96C8]/5 rounded-2xl border border-[#2AABEE]/20">
                 <div className="p-3 bg-white rounded-full shadow-sm">
-                  <Bot className="h-8 w-8 text-fresh-500" />
+                  <TelegramBrandIcon size={32} />
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium text-gray-800">You&apos;re all set! 🎉</p>
+                  <p className="font-medium text-gray-800">You&apos;re all set!</p>
                   <p className="text-sm text-gray-500">
-                    Chat with @PantrybotBot to manage your inventory with natural language.
+                    Chat with <span className="font-medium text-[#2AABEE]">@PantrybotBot</span> to manage your inventory.
                   </p>
                 </div>
+                <a
+                  href="https://t.me/PantrybotBot"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 hover:bg-[#2AABEE]/10 rounded-lg transition-colors"
+                >
+                  <ExternalLink className="h-5 w-5 text-[#2AABEE]" />
+                </a>
               </div>
               <div className="flex justify-center">
                 <Button
@@ -542,14 +551,14 @@ export default function NotificationSettingsPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Playful bot illustration */}
+              {/* Telegram bot illustration with official branding */}
               <div className="flex justify-center">
                 <div className="relative">
-                  <div className="w-24 h-24 bg-gradient-to-br from-fresh-400 to-fresh-600 rounded-3xl rotate-3 flex items-center justify-center shadow-lg animate-float">
-                    <Bot className="h-12 w-12 text-white" />
+                  <div className="w-24 h-24 bg-gradient-to-br from-[#37AEE2] to-[#1E96C8] rounded-3xl rotate-3 flex items-center justify-center shadow-lg shadow-[#2AABEE]/30 animate-float">
+                    <TelegramIcon size={48} className="text-white" />
                   </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-warning-400 rounded-full flex items-center justify-center shadow-md animate-bounce">
-                    <Send className="h-4 w-4 text-white" />
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md animate-bounce border-2 border-[#2AABEE]">
+                    <Send className="h-4 w-4 text-[#2AABEE]" />
                   </div>
                 </div>
               </div>
@@ -561,7 +570,7 @@ export default function NotificationSettingsPage() {
                   onClick={handleGenerateLinkCode}
                   disabled={generateLinkCode.isPending}
                   type="button"
-                  className="bg-gradient-to-r from-fresh-500 to-fresh-600 hover:from-fresh-600 hover:to-fresh-700 text-white font-semibold px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-200"
+                  className="bg-gradient-to-r from-[#37AEE2] to-[#1E96C8] hover:from-[#2AABEE] hover:to-[#1A8ABB] text-white font-semibold px-6 py-3 rounded-2xl shadow-lg shadow-[#2AABEE]/30 hover:shadow-xl hover:-translate-y-1 transition-all duration-200"
                 >
                   {generateLinkCode.isPending ? (
                     <>
@@ -570,7 +579,7 @@ export default function NotificationSettingsPage() {
                     </>
                   ) : (
                     <>
-                      <Send className="h-4 w-4 mr-2" />
+                      <TelegramIcon size={18} className="mr-2" />
                       Connect with Telegram
                     </>
                   )}
@@ -679,15 +688,15 @@ export default function NotificationSettingsPage() {
 
       {/* Telegram Link Modal */}
       <Dialog open={telegramModalOpen} onOpenChange={setTelegramModalOpen}>
-        <DialogContent className="rounded-3xl border-2 border-fresh-200 shadow-playful-xl backdrop-blur-sm bg-white/95">
+        <DialogContent className="rounded-3xl border-2 border-[#2AABEE]/30 shadow-playful-xl backdrop-blur-sm bg-white/95">
           <DialogHeader>
             <div className="flex justify-center mb-4">
-              <div className="p-4 bg-gradient-to-br from-fresh-400 to-fresh-600 rounded-2xl shadow-lg animate-bounce-in">
-                <Bot className="h-10 w-10 text-white" />
+              <div className="p-4 bg-gradient-to-br from-[#37AEE2] to-[#1E96C8] rounded-2xl shadow-lg shadow-[#2AABEE]/30 animate-bounce-in">
+                <TelegramIcon size={40} className="text-white" />
               </div>
             </div>
             <DialogTitle className="text-center text-xl font-bold text-gray-800">
-              Connect Telegram Account ✈️
+              Connect Telegram Account
             </DialogTitle>
             <DialogDescription className="text-center">
               Follow these simple steps to link your account:
@@ -697,16 +706,27 @@ export default function NotificationSettingsPage() {
           <div className="py-4">
             <ol className="space-y-3">
               {[
-                { step: 1, text: 'Open Telegram and search for @PantrybotBot', emoji: '🔍' },
-                { step: 2, text: 'Start a conversation with the bot', emoji: '💬' },
-                { step: 3, text: 'Send the command below to link your account', emoji: '🔗' },
-              ].map(({ step, text, emoji }) => (
+                { step: 1, text: 'Open Telegram and search for', highlight: '@PantrybotBot' },
+                { step: 2, text: 'Start a conversation with the bot', highlight: null },
+                { step: 3, text: 'Send the command below to link your account', highlight: null },
+              ].map(({ step, text, highlight }) => (
                 <li key={step} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                  <span className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-fresh-400 to-fresh-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                  <span className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-[#37AEE2] to-[#1E96C8] text-white rounded-full flex items-center justify-center font-bold text-sm shadow-sm">
                     {step}
                   </span>
-                  <span className="text-gray-700">{text}</span>
-                  <span className="ml-auto text-lg">{emoji}</span>
+                  <span className="text-gray-700">
+                    {text} {highlight && <span className="font-semibold text-[#2AABEE]">{highlight}</span>}
+                  </span>
+                  {step === 1 && (
+                    <a
+                      href="https://t.me/PantrybotBot"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-auto p-1.5 hover:bg-[#2AABEE]/10 rounded-lg transition-colors"
+                    >
+                      <ExternalLink className="h-4 w-4 text-[#2AABEE]" />
+                    </a>
+                  )}
                 </li>
               ))}
             </ol>
@@ -719,7 +739,7 @@ export default function NotificationSettingsPage() {
               </Label>
               <div
                 onClick={copyLinkCode}
-                className="flex items-center justify-between p-4 bg-gradient-to-r from-fresh-50 to-primary-50 rounded-xl border-2 border-fresh-200 cursor-pointer hover:border-fresh-400 transition-colors group"
+                className="flex items-center justify-between p-4 bg-gradient-to-r from-[#2AABEE]/10 to-[#1E96C8]/5 rounded-xl border-2 border-[#2AABEE]/30 cursor-pointer hover:border-[#2AABEE] transition-colors group"
               >
                 <code className="text-lg font-mono font-bold text-gray-800">
                   /link {linkCode}
@@ -727,7 +747,7 @@ export default function NotificationSettingsPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-fresh-600 hover:text-fresh-700 hover:bg-fresh-100"
+                  className="text-[#2AABEE] hover:text-[#1E96C8] hover:bg-[#2AABEE]/10"
                 >
                   Copy
                 </Button>
@@ -754,7 +774,7 @@ export default function NotificationSettingsPage() {
             <Button
               onClick={copyLinkCode}
               disabled={!linkCode}
-              className="bg-gradient-to-r from-fresh-500 to-fresh-600 hover:from-fresh-600 hover:to-fresh-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex-1"
+              className="bg-gradient-to-r from-[#37AEE2] to-[#1E96C8] hover:from-[#2AABEE] hover:to-[#1A8ABB] text-white font-semibold rounded-xl shadow-lg shadow-[#2AABEE]/30 hover:shadow-xl transition-all duration-200 flex-1"
             >
               <Check className="mr-2 h-4 w-4" />
               Copy Command
