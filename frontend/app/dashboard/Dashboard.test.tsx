@@ -14,8 +14,8 @@ jest.mock('@/components/dashboard/StatCard', () => ({
   ),
 }));
 
-jest.mock('@/components/dashboard/ExpiringItemsList', () => ({
-  ExpiringItemsList: ({ items, loading }: { items: Array<{ id: string; name: string }>; loading: boolean }) => {
+jest.mock('@/components/dashboard/ExpiringItemsHero', () => ({
+  ExpiringItemsHero: ({ items, loading }: { items: Array<{ id: string; name: string }>; loading: boolean }) => {
     if (loading) {
       return <div data-testid="expiring-items-loading">Loading expiring items...</div>;
     }
