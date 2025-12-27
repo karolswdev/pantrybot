@@ -445,10 +445,10 @@ class LLMRecipeService implements RecipeService {
 - [x] Add recipe routes (/api/v1/recipes/*)
 - [x] Create RecipeCard and RecipeSuggestions components
 
-### Phase 4: Voice Input (Week 4-5) - NOT STARTED
-- [ ] Add Web Speech API integration to PWA
-- [ ] Create voice input UI component
-- [ ] Implement real-time transcription display
+### Phase 4: Voice Input (Week 4-5) - COMPLETED
+- [x] Add Web Speech API integration to PWA (useVoiceInput hook)
+- [x] Create voice input UI component (VoiceInputButton with waveform animation)
+- [x] Implement real-time transcription display (VoiceRecordingIndicator)
 
 ## References
 
