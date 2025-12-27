@@ -166,6 +166,8 @@ Backend:
 - `OPENAI_API_KEY` - OpenAI API key (optional)
 - `ANTHROPIC_API_KEY` - Anthropic API key (optional)
 - `OLLAMA_BASE_URL` - Ollama server URL (optional)
+- `OLLAMA_API_KEY` - Ollama API key for authenticated endpoints (optional)
+- `OLLAMA_MODEL` - Default Ollama model (default: llama3.2)
 - `LLM_PROVIDER` - Default LLM provider (openai/anthropic/ollama)
 - `SPOONACULAR_API_KEY` - Spoonacular recipe API key (optional)
 - `TELEGRAM_BOT_TOKEN` - Telegram bot token (optional)

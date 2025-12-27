@@ -16,6 +16,7 @@ class OllamaProvider extends BaseLLMProvider {
   /**
    * @param {Object} config
    * @param {string} [config.baseUrl] - Ollama API base URL
+   * @param {string} [config.apiKey] - API key for authenticated endpoints
    * @param {string} [config.defaultModel] - Default model to use
    * @param {number} [config.timeout] - Request timeout in ms
    */
@@ -23,8 +24,23 @@ class OllamaProvider extends BaseLLMProvider {
     super('ollama', config);
 
     this.baseUrl = config.baseUrl || DEFAULT_BASE_URL;
+    this.apiKey = config.apiKey || null;
     this.defaultModel = config.defaultModel || DEFAULT_MODEL;
     this.timeout = config.timeout || DEFAULT_TIMEOUT;
+  }
+
+  /**
+   * Get headers for API requests
+   * @returns {Object}
+   */
+  _getHeaders() {
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    if (this.apiKey) {
+      headers['Authorization'] = `Bearer ${this.apiKey}`;
+    }
+    return headers;
   }
 
   /**
@@ -68,9 +84,7 @@ class OllamaProvider extends BaseLLMProvider {
     try {
       const response = await fetch(`${this.baseUrl}/api/chat`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this._getHeaders(),
         body: JSON.stringify(requestBody),
         signal: controller.signal,
       });
@@ -145,9 +159,7 @@ class OllamaProvider extends BaseLLMProvider {
 
     const response = await fetch(`${this.baseUrl}/api/chat`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: this._getHeaders(),
       body: JSON.stringify(requestBody),
     });
 
@@ -213,6 +225,7 @@ class OllamaProvider extends BaseLLMProvider {
     try {
       const response = await fetch(`${this.baseUrl}/api/tags`, {
         method: 'GET',
+        headers: this._getHeaders(),
       });
       return response.ok;
     } catch {
@@ -226,7 +239,9 @@ class OllamaProvider extends BaseLLMProvider {
    */
   async listModels() {
     try {
-      const response = await fetch(`${this.baseUrl}/api/tags`);
+      const response = await fetch(`${this.baseUrl}/api/tags`, {
+        headers: this._getHeaders(),
+      });
       if (!response.ok) return [];
 
       const data = await response.json();
@@ -245,9 +260,7 @@ class OllamaProvider extends BaseLLMProvider {
     try {
       const response = await fetch(`${this.baseUrl}/api/pull`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this._getHeaders(),
         body: JSON.stringify({ name: modelName, stream: false }),
       });
       return response.ok;

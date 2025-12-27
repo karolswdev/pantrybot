@@ -42,11 +42,12 @@ function createProvider(config = {}) {
   // Auto-detect based on available credentials
   // Priority: Ollama (local) > Anthropic > OpenAI
 
-  // Check Ollama first (privacy-first, no API key needed)
+  // Check Ollama first (privacy-first, works with local or remote with API key)
   if (process.env.OLLAMA_BASE_URL) {
     logger.info({ provider: 'ollama', baseUrl: process.env.OLLAMA_BASE_URL }, 'Using Ollama provider');
     return new OllamaProvider({
       baseUrl: config.baseUrl || process.env.OLLAMA_BASE_URL,
+      apiKey: config.apiKey || process.env.OLLAMA_API_KEY,
       defaultModel: config.model || process.env.OLLAMA_MODEL || 'llama3.2',
     });
   }
@@ -107,6 +108,7 @@ function createSpecificProvider(providerName, config = {}) {
     case 'ollama':
       return new OllamaProvider({
         baseUrl: config.baseUrl || process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
+        apiKey: config.apiKey || process.env.OLLAMA_API_KEY,
         defaultModel: config.model || process.env.OLLAMA_MODEL,
       });
 
