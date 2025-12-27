@@ -819,6 +819,281 @@ Response: 200 OK
 }
 ```
 
+## LLM (Natural Language Processing) Endpoints
+
+### Get LLM Status
+```http
+GET /api/v1/llm/status
+
+Response: 200 OK
+{
+  "available": true,
+  "configured": true,
+  "provider": "ollama",
+  "source": "env"
+}
+
+// When not configured:
+{
+  "available": false,
+  "message": "No LLM provider configured",
+  "hint": "Set OPENAI_API_KEY, ANTHROPIC_API_KEY, or OLLAMA_BASE_URL"
+}
+```
+
+### Process Natural Language Message
+```http
+POST /api/v1/llm/process
+
+Headers:
+Authorization: Bearer <token>
+
+Request:
+{
+  "message": "I bought milk and eggs from the store",
+  "householdId": "550e8400-e29b-41d4-a716-446655440002",
+  "executeActions": true
+}
+
+Response: 200 OK
+{
+  "intent": {
+    "action": "add",
+    "items": [
+      { "name": "milk", "quantity": 1, "unit": "item", "location": "fridge", "expirationDays": 7 },
+      { "name": "eggs", "quantity": 1, "unit": "dozen", "location": "fridge", "expirationDays": 21 }
+    ],
+    "response": "Got it! I've added milk and eggs to your fridge."
+  },
+  "executed": true,
+  "result": {
+    "action": "add",
+    "itemsProcessed": 2,
+    "errors": []
+  },
+  "recipes": null
+}
+
+Errors:
+- 400: Message or householdId missing
+- 403: Not a member of this household
+- 503: LLM not configured
+```
+
+### Chat (Debug/Test Endpoint)
+```http
+POST /api/v1/llm/chat
+
+Headers:
+Authorization: Bearer <token>
+
+Request:
+{
+  "message": "What can I make for dinner?",
+  "householdId": "550e8400-e29b-41d4-a716-446655440002"
+}
+
+Response: 200 OK
+{
+  "message": "What can I make for dinner?",
+  "intent": {
+    "action": "recipe",
+    "response": "Based on your inventory, here are some recipe ideas..."
+  },
+  "response": "Based on your inventory, here are some recipe ideas..."
+}
+```
+
+## Recipe Endpoints
+
+### Get Recipe Service Status
+```http
+GET /api/v1/recipes/status
+
+Response: 200 OK
+{
+  "available": true,
+  "provider": "spoonacular"
+}
+```
+
+### Get Recipe Suggestions
+```http
+GET /api/v1/recipes/suggestions/{householdId}
+
+Headers:
+Authorization: Bearer <token>
+
+Query Parameters:
+- count: number (default: 5, max: 10)
+- prioritizeExpiring: boolean (default: true)
+
+Response: 200 OK
+{
+  "recipes": [
+    {
+      "id": 123456,
+      "title": "Pasta with Tomatoes",
+      "image": "https://spoonacular.com/...",
+      "usedIngredientCount": 3,
+      "missedIngredientCount": 1,
+      "usedIngredients": ["pasta", "tomatoes", "garlic"],
+      "missedIngredients": ["basil"],
+      "likes": 100
+    }
+  ],
+  "provider": "spoonacular",
+  "inventoryCount": 15
+}
+
+Errors:
+- 403: Not a member of this household
+- 503: Recipe service not available
+```
+
+### Get Recipes for Expiring Items
+```http
+GET /api/v1/recipes/expiring/{householdId}
+
+Headers:
+Authorization: Bearer <token>
+
+Query Parameters:
+- days: number (default: 3) - Days threshold for expiring items
+- count: number (default: 3)
+
+Response: 200 OK
+{
+  "recipes": [...],
+  "provider": "spoonacular",
+  "expiringItems": [
+    { "name": "Milk", "expirationDate": "2024-01-20" }
+  ],
+  "expiringCount": 3
+}
+```
+
+### Get Recipe Details
+```http
+GET /api/v1/recipes/{recipeId}
+
+Headers:
+Authorization: Bearer <token>
+
+Response: 200 OK
+{
+  "id": 123456,
+  "title": "Pasta with Tomatoes",
+  "image": "https://...",
+  "readyInMinutes": 30,
+  "servings": 4,
+  "sourceUrl": "https://...",
+  "summary": "A delicious pasta dish...",
+  "cuisines": ["Italian"],
+  "dishTypes": ["main course"],
+  "diets": ["vegetarian"],
+  "extendedIngredients": [
+    { "name": "pasta", "amount": 200, "unit": "g", "original": "200g pasta" }
+  ],
+  "instructions": "Cook the pasta..."
+}
+
+Errors:
+- 400: LLM-generated recipes don't have detailed views
+- 503: Spoonacular not configured
+```
+
+### Natural Language Recipe Query
+```http
+POST /api/v1/recipes/query
+
+Headers:
+Authorization: Bearer <token>
+
+Request:
+{
+  "query": "What can I make with chicken and rice?",
+  "householdId": "550e8400-e29b-41d4-a716-446655440002"
+}
+
+Response: 200 OK
+{
+  "response": "Based on your inventory, here are 3 recipes...",
+  "recipes": [...],
+  "expiringNote": "These recipes use your milk that expires tomorrow"
+}
+```
+
+## Telegram Bot Endpoints
+
+### Get Telegram Bot Status
+```http
+GET /api/v1/telegram/status
+
+Response: 200 OK
+{
+  "configured": true,
+  "bot": {
+    "id": 123456789,
+    "username": "PantrybotBot",
+    "firstName": "Pantrybot"
+  }
+}
+```
+
+### Webhook (Internal)
+```http
+POST /api/v1/telegram/webhook
+
+Request: Telegram Update object
+
+Response: 200 OK
+```
+
+### Generate Link Code
+```http
+POST /api/v1/telegram/generate-link-code
+
+Headers:
+Authorization: Bearer <token>
+
+Response: 200 OK
+{
+  "code": "ABC12345",
+  "expiresAt": "2024-01-15T10:10:00Z",
+  "instructions": "Send this code to @PantrybotBot on Telegram: /link ABC12345"
+}
+```
+
+### Get Link Status
+```http
+GET /api/v1/telegram/link-status
+
+Headers:
+Authorization: Bearer <token>
+
+Response: 200 OK
+{
+  "linked": true,
+  "telegramId": "123456789",
+  "linkedAt": "2024-01-15T00:00:00Z"
+}
+```
+
+### Unlink Telegram Account
+```http
+DELETE /api/v1/telegram/unlink
+
+Headers:
+Authorization: Bearer <token>
+
+Response: 200 OK
+{
+  "success": true,
+  "message": "Telegram account unlinked"
+}
+```
+
 ## Shopping List Endpoints
 
 ### List Shopping Lists
@@ -897,6 +1172,393 @@ Response: 201 Created
   "addedAt": "2024-01-15T00:00:00Z",
   "addedBy": "John Doe"
 }
+```
+
+## LLM Endpoints
+
+### Get LLM Status
+```http
+GET /api/v1/llm/status
+
+Headers:
+Authorization: Bearer <token>
+
+Response: 200 OK
+{
+  "available": true,
+  "provider": "ollama",
+  "model": "llama3.2"
+}
+
+Response (when not configured): 200 OK
+{
+  "available": false
+}
+```
+
+### Process Natural Language Command
+```http
+POST /api/v1/llm/process
+
+Headers:
+Authorization: Bearer <token>
+
+Request:
+{
+  "message": "I bought 2 gallons of milk and a dozen eggs",
+  "householdId": "550e8400-e29b-41d4-a716-446655440002"
+}
+
+Response: 200 OK
+{
+  "intent": {
+    "action": "add",
+    "items": [
+      {
+        "name": "Milk",
+        "quantity": 2,
+        "unit": "gallon",
+        "category": "dairy"
+      },
+      {
+        "name": "Eggs",
+        "quantity": 12,
+        "unit": "piece",
+        "category": "dairy"
+      }
+    ],
+    "response": "Added 2 gallons of milk and 12 eggs to your inventory!"
+  },
+  "executed": true,
+  "result": {
+    "itemsProcessed": 2,
+    "errors": []
+  }
+}
+
+Response (clarification needed): 200 OK
+{
+  "intent": {
+    "action": "clarify",
+    "response": "I found multiple items matching 'milk'. Did you mean whole milk, skim milk, or almond milk?"
+  },
+  "executed": false
+}
+
+Errors:
+- 400: Invalid request format
+- 503: LLM service unavailable
+```
+
+### Chat Conversation
+```http
+POST /api/v1/llm/chat
+
+Headers:
+Authorization: Bearer <token>
+
+Request:
+{
+  "message": "What items are expiring soon?",
+  "householdId": "550e8400-e29b-41d4-a716-446655440002",
+  "conversationHistory": [
+    {
+      "role": "user",
+      "content": "Show me my fridge items"
+    },
+    {
+      "role": "assistant",
+      "content": "You have 15 items in your fridge..."
+    }
+  ]
+}
+
+Response: 200 OK
+{
+  "response": "You have 3 items expiring in the next 3 days:\n1. Milk - expires tomorrow\n2. Yogurt - expires in 2 days\n3. Cheese - expires in 3 days",
+  "intent": "query",
+  "data": {
+    "items": [...]
+  }
+}
+
+Errors:
+- 400: Invalid request format
+- 503: LLM service unavailable
+```
+
+## Recipe Endpoints
+
+### Get Recipe Service Status
+```http
+GET /api/v1/recipes/status
+
+Response: 200 OK
+{
+  "available": true,
+  "providers": ["spoonacular", "llm"],
+  "spoonacularConfigured": true,
+  "llmConfigured": true
+}
+```
+
+### Get Recipe Suggestions by Ingredients
+```http
+GET /api/v1/recipes/suggestions/{householdId}?limit=5&diet=vegetarian&cuisine=italian
+
+Headers:
+Authorization: Bearer <token>
+
+Query Parameters:
+- limit: number (optional, default: 5)
+- diet: string (optional) - vegetarian, vegan, gluten-free, etc.
+- cuisine: string (optional) - italian, mexican, asian, etc.
+
+Response: 200 OK
+{
+  "recipes": [
+    {
+      "id": "spoonacular_123456",
+      "title": "Pasta Primavera",
+      "image": "https://spoonacular.com/...",
+      "usedIngredients": ["tomatoes", "pasta", "olive oil"],
+      "missedIngredients": ["parmesan cheese"],
+      "likes": 142,
+      "sourceUrl": "https://...",
+      "readyInMinutes": 30,
+      "servings": 4
+    }
+  ],
+  "usedInventoryItems": ["Tomatoes", "Pasta", "Olive Oil"],
+  "provider": "spoonacular"
+}
+
+Errors:
+- 503: Recipe service unavailable
+```
+
+### Get Recipes for Expiring Items
+```http
+GET /api/v1/recipes/expiring/{householdId}?daysThreshold=3&limit=5
+
+Headers:
+Authorization: Bearer <token>
+
+Query Parameters:
+- daysThreshold: number (optional, default: 3) - Items expiring within N days
+- limit: number (optional, default: 5)
+
+Response: 200 OK
+{
+  "expiringItems": [
+    {
+      "id": "item123",
+      "name": "Milk",
+      "expirationDate": "2024-01-18",
+      "daysUntilExpiration": 2
+    }
+  ],
+  "recipes": [...],
+  "provider": "spoonacular"
+}
+
+Errors:
+- 503: Recipe service unavailable
+```
+
+### Get Recipe Details
+```http
+GET /api/v1/recipes/{recipeId}
+
+Headers:
+Authorization: Bearer <token>
+
+Response: 200 OK
+{
+  "id": "spoonacular_123456",
+  "title": "Pasta Primavera",
+  "image": "https://...",
+  "readyInMinutes": 30,
+  "servings": 4,
+  "sourceUrl": "https://...",
+  "summary": "A delicious spring pasta...",
+  "instructions": "1. Boil water...",
+  "extendedIngredients": [
+    {
+      "name": "pasta",
+      "amount": 1,
+      "unit": "pound"
+    }
+  ],
+  "nutrition": {
+    "calories": 450,
+    "protein": "12g",
+    "carbs": "65g",
+    "fat": "15g"
+  }
+}
+
+Errors:
+- 404: Recipe not found
+- 503: Recipe service unavailable
+```
+
+### Query Recipes with Natural Language
+```http
+POST /api/v1/recipes/query
+
+Headers:
+Authorization: Bearer <token>
+
+Request:
+{
+  "query": "Give me a quick dinner recipe using chicken and vegetables",
+  "householdId": "550e8400-e29b-41d4-a716-446655440002",
+  "preferences": {
+    "maxReadyTime": 30,
+    "diet": null,
+    "cuisine": null
+  }
+}
+
+Response: 200 OK
+{
+  "recipes": [...],
+  "suggestion": "Based on your inventory, I recommend Chicken Stir Fry which uses your chicken and bell peppers that are expiring soon.",
+  "provider": "llm"
+}
+
+Errors:
+- 400: Invalid query
+- 503: Service unavailable
+```
+
+## Telegram Bot Endpoints
+
+### Telegram Webhook
+```http
+POST /api/v1/telegram/webhook
+
+Headers:
+X-Telegram-Bot-Api-Secret-Token: <secret_token>
+
+Request: (Telegram Update object)
+{
+  "update_id": 123456789,
+  "message": {
+    "message_id": 1,
+    "from": {
+      "id": 123456,
+      "first_name": "John"
+    },
+    "chat": {
+      "id": 123456,
+      "type": "private"
+    },
+    "text": "/start"
+  }
+}
+
+Response: 200 OK
+(Empty response - Telegram expects 200 status)
+
+Errors:
+- 401: Invalid secret token
+```
+
+### Get Telegram Integration Status
+```http
+GET /api/v1/telegram/status
+
+Headers:
+Authorization: Bearer <token>
+
+Response: 200 OK
+{
+  "configured": true,
+  "webhookSet": true,
+  "linked": true,
+  "telegramChatId": "123456789"
+}
+
+Response (not linked): 200 OK
+{
+  "configured": true,
+  "webhookSet": true,
+  "linked": false
+}
+```
+
+### Setup Telegram Webhook
+```http
+POST /api/v1/telegram/setup-webhook
+
+Headers:
+Authorization: Bearer <token>
+
+Response: 200 OK
+{
+  "success": true,
+  "webhookUrl": "https://api.pantrybot.app/api/v1/telegram/webhook"
+}
+
+Errors:
+- 500: Failed to set webhook
+```
+
+### Generate Telegram Link Code
+```http
+POST /api/v1/telegram/generate-link-code
+
+Headers:
+Authorization: Bearer <token>
+
+Response: 200 OK
+{
+  "code": "ABC123",
+  "expiresAt": "2024-01-15T00:10:00Z",
+  "expiresInSeconds": 600
+}
+
+Notes:
+- Codes are 6 alphanumeric characters
+- Codes expire after 10 minutes
+- User sends /link <code> to bot to complete linking
+```
+
+### Get Telegram Link Status
+```http
+GET /api/v1/telegram/link-status
+
+Headers:
+Authorization: Bearer <token>
+
+Response: 200 OK
+{
+  "linked": true,
+  "linkedAt": "2024-01-10T00:00:00Z"
+}
+
+Response (not linked): 200 OK
+{
+  "linked": false
+}
+```
+
+### Unlink Telegram Account
+```http
+DELETE /api/v1/telegram/unlink
+
+Headers:
+Authorization: Bearer <token>
+
+Response: 200 OK
+{
+  "success": true
+}
+
+Errors:
+- 400: Account not linked
 ```
 
 ## WebSocket Events

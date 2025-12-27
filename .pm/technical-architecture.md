@@ -1,5 +1,9 @@
 # Technical Architecture Requirements
 
+> **Note**: This document was originally written as a specification for a .NET/C# backend.
+> The actual implementation uses **Node.js with Express.js**. See the "Actual Implementation"
+> section below for current technology choices.
+
 ## 1. Architecture Overview
 
 ### System Architecture Pattern
@@ -12,9 +16,120 @@ The system follows a **Modular Monolith** architecture with **Ports & Adapters (
 - **Dependency Inversion**: Core domain independent of infrastructure
 - **Clean Architecture**: Clear separation of concerns
 
-## 2. Technology Stack
+## Actual Implementation (Node.js)
 
-### Backend (.NET/C#)
+### Backend Stack (Implemented)
+- **Runtime**: Node.js 18+
+- **Framework**: Express.js
+- **ORM**: Prisma with PostgreSQL
+- **Real-time**: Socket.IO
+- **Authentication**: JWT with refresh token rotation
+- **Logging**: Pino (structured JSON logging)
+- **Metrics**: Prometheus with custom metrics middleware
+- **Testing**: Jest for unit tests, Cypress for E2E
+- **Validation**: Custom middleware with request validation
+
+### Frontend Stack (Implemented)
+- **Framework**: Next.js 14+ with App Router
+- **Language**: TypeScript
+- **UI Library**: React 18+
+- **State Management**: Zustand
+- **Styling**: Tailwind CSS with HeroUI components
+- **Real-time**: Socket.IO client
+- **Forms**: React Hook Form
+- **API Client**: Native fetch with interceptors
+- **Testing**: Jest, React Testing Library, Cypress E2E
+- **PWA**: Service workers for offline capabilities
+
+### LLM Integration Architecture (Implemented)
+
+#### Provider Abstraction
+```javascript
+// lib/llm/LLMProviderFactory.js
+class LLMProviderFactory {
+  create(config) {
+    switch (config.provider) {
+      case 'openai':    return new OpenAIProvider(config);
+      case 'anthropic': return new AnthropicProvider(config);
+      case 'ollama':    return new OllamaProvider(config);
+      default:          throw new Error(`Unknown provider: ${config.provider}`);
+    }
+  }
+}
+
+// Common interface for all providers
+class LLMProvider {
+  async generateCompletion(prompt, options) { /* ... */ }
+  async chat(messages, options) { /* ... */ }
+}
+```
+
+#### Intent Processing Pipeline
+```javascript
+// services/InventoryIntentProcessor.js
+class InventoryIntentProcessor {
+  constructor(llmProvider, inventoryRepository) {
+    this.llm = llmProvider;
+    this.inventory = inventoryRepository;
+  }
+
+  async parseIntent(message) {
+    // Uses LLM to extract structured intent from natural language
+    // Returns: { action: 'add'|'remove'|'query'|'clarify', items: [...], response: '...' }
+  }
+
+  async executeIntent(intent, householdId, userId) {
+    // Executes parsed intent against inventory
+    // Returns: { success: boolean, result: {...}, errors: [...] }
+  }
+}
+```
+
+#### Recipe Service Architecture
+```javascript
+// services/RecipeService.js
+class RecipeService {
+  constructor(spoonacularClient, llmProvider) {
+    this.spoonacular = spoonacularClient;
+    this.llm = llmProvider;
+  }
+
+  async suggestRecipes(ingredients, preferences) {
+    // Primary: Spoonacular API
+    // Fallback: LLM-generated suggestions
+  }
+
+  async getRecipesForExpiringItems(householdId, daysThreshold) {
+    // Fetches expiring items and suggests recipes
+  }
+}
+```
+
+### Voice Input Architecture (Implemented)
+
+```javascript
+// hooks/useVoiceInput.ts
+function useVoiceInput(onTranscript: (text: string) => void) {
+  // Uses Web Speech API (SpeechRecognition)
+  // Handles browser compatibility
+  // Provides: start(), stop(), isRecording, error
+}
+
+// components/chat/VoiceInputButton.tsx
+// - Visual feedback during recording
+// - Waveform animation
+// - Error handling for unsupported browsers
+```
+
+---
+
+## Original Specification (Reference)
+
+The sections below represent the original .NET/C# specification for reference purposes.
+
+## 2. Technology Stack (Original Spec)
+
+### Backend (.NET/C#) - Original Spec
 - **Framework**: .NET 8 (latest LTS)
 - **API**: ASP.NET Core Web API
 - **Real-time**: SignalR for WebSocket connections
@@ -28,7 +143,7 @@ The system follows a **Modular Monolith** architecture with **Ports & Adapters (
 - **Logging**: Serilog with structured logging
 - **Validation**: FluentValidation
 
-### Frontend (React/Next.js)
+### Frontend (React/Next.js) - Original Spec
 - **Framework**: Next.js 14+ with App Router
 - **Language**: TypeScript
 - **UI Library**: React 18+

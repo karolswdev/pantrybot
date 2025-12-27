@@ -26,11 +26,23 @@ backend/
 ├── shoppingListRoutes.js # Shopping list endpoints
 ├── notificationRoutes.js # Notification preferences
 ├── dashboardRoutes.js    # Dashboard/reports endpoints
+├── llmRoutes.js          # LLM processing endpoints
+├── recipeRoutes.js       # Recipe suggestions endpoints
+├── telegramRoutes.js     # Telegram bot integration
 ├── socket.js             # WebSocket handlers
 ├── authMiddleware.js     # JWT authentication middleware
 ├── lib/
 │   ├── logger.js         # Pino structured logging
-│   └── metrics.js        # Prometheus metrics
+│   ├── metrics.js        # Prometheus metrics
+│   └── llm/              # LLM provider implementations
+│       ├── LLMProviderFactory.js
+│       ├── OpenAIProvider.js
+│       ├── AnthropicProvider.js
+│       └── OllamaProvider.js
+├── services/
+│   ├── InventoryIntentProcessor.js  # NL command parsing
+│   ├── RecipeService.js             # Recipe suggestions
+│   └── TelegramService.js           # Telegram bot service
 ├── middleware/
 │   ├── requestLogger.js  # HTTP request logging
 │   ├── errorHandler.js   # Global error handling
@@ -41,10 +53,33 @@ backend/
 
 frontend/
 ├── app/                  # Next.js app router pages
+│   ├── dashboard/        # Main dashboard page
+│   ├── inventory/        # Inventory management
+│   ├── shopping-list/    # Shopping lists
+│   ├── settings/         # User settings
+│   │   ├── notifications/  # Notification preferences
+│   │   └── telegram/       # Telegram integration
+│   └── recipes/          # Recipe suggestions
 ├── components/           # React components
+│   ├── chat/             # Chat UI components
+│   │   ├── ChatInput.tsx         # Message input with voice
+│   │   ├── ConversationalChatUI.tsx
+│   │   └── VoiceInputButton.tsx  # Voice recording
+│   ├── dashboard/        # Dashboard widgets
+│   │   ├── ExpiringItemsHero.tsx
+│   │   └── InventoryOverview.tsx
+│   └── recipes/          # Recipe components
+│       ├── RecipeCard.tsx
+│       └── RecipeSuggestions.tsx
 ├── hooks/                # Custom React hooks
+│   ├── useVoiceInput.ts  # Web Speech API hook
+│   ├── useLLMStatus.ts   # LLM availability
+│   ├── useRecipes.ts     # Recipe fetching
+│   └── useTelegram.ts    # Telegram integration
 ├── stores/               # Zustand state stores
 ├── lib/                  # Utilities and services
+│   ├── api.ts            # API client
+│   └── llmApi.ts         # LLM-specific API calls
 └── cypress/              # E2E tests
 
 observability/            # Prometheus, Grafana, Loki configs
@@ -95,6 +130,9 @@ Key endpoints:
 - `/households/{id}/items/*` - Inventory management
 - `/notifications/*` - Notification preferences
 - `/dashboard/*` - Dashboard statistics and reports
+- `/llm/*` - LLM processing (status, process, chat)
+- `/recipes/*` - Recipe suggestions and queries
+- `/telegram/*` - Telegram bot integration
 - `/health` - Health check endpoint
 - `/ready` - Kubernetes readiness probe
 - `/metrics` - Prometheus metrics endpoint
@@ -125,6 +163,13 @@ Backend:
 - `NODE_ENV` - Environment (development/production)
 - `JWT_SECRET` - JWT signing secret
 - `LOG_LEVEL` - Logging level (debug/info/warn/error)
+- `OPENAI_API_KEY` - OpenAI API key (optional)
+- `ANTHROPIC_API_KEY` - Anthropic API key (optional)
+- `OLLAMA_BASE_URL` - Ollama server URL (optional)
+- `LLM_PROVIDER` - Default LLM provider (openai/anthropic/ollama)
+- `SPOONACULAR_API_KEY` - Spoonacular recipe API key (optional)
+- `TELEGRAM_BOT_TOKEN` - Telegram bot token (optional)
+- `TELEGRAM_WEBHOOK_SECRET` - Telegram webhook secret (optional)
 
 Frontend (.env.local):
 - `NEXT_PUBLIC_API_URL` - Backend API URL
