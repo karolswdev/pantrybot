@@ -428,6 +428,21 @@ class InventoryIntentProcessor {
    * @returns {ParsedItem[]}
    */
   _normalizeItems(items, isWaste = false) {
+    // Handle case where items is a JSON string (Ollama sometimes double-serializes)
+    if (typeof items === 'string') {
+      try {
+        items = JSON.parse(items);
+      } catch (e) {
+        logger.warn({ items }, 'Failed to parse items JSON string');
+        return [];
+      }
+    }
+
+    // Ensure items is an array
+    if (!Array.isArray(items)) {
+      logger.warn({ items, type: typeof items }, 'Expected items to be an array');
+      return [];
+    }
     return items.map(item => ({
       name: item.name,
       quantity: item.quantity || 1,

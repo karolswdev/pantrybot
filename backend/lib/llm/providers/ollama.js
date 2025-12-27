@@ -102,11 +102,23 @@ class OllamaProvider extends BaseLLMProvider {
       // Parse tool calls if present
       let toolCalls;
       if (data.message?.tool_calls && Array.isArray(data.message.tool_calls)) {
-        toolCalls = data.message.tool_calls.map((tc, index) => ({
-          id: `call_${index}`,
-          name: tc.function.name,
-          arguments: tc.function.arguments,
-        }));
+        toolCalls = data.message.tool_calls.map((tc, index) => {
+          // Arguments may be a string (JSON) or already an object
+          let args = tc.function.arguments;
+          if (typeof args === 'string') {
+            try {
+              args = JSON.parse(args);
+            } catch (e) {
+              logger.warn({ args }, 'Failed to parse tool arguments as JSON');
+              args = {};
+            }
+          }
+          return {
+            id: `call_${index}`,
+            name: tc.function.name,
+            arguments: args,
+          };
+        });
       }
 
       return {
