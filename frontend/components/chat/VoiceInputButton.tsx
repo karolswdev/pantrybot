@@ -130,6 +130,7 @@ export function VoiceInputButton({
     return (
       <button
         type="button"
+        data-testid="voice-input-button"
         disabled
         className={cn(
           'relative flex-shrink-0 p-3 rounded-full',
@@ -147,7 +148,10 @@ export function VoiceInputButton({
     <div className="relative">
       {/* Error tooltip */}
       {showError && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 animate-fade-in">
+        <div
+          data-testid="voice-error-tooltip"
+          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 animate-fade-in"
+        >
           <div className="bg-danger-500 text-white text-xs rounded-lg px-3 py-2 shadow-lg">
             <div className="flex items-start gap-2">
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -162,6 +166,7 @@ export function VoiceInputButton({
       {/* Main button */}
       <button
         type="button"
+        data-testid="voice-input-button"
         onClick={handleClick}
         disabled={disabled}
         className={cn(
@@ -220,6 +225,7 @@ export function VoiceRecordingIndicator({
 
   return (
     <div
+      data-testid="voice-recording-indicator"
       className={cn(
         'flex items-center gap-3 px-4 py-2 rounded-xl',
         'bg-danger-50 border-2 border-danger-200',
