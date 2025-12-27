@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('./authMiddleware');
-const { userRepository, notificationRepository } = require('./repositories');
+const { userRepository, notificationRepository, householdRepository } = require('./repositories');
+const { prisma } = require('./repositories');
 const { logger } = require('./lib/logger');
+const { getRecipeService, isRecipeServiceAvailable } = require('./lib/recipes');
 
 // GET /api/v1/notifications/settings
 // Returns the notification settings for the authenticated user
@@ -247,6 +249,102 @@ router.post('/read-all', authMiddleware, async (req, res) => {
     const log = req.log || logger;
     log.error({ err: error, userId: req.user?.id }, 'Failed to mark all notifications as read');
     res.status(500).json({ message: 'An error occurred while marking notifications as read' });
+  }
+});
+
+// GET /api/v1/notifications/recipe-suggestions/:householdId
+// Get recipe suggestions for expiring items and create a notification
+router.get('/recipe-suggestions/:householdId', authMiddleware, async (req, res) => {
+  try {
+    const { householdId } = req.params;
+    const userId = req.user.id;
+
+    // Verify membership
+    const membership = await prisma.householdMember.findFirst({
+      where: { householdId, userId },
+    });
+
+    if (!membership) {
+      return res.status(403).json({ error: 'Not a member of this household' });
+    }
+
+    if (!isRecipeServiceAvailable()) {
+      return res.status(503).json({
+        error: 'Recipe service not available',
+        message: 'Configure SPOONACULAR_API_KEY or an LLM provider',
+      });
+    }
+
+    // Get expiring items (within 3 days)
+    const expirationThreshold = new Date();
+    expirationThreshold.setDate(expirationThreshold.getDate() + 3);
+
+    const expiringItems = await prisma.inventoryItem.findMany({
+      where: {
+        householdId,
+        expirationDate: {
+          lte: expirationThreshold,
+          gte: new Date(),
+        },
+      },
+      orderBy: { expirationDate: 'asc' },
+    });
+
+    if (expiringItems.length === 0) {
+      return res.json({
+        message: 'No expiring items',
+        recipes: [],
+        notification: null,
+      });
+    }
+
+    // Get recipe suggestions
+    const recipeService = getRecipeService();
+    const recipes = await recipeService.findRecipesForExpiring(expiringItems, { count: 3 });
+
+    if (recipes.length === 0) {
+      return res.json({
+        message: 'No recipes found',
+        expiringItems: expiringItems.map(i => i.name),
+        recipes: [],
+        notification: null,
+      });
+    }
+
+    // Create a notification
+    const expiringNames = expiringItems.slice(0, 3).map(i => i.name).join(', ');
+    const recipeNames = recipes.slice(0, 2).map(r => r.title).join(' or ');
+
+    const notification = await notificationRepository.create({
+      userId,
+      type: 'recipe_suggestion',
+      title: 'Recipe ideas for expiring items',
+      message: `Your ${expiringNames} ${expiringItems.length === 1 ? 'is' : 'are'} expiring soon! Try making ${recipeNames}.`,
+      channel: 'in_app',
+      metadata: {
+        householdId,
+        expiringItemIds: expiringItems.map(i => i.id),
+        recipeIds: recipes.map(r => r.id),
+      },
+    });
+
+    res.json({
+      expiringItems: expiringItems.map(i => ({
+        id: i.id,
+        name: i.name,
+        expirationDate: i.expirationDate,
+      })),
+      recipes,
+      notification: notification ? {
+        id: notification.id,
+        title: notification.title,
+        message: notification.message,
+      } : null,
+    });
+  } catch (error) {
+    const log = req.log || logger;
+    log.error({ err: error, householdId: req.params.householdId }, 'Failed to get recipe suggestions');
+    res.status(500).json({ message: 'An error occurred while getting recipe suggestions' });
   }
 });
 

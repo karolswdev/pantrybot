@@ -117,14 +117,34 @@ router.post('/process', authMiddleware, async (req, res) => {
 
     // Execute actions if requested
     let executionResult = null;
-    if (executeActions && intent.action !== 'unknown' && intent.action !== 'query') {
+    if (executeActions && intent.action !== 'unknown' && intent.action !== 'query' && intent.action !== 'recipe') {
       executionResult = await executeIntent(intent, householdId, req.user.id);
+    }
+
+    // Handle recipe requests
+    let recipes = null;
+    if (intent.action === 'recipe') {
+      try {
+        const { getRecipeService, isRecipeServiceAvailable } = require('./lib/recipes');
+        if (isRecipeServiceAvailable()) {
+          const recipeService = getRecipeService();
+          const recipeResult = await recipeService.findRecipesForInventory(items, {
+            count: 3,
+            prioritizeExpiring: intent.recipeRequest?.prioritizeExpiring !== false,
+            dietaryRestrictions: intent.recipeRequest?.dietaryRestrictions || [],
+          });
+          recipes = recipeResult;
+        }
+      } catch (recipeError) {
+        logger.warn({ error: recipeError.message }, 'Failed to fetch recipes');
+      }
     }
 
     res.json({
       intent,
       executed: executeActions && executionResult !== null,
       result: executionResult,
+      recipes,
     });
   } catch (error) {
     logger.error({ error: error.message }, 'Failed to process LLM message');

@@ -14,16 +14,17 @@ interface ChatInputProps {
 interface ResponseBubble {
   id: string;
   message: string;
-  type: 'success' | 'error' | 'info';
+  type: 'success' | 'error' | 'info' | 'recipe';
   action?: string;
   itemCount?: number;
+  recipes?: Array<{ id: string | number; title: string }>;
 }
 
 const SUGGESTIONS = [
   { text: 'I bought milk and eggs', icon: ShoppingBag, color: 'primary' },
   { text: 'Used the chicken for dinner', icon: ChefHat, color: 'fresh' },
   { text: 'The lettuce went bad', icon: Trash2, color: 'accent' },
-  { text: "What's expiring soon?", icon: Sparkles, color: 'secondary' },
+  { text: 'What can I make for dinner?', icon: ChefHat, color: 'secondary' },
 ];
 
 export function ChatInput({ className, onSuccess }: ChatInputProps) {
@@ -86,6 +87,14 @@ export function ChatInput({ className, onSuccess }: ChatInputProps) {
         addResponse({
           message: responseText,
           type: 'info',
+        });
+      } else if (intent.action === 'recipe' && result.recipes) {
+        // Handle recipe suggestions
+        addResponse({
+          message: responseText,
+          type: 'recipe',
+          action: 'recipe',
+          recipes: result.recipes.slice(0, 3).map(r => ({ id: r.id, title: r.title })),
         });
       } else if (result.executed && result.result) {
         const { itemsProcessed, errors } = result.result;
@@ -161,6 +170,7 @@ export function ChatInput({ className, onSuccess }: ChatInputProps) {
               response.type === 'success' && 'bg-primary-50/95 border-primary-200 text-primary-800',
               response.type === 'error' && 'bg-danger-50/95 border-danger-200 text-danger-800',
               response.type === 'info' && 'bg-white/95 border-gray-200 text-gray-800',
+              response.type === 'recipe' && 'bg-secondary-50/95 border-secondary-200 text-secondary-800',
             )}
             style={{ animationDelay: `${index * 50}ms` }}
           >
@@ -170,10 +180,12 @@ export function ChatInput({ className, onSuccess }: ChatInputProps) {
                 response.type === 'success' && 'bg-primary-500 text-white',
                 response.type === 'error' && 'bg-danger-500 text-white',
                 response.type === 'info' && 'bg-gray-400 text-white',
+                response.type === 'recipe' && 'bg-secondary-500 text-white',
               )}>
                 {response.type === 'success' && <Check className="w-4 h-4" />}
                 {response.type === 'error' && <AlertCircle className="w-4 h-4" />}
                 {response.type === 'info' && <Sparkles className="w-4 h-4" />}
+                {response.type === 'recipe' && <ChefHat className="w-4 h-4" />}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium leading-relaxed">{response.message}</p>
@@ -181,6 +193,18 @@ export function ChatInput({ className, onSuccess }: ChatInputProps) {
                   <p className="text-xs mt-1 opacity-70">
                     {response.itemCount} item{response.itemCount !== 1 ? 's' : ''} {response.action === 'add' ? 'added' : response.action === 'consume' ? 'used' : 'updated'}
                   </p>
+                )}
+                {response.type === 'recipe' && response.recipes && response.recipes.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {response.recipes.map((recipe, i) => (
+                      <div
+                        key={recipe.id}
+                        className="text-xs bg-white/50 rounded-lg px-2 py-1 font-medium"
+                      >
+                        {i + 1}. {recipe.title}
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
               <button
@@ -196,6 +220,7 @@ export function ChatInput({ className, onSuccess }: ChatInputProps) {
               response.type === 'success' && 'bg-primary-50 border-r-2 border-b-2 border-primary-200',
               response.type === 'error' && 'bg-danger-50 border-r-2 border-b-2 border-danger-200',
               response.type === 'info' && 'bg-white border-r-2 border-b-2 border-gray-200',
+              response.type === 'recipe' && 'bg-secondary-50 border-r-2 border-b-2 border-secondary-200',
             )} />
           </div>
         ))}

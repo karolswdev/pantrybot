@@ -39,13 +39,33 @@ export interface ParsedItem {
   category?: string;
 }
 
+export interface RecipeRequest {
+  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'dessert' | 'any';
+  prioritizeExpiring: boolean;
+  specificIngredients: string[];
+  dietaryRestrictions: string[];
+}
+
+export interface RecipeSuggestion {
+  id: string | number;
+  title: string;
+  description?: string;
+  image?: string;
+  readyInMinutes?: number;
+  servings?: number;
+  usedIngredients: string[];
+  missedIngredients?: string[];
+  source: 'spoonacular' | 'llm';
+}
+
 export interface InventoryIntent {
-  action: 'add' | 'consume' | 'waste' | 'query' | 'unknown';
+  action: 'add' | 'consume' | 'waste' | 'query' | 'recipe' | 'unknown';
   items: ParsedItem[];
   response?: string;
   confidence: number;
   queryType?: string;
   filter?: string;
+  recipeRequest?: RecipeRequest;
 }
 
 export interface ProcessMessageResponse {
@@ -56,6 +76,7 @@ export interface ProcessMessageResponse {
     itemsProcessed: number;
     errors: Array<{ item: string; error: string }>;
   };
+  recipes?: RecipeSuggestion[];
 }
 
 export function useProcessMessage() {

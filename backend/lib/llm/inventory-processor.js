@@ -8,6 +8,7 @@
  *   "Used the chicken for dinner" → consume_items
  *   "The lettuce went bad" → waste_items
  *   "What's expiring soon?" → query_inventory
+ *   "What can I make for dinner?" → suggest_recipes
  */
 
 const { getProvider, isLLMConfigured } = require('./provider-factory');
@@ -25,9 +26,10 @@ const { logger } = require('../logger');
 
 /**
  * @typedef {Object} InventoryIntent
- * @property {'add' | 'consume' | 'waste' | 'query' | 'unknown'} action
+ * @property {'add' | 'consume' | 'waste' | 'query' | 'recipe' | 'unknown'} action
  * @property {ParsedItem[]} items - Parsed items
  * @property {string} [response] - Natural language response for queries
+ * @property {Object} [recipeRequest] - Recipe request details (for recipe action)
  * @property {number} confidence - Confidence score 0-1
  */
 
@@ -185,6 +187,39 @@ const INVENTORY_TOOLS = [
       required: ['queryType', 'response'],
     },
   },
+  {
+    name: 'suggest_recipes',
+    description: 'Suggest recipes based on available ingredients. Use when user asks "what can I make", "recipe ideas", "what should I cook", "dinner ideas", or similar cooking-related questions.',
+    parameters: {
+      type: 'object',
+      properties: {
+        mealType: {
+          type: 'string',
+          enum: ['breakfast', 'lunch', 'dinner', 'snack', 'dessert', 'any'],
+          description: 'Type of meal the user is looking for',
+        },
+        prioritizeExpiring: {
+          type: 'boolean',
+          description: 'Whether to prioritize items expiring soon (default true)',
+        },
+        specificIngredients: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Specific ingredients user wants to use (if mentioned)',
+        },
+        dietaryRestrictions: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Any dietary restrictions mentioned (vegetarian, vegan, gluten-free, etc.)',
+        },
+        response: {
+          type: 'string',
+          description: 'Friendly acknowledgment that you will find recipes for them',
+        },
+      },
+      required: ['mealType', 'response'],
+    },
+  },
 ];
 
 // System prompt template
@@ -207,9 +242,16 @@ GUIDELINES:
 
 4. For QUERIES: Provide helpful, concise answers based on the inventory context
 
-5. Always respond in a friendly, helpful tone
+5. For RECIPES: When users ask "what can I make", "recipe ideas", "what should I cook", or similar:
+   - Use the suggest_recipes tool
+   - Extract meal type if mentioned (breakfast, lunch, dinner, etc.)
+   - Note any specific ingredients they want to use
+   - Note any dietary restrictions
+   - Prioritize expiring items unless they specify otherwise
 
-6. If the message isn't about food/groceries, respond conversationally without using tools`;
+6. Always respond in a friendly, helpful tone
+
+7. If the message isn't about food/groceries, respond conversationally without using tools`;
 
 class InventoryIntentProcessor {
   /**
@@ -349,6 +391,20 @@ class InventoryIntentProcessor {
             filter: args.filter,
             response: args.response,
             confidence: 0.85,
+          };
+
+        case 'suggest_recipes':
+          return {
+            action: 'recipe',
+            items: [],
+            recipeRequest: {
+              mealType: args.mealType || 'any',
+              prioritizeExpiring: args.prioritizeExpiring !== false,
+              specificIngredients: args.specificIngredients || [],
+              dietaryRestrictions: args.dietaryRestrictions || [],
+            },
+            response: args.response,
+            confidence: 0.9,
           };
 
         default:
